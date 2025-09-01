@@ -1,0 +1,34 @@
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+build/
+coverage/
+linux/
+macos/
+web/
+windows/
+ios/
+android/
+
+# Arquivos de IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de lock e cache
+pubspec.lock
+
+# Arquivos de testes locais
+test/
+
+# Arquivos gerados automaticamente
+.metadata
+analysis_options.yaml
