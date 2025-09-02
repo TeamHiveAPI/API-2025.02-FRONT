@@ -1,0 +1,15 @@
+linter:
+  rules:
+    prefer_double_quotes: true
+    avoid_single_cascade_in_expression_statements: true
+
+    camel_case_types: true
+    constant_identifier_names: true
+    library_names: true
+
+    prefer_const_constructors: true
+
+    prefer_final_fields: true
+    always_declare_return_types: true
+    avoid_unused_parameters: true
+    sort_constructors_first: true
