@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide TextField;
+import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/extensions/getScreenSize.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
@@ -27,6 +28,7 @@ class _LoginState extends State<Login> {
     final email = _emailController.text;
     final password = _passwordController.text;
     print("Recebido Email: $email e Senha: $password");
+    Navigator.pushNamed(context, AppRoutes.home);
   }
 
   @override
