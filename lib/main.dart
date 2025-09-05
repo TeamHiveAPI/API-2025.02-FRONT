@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'screens/cadastrar_item.dart';
 import 'screens/escanear_QRCode.dart';
 import 'screens/estoque.dart';
@@ -9,24 +11,38 @@ import 'screens/pedidos.dart';
 import 'screens/login.dart';
 import 'screens/registrar_pedido.dart';
 
-
-
-
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Navegação com Roteador',
       theme: ThemeData(
-        primaryColor: Colors.indigo,
-        scaffoldBackgroundColor: Colors.grey[100],
-        textTheme: TextTheme(bodyMedium: TextStyle(fontSize: 18)),
+        textTheme: GoogleFonts.ubuntuSansTextTheme(Theme.of(context).textTheme),
+
+        colorScheme: ColorScheme.fromSeed(seedColor: brandBlue),
+
+        inputDecorationTheme: const InputDecorationTheme(
+          contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+          floatingLabelStyle: TextStyle(
+            color: brandBlue,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: text80,
+          selectionColor: text80,
+          selectionHandleColor: text80,
+        ),
       ),
+
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -50,9 +66,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => RegistrarPedido());
           default:
             return MaterialPageRoute(
-              builder: (_) => Scaffold(
-                body: Center(child: Text('Rota não encontrada')),
-              ),
+              builder: (_) =>
+                  Scaffold(body: Center(child: Text('Rota não encontrada'))),
             );
         }
       },
