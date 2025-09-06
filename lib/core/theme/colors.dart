@@ -13,5 +13,3 @@ const Color grayLight = Color(0xFFFBFBFB);
 const Color text40 = Color(0xFF404040);
 const Color text60 = Color(0xFF606060);
 const Color text80 = Color(0xFF808080);
-
-
