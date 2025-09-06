@@ -2,9 +2,11 @@ import 'package:flutter/material.dart' hide TextField;
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/extensions/getScreenSize.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/core/theme/global_styles.dart';
 import 'package:sistema_almox/widgets/text_field.dart';
+import 'package:sistema_almox/widgets/snackbar.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -16,6 +18,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -24,12 +27,58 @@ class _LoginState extends State<Login> {
     super.dispose();
   }
 
-  void _login() {
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    print("Recebido Email: $email e Senha: $password");
-    Navigator.pushNamed(context, AppRoutes.home);
+Future<void> _login() async {
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+
+  if (email.isEmpty || password.isEmpty) {
+    showCustomSnackbar(
+      context,
+      'Por favor, preencha o e-mail e a senha.',
+      isError: true,
+    );
+    return;
   }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    final bool loginSuccess = await AuthService.instance.login(
+      email: email,
+      password: password,
+    );
+
+    if (loginSuccess && mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+        (route) => false,
+      );
+    } else if (mounted) {
+      showCustomSnackbar(
+        context,
+        'Usuário ou senha inválidos.',
+        isError: true,
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      showCustomSnackbar(
+        context,
+        'Ocorreu um erro inesperado. Tente novamente.',
+        isError: true,
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +102,7 @@ class _LoginState extends State<Login> {
             top: 16,
             left: 16,
             child: SafeArea(
-              child: Image.asset(
-                'assets/bandeira-exercito.png',
-                width: 64,
-              ),
+              child: Image.asset('assets/bandeira-exercito.png', width: 64),
             ),
           ),
 
@@ -104,7 +150,8 @@ class _LoginState extends State<Login> {
                       text: 'Acessar o Sistema',
                       svgIconPath: 'assets/icons/arrow-right.svg',
                       widthPercent: 1.0,
-                      onPressed: _login,
+                      onPressed: _isLoading ? null : () => _login(),
+                      isLoading: _isLoading,
                     ),
                     const SizedBox(height: 16.0),
 
@@ -112,8 +159,7 @@ class _LoginState extends State<Login> {
                       width: double.infinity,
                       height: 48,
                       child: TextButton(
-                        onPressed: () {
-                        },
+                        onPressed: () {},
                         style: ButtonStyle(
                           foregroundColor: WidgetStateProperty.all<Color>(
                             brandBlue,
