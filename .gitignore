@@ -26,7 +26,6 @@ Thumbs.db
 # Arquivos de lock e cache
 pubspec.lock
 node_modules/
-.husky
 
 # Arquivos de testes locais
 test/
