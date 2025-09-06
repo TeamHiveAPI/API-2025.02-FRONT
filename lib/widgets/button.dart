@@ -6,7 +6,7 @@ enum IconPosition { left, right }
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String? svgIconPath;
   final IconPosition iconPosition;
   final double? iconStrokeWidth;
@@ -15,6 +15,7 @@ class CustomButton extends StatelessWidget {
   final double borderRadius;
   final bool secondary;
   final bool danger;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -28,6 +29,7 @@ class CustomButton extends StatelessWidget {
     this.borderRadius = 8.0,
     this.secondary = false,
     this.danger = false,
+    this.isLoading = false,
   }) : assert(
          widthPercent == null || (widthPercent > 0 && widthPercent <= 1),
          'widthPercent deve estar entre 0.0 e 1.0',
@@ -55,9 +57,16 @@ class CustomButton extends StatelessWidget {
     final buttonStyle = ButtonStyle(
       elevation: WidgetStateProperty.all(0),
       shadowColor: WidgetStateProperty.all(Colors.transparent),
-      backgroundColor: WidgetStateProperty.all(_backgroundColor),
+      backgroundColor: WidgetStateProperty.resolveWith<Color>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return _backgroundColor.withAlpha(180);
+        }
+        return _backgroundColor;
+      }),
       foregroundColor: WidgetStateProperty.all(_contentColor),
-      overlayColor: WidgetStateProperty.all(const Color.fromARGB(40, 0, 0, 0)), 
+      overlayColor: WidgetStateProperty.all(const Color.fromARGB(40, 0, 0, 0)),
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
@@ -70,9 +79,9 @@ class CustomButton extends StatelessWidget {
     );
 
     final buttonWidget = ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: buttonStyle,
-      child: _buildButtonContent(),
+      child: isLoading ? _buildLoadingIndicator() : _buildButtonContent(),
     );
 
     if (widthPercent != null) {
@@ -91,6 +100,17 @@ class CustomButton extends StatelessWidget {
     }
 
     return buttonWidget;
+  }
+
+  Widget _buildLoadingIndicator() {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: CircularProgressIndicator(
+        color: _contentColor,
+        strokeWidth: 2.5,
+      ),
+    );
   }
 
   Widget _buildButtonContent() {

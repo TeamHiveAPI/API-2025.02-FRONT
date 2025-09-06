@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Navegação com Roteador',
+      title: 'Sistema Almox',
       theme: ThemeData(
         textTheme: GoogleFonts.ubuntuSansTextTheme(Theme.of(context).textTheme),
         colorScheme: ColorScheme.fromSeed(seedColor: brandBlue),
