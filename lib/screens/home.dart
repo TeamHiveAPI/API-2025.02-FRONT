@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/widgets/data_table/content/last_movimentations.dart';
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -16,19 +15,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             SizedBox(height: 64),
-            Text(
-              'Últimas Movimentações',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: text40,
-              ),
-            ),
 
-            SizedBox(height: 12),
-            LastMovimentationsTable(),
-
-            SizedBox(height: 48),
             Text(
               'Estoque Teste',
               style: TextStyle(
@@ -37,7 +24,7 @@ class HomeScreen extends StatelessWidget {
                 color: text40,
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 16),
             StockItemsTable(),
           ],
         ),

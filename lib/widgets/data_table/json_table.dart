@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:shimmer/shimmer.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/widgets/button.dart';
 import 'table_column.dart';
 
 const TextStyle _defaultCellTextStyle = TextStyle(
@@ -12,44 +13,37 @@ const Color _rowSplashColor = Color(0x1F000000);
 
 enum ThisOrThatSortState { none, primaryFirst, secondaryFirst }
 
-class DynamicJsonTable extends StatefulWidget {
+class DynamicJsonTable extends StatelessWidget {
   final List<Map<String, dynamic>> jsonData;
   final List<TableColumn> columns;
+  final int totalResults;
+  final bool canLoadMore;
+  final bool isLoading;
+  final VoidCallback? onLoadMore;
+  final void Function(TableColumn column) onSort;
   final void Function(Map<String, dynamic> rowData)? onRowTap;
+
+  final String? activeSortColumnDataField;
+  final bool isAscending;
+  final ThisOrThatSortState thisOrThatState;
+
+  final bool showSkeleton;
 
   const DynamicJsonTable({
     super.key,
     required this.jsonData,
     required this.columns,
+    required this.totalResults,
+    required this.canLoadMore,
+    this.isLoading = false,
+    this.onLoadMore,
+    required this.onSort,
     this.onRowTap,
+    this.activeSortColumnDataField,
+    required this.isAscending,
+    required this.thisOrThatState,
+    this.showSkeleton = false,
   });
-
-  @override
-  State<DynamicJsonTable> createState() => _DynamicJsonTableState();
-}
-
-class _DynamicJsonTableState extends State<DynamicJsonTable> {
-  late List<Map<String, dynamic>> _sortedData;
-  String? _activeSortColumnDataField;
-  bool _isAscending = true;
-  bool _isTapPending = false;
-
-  ThisOrThatSortState _thisOrThatState = ThisOrThatSortState.none;
-
-  @override
-  void initState() {
-    super.initState();
-    _sortedData = List.of(widget.jsonData);
-  }
-
-  @override
-  void didUpdateWidget(covariant DynamicJsonTable oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.jsonData != oldWidget.jsonData) {
-      _sortedData = List.of(widget.jsonData);
-      _activeSortColumnDataField = null;
-    }
-  }
 
   dynamic _getValueFromPath(Map<String, dynamic> data, String path) {
     List<String> keys = path.split('.');
@@ -65,90 +59,37 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
     return currentValue;
   }
 
-  void _sort(TableColumn column) {
-    if (column.sortType == null) return;
-
-    final String dataField = column.dataField;
-    final bool isCurrentlyActive = _activeSortColumnDataField == dataField;
-
-    setState(() {
-      _activeSortColumnDataField = dataField;
-
-      if (column.sortType == SortType.thisOrThat) {
-        _isAscending = true;
-
-        ThisOrThatSortState nextState = ThisOrThatSortState.primaryFirst;
-        if (isCurrentlyActive) {
-          if (_thisOrThatState == ThisOrThatSortState.primaryFirst) {
-            nextState = ThisOrThatSortState.secondaryFirst;
-          } else if (_thisOrThatState == ThisOrThatSortState.secondaryFirst) {
-            nextState = ThisOrThatSortState.none;
-          }
-        }
-        _thisOrThatState = nextState;
-
-        if (_thisOrThatState == ThisOrThatSortState.none) {
-          _sortedData = List.of(widget.jsonData);
-          _activeSortColumnDataField = null;
-        } else {
-          _sortedData.sort((a, b) {
-            final valueA = _getValueFromPath(a, dataField)?.toString();
-            final valueB = _getValueFromPath(b, dataField)?.toString();
-            final targetValue =
-                _thisOrThatState == ThisOrThatSortState.primaryFirst
-                ? column.primarySortValue
-                : column.secondarySortValue;
-
-            if (valueA == targetValue && valueB != targetValue) return -1;
-            if (valueB == targetValue && valueA != targetValue) return 1;
-            return 0;
-          });
-        }
-      } else {
-        _thisOrThatState = ThisOrThatSortState.none;
-
-        if (isCurrentlyActive && !_isAscending) {
-          _activeSortColumnDataField = null;
-          _sortedData = List.of(widget.jsonData);
-          return;
-        }
-        _isAscending = isCurrentlyActive ? !_isAscending : true;
-
-        _sortedData.sort((a, b) {
-          final valueA = _getValueFromPath(a, dataField);
-          final valueB = _getValueFromPath(b, dataField);
-          if (valueA == null) return _isAscending ? -1 : 1;
-          if (valueB == null) return _isAscending ? 1 : -1;
-
-          int comparison;
-          if (column.sortType == SortType.numeric) {
-            comparison = (valueA as num).compareTo(valueB as num);
-          } else {
-            comparison = valueA.toString().toLowerCase().compareTo(
-              valueB.toString().toLowerCase(),
-            );
-          }
-          return _isAscending ? comparison : -comparison;
-        });
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_sortedData.isEmpty) {
-      return const Center(child: Text('Nenhum dado encontrado.'));
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: coolGray, width: 2),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6.0),
-        child: Column(children: [_buildHeaderRow(), ..._buildDataRows()]),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: coolGray, width: 2),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6.0),
+            child: Column(
+              children: [
+                _buildHeaderRow(),
+                if (jsonData.isEmpty && !isLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Center(child: Text('Nenhum dado encontrado.')),
+                  ),
+                ..._buildDataRows(),
+              ],
+            ),
+          ),
+        ),
+        if (totalResults > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: _buildFooter(),
+          ),
+      ],
     );
   }
 
@@ -156,23 +97,23 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
     return Container(
       color: coolGray,
       child: Row(
-        children: widget.columns.map((column) {
+        children: columns.map((column) {
           bool isSortable = column.sortType != null;
           bool isActiveSortColumn =
-              _activeSortColumnDataField == column.dataField;
+              activeSortColumnDataField == column.dataField;
 
           IconData iconData = Icons.unfold_more;
 
           if (isActiveSortColumn) {
             if (column.sortType == SortType.thisOrThat) {
-              if (_thisOrThatState == ThisOrThatSortState.primaryFirst) {
+              if (thisOrThatState == ThisOrThatSortState.primaryFirst) {
                 iconData = Icons.arrow_downward;
-              } else if (_thisOrThatState ==
+              } else if (thisOrThatState ==
                   ThisOrThatSortState.secondaryFirst) {
                 iconData = Icons.arrow_upward;
               }
             } else {
-              iconData = _isAscending
+              iconData = isAscending
                   ? Icons.arrow_upward
                   : Icons.arrow_downward;
             }
@@ -181,13 +122,11 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
           return Expanded(
             flex: (column.widthFactor * 100).toInt(),
             child: InkWell(
-              onTap: isSortable ? () => _sort(column) : null,
+              onTap: isSortable ? () => onSort(column) : null,
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 12.0,
-                  top: 12.0,
-                  bottom: 12.0,
-                  right: 0.0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 12.0,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -204,14 +143,13 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
                     ),
                     if (isSortable) const SizedBox(width: 4),
                     if (isSortable)
-                      if (isSortable)
-                        Icon(
-                          iconData,
-                          size: 14,
-                          color: isActiveSortColumn
-                              ? text60
-                              : text60.withAlpha(128),
-                        ),
+                      Icon(
+                        iconData,
+                        size: 14,
+                        color: isActiveSortColumn
+                            ? text60
+                            : text60.withAlpha(128),
+                      ),
                   ],
                 ),
               ),
@@ -223,27 +161,45 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
   }
 
   List<Widget> _buildDataRows() {
-    return _sortedData.asMap().entries.map((entry) {
+    return jsonData.asMap().entries.map((entry) {
       int index = entry.key;
       Map<String, dynamic> rowData = entry.value;
 
-      return Material(
-        color: index.isOdd ? brightGray : Colors.white,
-        child: InkWell(
-          onTap: () {
-            if (_isTapPending) return;
-            _isTapPending = true;
-            Timer(const Duration(milliseconds: 250), () {
-              if (mounted) {
-                widget.onRowTap?.call(rowData);
-                _isTapPending = false;
-              }
-            });
-          },
+      Widget rowContent;
+
+      if (showSkeleton) {
+        rowContent = Shimmer.fromColors(
+          baseColor: Colors.grey.shade300,
+          highlightColor: Colors.grey.shade100,
+          child: Row(
+            children: columns.map((column) {
+              return Expanded(
+                flex: (column.widthFactor * 100).toInt(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 16.975,
+                  ),
+                  child: Container(
+                    height: 14.0,
+                    decoration: BoxDecoration(
+                      color: Colors
+                          .white,
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      } else {
+        rowContent = InkWell(
+          onTap: isLoading ? null : () => onRowTap?.call(rowData),
           highlightColor: _rowHighlightColor,
           splashColor: _rowSplashColor,
           child: Row(
-            children: widget.columns.map((column) {
+            children: columns.map((column) {
               final rawValue = _getValueFromPath(rowData, column.dataField);
               final Widget cellContent;
               if (column.cellBuilder != null) {
@@ -253,7 +209,12 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
                     column.formatter?.call(rawValue) ??
                     rawValue?.toString() ??
                     '';
-                cellContent = Text(displayValue, style: _defaultCellTextStyle);
+                cellContent = Text(
+                  displayValue,
+                  style: _defaultCellTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                );
               }
 
               return Expanded(
@@ -268,8 +229,33 @@ class _DynamicJsonTableState extends State<DynamicJsonTable> {
               );
             }).toList(),
           ),
-        ),
+        );
+      }
+
+      return Material(
+        color: index.isOdd ? brightGray : Colors.white,
+        child: rowContent,
       );
     }).toList();
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        Text(
+          'Mostrando ${jsonData.length} de $totalResults resultados',
+          style: const TextStyle(color: text80, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        if (canLoadMore)
+          CustomButton(
+            text: 'Carregar Mais',
+            secondary: true,
+            widthPercent: 1.0,
+            onPressed: isLoading ? null : onLoadMore,
+            isLoading: isLoading,
+          ),
+      ],
+    );
   }
 }

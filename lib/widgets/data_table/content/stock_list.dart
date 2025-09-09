@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:sistema_almox/utils/api_simulator.dart';
+import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
-import 'dart:convert';
-
 import 'package:sistema_almox/widgets/modal/content/base_modal.dart';
 import 'package:sistema_almox/widgets/modal/detalhes_item_modal.dart';
-import 'package:sistema_almox/widgets/shimmer_card.dart';
 
 class StockItemsTable extends StatefulWidget {
   const StockItemsTable({super.key});
@@ -15,36 +13,45 @@ class StockItemsTable extends StatefulWidget {
   State<StockItemsTable> createState() => _StockItemsTableState();
 }
 
-class _StockItemsTableState extends State<StockItemsTable> {
-  final List<TableColumn> _stockColumns = [
-    TableColumn(
-      title: 'Nome do Item',
-      dataField: 'itemName',
-      widthFactor: 0.6,
-      sortType: SortType.alphabetic,
-    ),
-    TableColumn(
-      title: 'QTD',
-      dataField: 'quantity',
-      widthFactor: 0.2,
-      sortType: SortType.numeric,
-    ),
-    TableColumn(
-      title: 'Status',
-      dataField: 'status',
-      widthFactor: 0.3,
-      sortType: SortType.thisOrThat,
-      primarySortValue: 'Pendente',
-      secondarySortValue: 'Finalizado',
-    ),
-  ];
+class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
+  @override
+  List<TableColumn> get tableColumns => [
+        TableColumn(
+          title: 'Nome do Item',
+          dataField: 'itemName',
+          widthFactor: 0.5,
+          sortType: SortType.alphabetic,
+        ),
+        TableColumn(
+          title: 'QTD',
+          dataField: 'quantity',
+          widthFactor: 0.2,
+          sortType: SortType.numeric,
+        ),
+        TableColumn(
+          title: 'Status',
+          dataField: 'status',
+          widthFactor: 0.3,
+          sortType: SortType.thisOrThat,
+          primarySortValue: 'Pendente',
+          secondarySortValue: 'Finalizado',
+        ),
+      ];
 
-  Future<List<Map<String, dynamic>>> _loadJsonData() async {
-    final String jsonString = await rootBundle.loadString(
-      'lib/temp/estoque.json',
+  @override
+  Future<PaginatedResponse> performFetch(int page, SortParams sortParams) {
+    return fetchItemsFromAsset(
+      assetPath: 'lib/temp/estoque.json',
+      page: page,
+      allColumns: tableColumns,
+      sortParams: sortParams,
     );
-    final List<dynamic> jsonList = json.decode(jsonString);
-    return jsonList.cast<Map<String, dynamic>>();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initTableHandler();
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
@@ -52,43 +59,37 @@ class _StockItemsTableState extends State<StockItemsTable> {
       context: context,
       title: "Detalhes do Item",
       child: DetalhesItemModal(
-        nome: itemData['itemName']?.toString() ?? 'Não informado',
-        numFicha: itemData['numFicha']?.toString() ?? 'Não informado',
-        unidMedida: itemData['unidMedida']?.toString() ?? 'Não informado',
+        nome: itemData['itemName']?.toString() ?? 'N/A',
+        numFicha: itemData['numFicha']?.toString() ?? 'N/A',
+        unidMedida: itemData['unidMedida']?.toString() ?? 'N/A',
         qtdDisponivel: itemData['quantity'] ?? 0,
         qtdReservada: itemData['qtdReservada'] ?? 0,
-        grupo: itemData['grupo']?.toString() ?? 'Não informado',
+        grupo: itemData['grupo']?.toString() ?? 'N/A',
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _loadJsonData(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const ShimmerPlaceholder(
-            height: 500,
-          );
-        }
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Erro ao carregar dados: ${snapshot.error}'),
-          );
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: Text('Nenhum item em estoque encontrado.'),
-          );
-        }
+    final bool showSkeleton = isLoading && loadedItems.isEmpty;
 
-        return DynamicJsonTable(
-          jsonData: snapshot.data!,
-          columns: _stockColumns,
-          onRowTap: _handleRowTap,
-        );
-      },
+    final List<Map<String, dynamic>> displayData = showSkeleton
+        ? List.generate(8, (_) => <String, dynamic>{})
+        : loadedItems;
+
+    return DynamicJsonTable(
+      jsonData: displayData,
+      columns: tableColumns,
+      isLoading: isLoading,
+      showSkeleton: showSkeleton,
+      totalResults: totalItems,  
+      canLoadMore: hasMore,
+      onRowTap: showSkeleton ? null : _handleRowTap,
+      onLoadMore: loadMoreData,
+      onSort: handleSort,
+      activeSortColumnDataField: activeSortColumnDataField,
+      isAscending: isAscending,
+      thisOrThatState: thisOrThatState,
     );
   }
 }
