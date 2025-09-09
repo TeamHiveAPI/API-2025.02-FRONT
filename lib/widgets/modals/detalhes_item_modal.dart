@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'base_modals.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/widgets/button.dart';
 
 class DetalhesItemModal extends StatelessWidget {
   final String nome;
-  final String n_ficha;
-  final String un_medida;
+  final String numFicha;
+  final String unidMedida;
   final int qtdDisponivel;
   final int qtdReservada;
   final String grupo;
@@ -12,8 +13,8 @@ class DetalhesItemModal extends StatelessWidget {
   const DetalhesItemModal({
     super.key,
     required this.nome,
-    required this.n_ficha,
-    required this.un_medida,
+    required this.numFicha,
+    required this.unidMedida,
     required this.qtdDisponivel,
     required this.qtdReservada,
     required this.grupo,
@@ -21,189 +22,107 @@ class DetalhesItemModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseModal(
-      titulo: "Detalhes do Item",
-      conteudo: Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    // Nome
-    Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      margin: const EdgeInsets.only(bottom: 8, right: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: [
-          const Text(
-            "Nome: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(nome),
-        ],
-      ),
-    ),
-
-    // Nº da Ficha
-    Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          margin: const EdgeInsets.only(bottom: 8, right: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Column(
-            children: [
-              const Text(
-                "N° da Ficha: ",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(n_ficha),
-            ],
-          ),
-        ),
-      ),
+        _buildDetailItem("NOME", nome),
+        const SizedBox(height: 12),
 
-      // Unidade de Medida
-      Expanded(
-        child:  Container(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Column(
-            children: [
-              const Text(
-                "Unidade de Medida: ",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(un_medida),
-            ],
-          ),
-        ),
-      ),
-    ],
-  ),
-
-    // Quantidade Disponível
-    Row(
-  children: [
-    Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        margin: const EdgeInsets.only(bottom: 8, right: 8),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
+        Row(
           children: [
-            const Text(
-              "Qtd. Disponível: ",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(qtdDisponivel.toString()),
+            Expanded(child: _buildDetailItem("Nº DA FICHA", numFicha)),
+            const SizedBox(width: 12),
+            Expanded(child: _buildDetailItem("UNIDADE DE MEDIDA", unidMedida)),
           ],
         ),
-      ),
-    ),
-    Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
+        const SizedBox(height: 12),
+
+        Row(
           children: [
-            const Text(
-              "Qtd. Reservada: ",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(qtdReservada.toString()),
+            Expanded(
+                child:
+                    _buildDetailItem("QTD. DISPONÍVEL", qtdDisponivel.toString())),
+            const SizedBox(width: 12),
+            Expanded(
+                child:
+                    _buildDetailItem("QTD. RESERVADA", qtdReservada.toString())),
           ],
         ),
-      ),
-    ),
-  ],
-),
+        const SizedBox(height: 12),
 
-    // Grupo
-    Container(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: [
-          const Text(
-            "Grupo: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(grupo),
-        ],
-      ),
-    ),
+        _buildDetailItem("GRUPO", grupo),
+        const SizedBox(height: 24),
 
-    const SizedBox(height: 20),
-
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-        iconColor: Colors.white,
-        alignment: Alignment.center,
-      ),
-      onPressed: () {},
-      icon: const Icon(Icons.history),
-      label: const Text("Ver Histórico de Movimentação"),
-    ),
-  ],
-),
-
-    const SizedBox(height: 10),
-
-    // Linha de botões
-    Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.edit),
-            label: const Text("Editar"),
-          ),
+        CustomButton(
+          text: "Ver Histórico de Movimentação",
+          onPressed: () {},
+          isFullWidth: true,
+          svgIconPath: 'assets/icons/list.svg',
+          iconPosition: IconPosition.right,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.qr_code),
-            label: const Text("QR Code"),
-          ),
+        const SizedBox(height: 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: CustomButton(
+                text: "Editar",
+                onPressed: () {},
+                secondary: true,
+                isFullWidth: true,
+                svgIconPath: 'assets/icons/edit.svg',
+                iconPosition: IconPosition.right,
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: CustomButton(
+                text: "QR Code",
+                onPressed: () {},
+                secondary: true,
+                isFullWidth: true,
+                svgIconPath: 'assets/icons/download.svg',
+                iconPosition: IconPosition.right,
+              ),
+            ),
+          ],
         ),
       ],
-    ),
-  ],
-),
+    );
+  }
 
+  Widget _buildDetailItem(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFBFBFB),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: text80,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: text40,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
