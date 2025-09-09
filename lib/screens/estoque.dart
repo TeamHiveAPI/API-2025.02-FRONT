@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/modals/filtro_modal.dart';
+import 'package:sistema_almox/widgets/modals/base_modal.dart';
 import '../widgets/modals/detalhes_item_modal.dart';
 
 class StockScreen extends StatelessWidget {
@@ -8,45 +8,28 @@ class StockScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Exemplo Modais")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton
-            (
-              style: IconButton.styleFrom
-              (
-                backgroundColor: Colors.indigo,
-                foregroundColor: Colors.white,
-              ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              child: const Text("Ver Detalhes do Item"),
               onPressed: () {
-                showDialog
-                (
+                showCustomBottomSheet(
                   context: context,
-                  builder: (_) => const FiltrosModal(),
+                  title: "Detalhes do Item",
+                  child: const DetalhesItemModal(
+                    nome: "Alicate",
+                    numFicha: "POL49205",
+                    unidMedida: "Pacote",
+                    qtdDisponivel: 82,
+                    qtdReservada: 24,
+                    grupo: "Segurança",
+                  ),
                 );
               },
-              icon: const Icon(Icons.filter_alt_sharp),
             ),
-
-            const SizedBox(height: 20),
-            // ElevatedButton(
-            //   child: const Text("Abrir Detalhes do Item"),
-            //   onPressed: () {
-            //     showDialog(
-            //       context: context,
-            //       builder: (_) => const DetalhesItemModal(
-            //         nome: "Alicate",
-            //         n_ficha: "POL49205",
-            //         un_medida: "Pacote",
-            //         qtdDisponivel: 82,
-            //         qtdReservada: 24,
-            //         grupo: "Segurança",
-            //       ),
-            //     );
-            //   },
-            // ),
           ],
         ),
       ),
