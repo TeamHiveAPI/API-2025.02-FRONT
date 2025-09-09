@@ -1,36 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/widgets/modal/content/base_modal.dart';
-import '../widgets/modal/detalhes_item_modal.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 
 class StockScreen extends StatelessWidget {
   const StockScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            ElevatedButton(
-              child: const Text("Ver Detalhes do Item"),
-              onPressed: () {
-                showCustomBottomSheet(
-                  context: context,
-                  title: "Detalhes do Item",
-                  child: const DetalhesItemModal(
-                    nome: "Alicate",
-                    numFicha: "POL49205",
-                    unidMedida: "Pacote",
-                    qtdDisponivel: 82,
-                    qtdReservada: 24,
-                    grupo: "Segurança",
-                  ),
-                );
-              },
-            ),
-          ],
+    return Container(
+      color: Colors.white,
+
+      width: double.infinity,
+      height: double.infinity,
+
+      child: const Center(
+        child: Text(
+          'Página Estoque',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: text40,
+          ),
         ),
       ),
     );
