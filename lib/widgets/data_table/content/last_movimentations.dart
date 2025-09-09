@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:sistema_almox/widgets/dynamic_table/json_table.dart';
-import 'package:sistema_almox/widgets/dynamic_table/table_column.dart';
+import 'package:sistema_almox/widgets/data_table/json_table.dart';
+import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'dart:convert';
 
 import 'package:sistema_almox/widgets/shimmer_card.dart';

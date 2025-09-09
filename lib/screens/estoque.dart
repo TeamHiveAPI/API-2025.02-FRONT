@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/widgets/modals/base_modal.dart';
-import '../widgets/modals/detalhes_item_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/base_modal.dart';
+import '../widgets/modal/detalhes_item_modal.dart';
 
 class StockScreen extends StatelessWidget {
   const StockScreen({super.key});

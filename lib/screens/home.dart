@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/widgets/dynamic_table/tables/last_movimentations.dart';
-import 'package:sistema_almox/widgets/dynamic_table/tables/stock_list.dart';
+import 'package:sistema_almox/widgets/data_table/content/last_movimentations.dart';
+import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

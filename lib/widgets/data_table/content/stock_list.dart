@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:sistema_almox/widgets/dynamic_table/json_table.dart';
-import 'package:sistema_almox/widgets/dynamic_table/table_column.dart';
+import 'package:sistema_almox/widgets/data_table/json_table.dart';
+import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'dart:convert';
 
-import 'package:sistema_almox/widgets/modals/base_modal.dart';
-import 'package:sistema_almox/widgets/modals/detalhes_item_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/base_modal.dart';
+import 'package:sistema_almox/widgets/modal/detalhes_item_modal.dart';
 import 'package:sistema_almox/widgets/shimmer_card.dart';
 
 class StockItemsTable extends StatefulWidget {
