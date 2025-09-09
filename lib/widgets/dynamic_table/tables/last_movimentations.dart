@@ -16,13 +16,13 @@ class _LastMovimentationsTableState extends State<LastMovimentationsTable> {
     TableColumn(
       title: 'Nome do Item',
       dataField: 'nomeItem',
-      widthFactor: 0.475,
+      widthFactor: 0.6,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
       dataField: 'quantidade',
-      widthFactor: 0.225,
+      widthFactor: 0.2,
       sortType: SortType.numeric,
       cellBuilder: (value) {
         if (value is! num) return Text(value?.toString() ?? '');

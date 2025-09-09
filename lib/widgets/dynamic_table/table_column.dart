@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 enum SortType {
   alphabetic,
   numeric,
+  thisOrThat,
 }
 
 class TableColumn {
@@ -10,19 +11,20 @@ class TableColumn {
   final String dataField;
   final double widthFactor;
   final SortType? sortType;
-
-  final Widget Function(dynamic value)? cellBuilder;
   final String Function(dynamic)? formatter;
+  final Widget Function(dynamic)? cellBuilder;
   
-  final TextStyle? textStyle;
+  final String? primarySortValue;
+  final String? secondarySortValue;
 
   TableColumn({
     required this.title,
     required this.dataField,
-    required this.widthFactor,
+    this.widthFactor = 1.0,
     this.sortType,
-    this.cellBuilder,
     this.formatter,
-    this.textStyle,
+    this.cellBuilder,
+    this.primarySortValue,
+    this.secondarySortValue,
   });
 }

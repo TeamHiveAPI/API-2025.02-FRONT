@@ -1,42 +1,92 @@
 [
   {
     "itemName": "Alicate",
-    "quantity": 82
+    "quantity": 82,
+    "status": "Pendente",
+    "numFicha": "FER1001",
+    "unidMedida": "Unidade",
+    "grupo": "Ferramentas",
+    "qtdReservada": 10
   },
   {
     "itemName": "Arame Farpado",
-    "quantity": 104
+    "quantity": 104,
+    "status": "Finalizado",
+    "numFicha": "SEG2002",
+    "unidMedida": "Rolo",
+    "grupo": "Segurança",
+    "qtdReservada": 5
   },
   {
     "itemName": "Cinto tático",
-    "quantity": 32
+    "quantity": 32,
+    "status": "Pendente",
+    "numFicha": "VES3003",
+    "unidMedida": "Unidade",
+    "grupo": "Vestuário",
+    "qtdReservada": 2
   },
   {
     "itemName": "Corda de rapel",
-    "quantity": 10
+    "quantity": 10,
+    "status": "Finalizado",
+    "numFicha": "ACE4004",
+    "unidMedida": "Metro",
+    "grupo": "Acessórios",
+    "qtdReservada": 0
   },
   {
     "itemName": "Capa de chuva camuflada",
-    "quantity": 92
+    "quantity": 92,
+    "status": "Pendente",
+    "numFicha": "VES3004",
+    "unidMedida": "Unidade",
+    "grupo": "Vestuário",
+    "qtdReservada": 15
   },
   {
     "itemName": "Capacete balístico",
-    "quantity": 8
+    "quantity": 8,
+    "status": "Finalizado",
+    "numFicha": "SEG2005",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 1
   },
   {
     "itemName": "Cantil",
-    "quantity": 87
+    "quantity": 87,
+    "status": "Pendente",
+    "numFicha": "ACE4006",
+    "unidMedida": "Unidade",
+    "grupo": "Acessórios",
+    "qtdReservada": 20
   },
   {
     "itemName": "Colete à prova de balas",
-    "quantity": 44
+    "quantity": 44,
+    "status": "Pendente",
+    "numFicha": "SEG2007",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 8
   },
   {
     "itemName": "Detector de metais",
-    "quantity": 12
+    "quantity": 12,
+    "status": "Finalizado",
+    "numFicha": "ELE5008",
+    "unidMedida": "Unidade",
+    "grupo": "Eletrônicos",
+    "qtdReservada": 3
   },
   {
     "itemName": "Equipamento de rádio",
-    "quantity": 4
+    "quantity": 4,
+    "status": "Finalizado",
+    "numFicha": "ELE5009",
+    "unidMedida": "Unidade",
+    "grupo": "Eletrônicos",
+    "qtdReservada": 0
   }
 ]
