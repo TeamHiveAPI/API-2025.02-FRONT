@@ -1,0 +1,290 @@
+[
+  {
+    "itemName": "Corda de rapel",
+    "quantity": 10,
+    "status": "Finalizado",
+    "numFicha": "ACE4004",
+    "unidMedida": "Metro",
+    "grupo": "Acessórios",
+    "qtdReservada": 0
+  },
+  {
+    "itemName": "Capa de chuva camuflada",
+    "quantity": 92,
+    "status": "Pendente",
+    "numFicha": "VES3004",
+    "unidMedida": "Unidade",
+    "grupo": "Vestuário",
+    "qtdReservada": 15
+  },
+  {
+    "itemName": "Capacete balístico",
+    "quantity": 8,
+    "status": "Finalizado",
+    "numFicha": "SEG2005",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 1
+  },
+  {
+    "itemName": "Mochila tática 60L",
+    "quantity": 25,
+    "status": "Pendente",
+    "numFicha": "EQU1010",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 5
+  },
+  {
+    "itemName": "Lanterna de cabeça",
+    "quantity": 40,
+    "status": "Finalizado",
+    "numFicha": "ACE5002",
+    "unidMedida": "Unidade",
+    "grupo": "Acessórios",
+    "qtdReservada": 3
+  },
+  {
+    "itemName": "Colete balístico nível III",
+    "quantity": 15,
+    "status": "Pendente",
+    "numFicha": "SEG2010",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 2
+  },
+  {
+    "itemName": "Bota militar impermeável",
+    "quantity": 60,
+    "status": "Finalizado",
+    "numFicha": "VES3010",
+    "unidMedida": "Par",
+    "grupo": "Vestuário",
+    "qtdReservada": 10
+  },
+  {
+    "itemName": "Barraca camuflada 4 pessoas",
+    "quantity": 12,
+    "status": "Pendente",
+    "numFicha": "EQU1022",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 1
+  },
+  {
+    "itemName": "Óculos de proteção balístico",
+    "quantity": 30,
+    "status": "Finalizado",
+    "numFicha": "SEG2008",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 4
+  },
+  {
+    "itemName": "Cantina de alumínio 1L",
+    "quantity": 75,
+    "status": "Pendente",
+    "numFicha": "EQU1050",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 12
+  },
+  {
+    "itemName": "Cantil térmico 500ml",
+    "quantity": 50,
+    "status": "Finalizado",
+    "numFicha": "EQU1051",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 6
+  },
+  {
+    "itemName": "Rede de descanso camuflada",
+    "quantity": 18,
+    "status": "Pendente",
+    "numFicha": "EQU1060",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 2
+  },
+  {
+    "itemName": "Máscara tática",
+    "quantity": 22,
+    "status": "Finalizado",
+    "numFicha": "SEG2030",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 1
+  },
+  {
+    "itemName": "Luvas de combate",
+    "quantity": 55,
+    "status": "Pendente",
+    "numFicha": "VES3020",
+    "unidMedida": "Par",
+    "grupo": "Vestuário",
+    "qtdReservada": 7
+  },
+  {
+    "itemName": "Chave multiferramenta",
+    "quantity": 35,
+    "status": "Finalizado",
+    "numFicha": "ACE4100",
+    "unidMedida": "Unidade",
+    "grupo": "Acessórios",
+    "qtdReservada": 5
+  },
+  {
+    "itemName": "Kit primeiros socorros",
+    "quantity": 20,
+    "status": "Pendente",
+    "numFicha": "SAU1001",
+    "unidMedida": "Unidade",
+    "grupo": "Saúde",
+    "qtdReservada": 3
+  },
+  {
+    "itemName": "Colchonete dobrável",
+    "quantity": 28,
+    "status": "Finalizado",
+    "numFicha": "EQU1070",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 2
+  },
+  {
+    "itemName": "Faca de sobrevivência",
+    "quantity": 45,
+    "status": "Pendente",
+    "numFicha": "ACE4200",
+    "unidMedida": "Unidade",
+    "grupo": "Acessórios",
+    "qtdReservada": 6
+  },
+  {
+    "itemName": "Chapéu camuflado",
+    "quantity": 38,
+    "status": "Finalizado",
+    "numFicha": "VES3050",
+    "unidMedida": "Unidade",
+    "grupo": "Vestuário",
+    "qtdReservada": 4
+  },
+  {
+    "itemName": "Binóculo 10x50",
+    "quantity": 14,
+    "status": "Pendente",
+    "numFicha": "EQU1080",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 2
+  },
+  {
+    "itemName": "Corda multifuncional 30m",
+    "quantity": 26,
+    "status": "Finalizado",
+    "numFicha": "ACE4300",
+    "unidMedida": "Metro",
+    "grupo": "Acessórios",
+    "qtdReservada": 3
+  },
+  {
+    "itemName": "Jaqueta tática impermeável",
+    "quantity": 32,
+    "status": "Pendente",
+    "numFicha": "VES3060",
+    "unidMedida": "Unidade",
+    "grupo": "Vestuário",
+    "qtdReservada": 8
+  },
+  {
+    "itemName": "Coquetel energético",
+    "quantity": 100,
+    "status": "Finalizado",
+    "numFicha": "ALI1001",
+    "unidMedida": "Unidade",
+    "grupo": "Alimentação",
+    "qtdReservada": 15
+  },
+  {
+    "itemName": "Ração operacional",
+    "quantity": 200,
+    "status": "Pendente",
+    "numFicha": "ALI1002",
+    "unidMedida": "Pacote",
+    "grupo": "Alimentação",
+    "qtdReservada": 25
+  },
+  {
+    "itemName": "Protetor solar fator 50",
+    "quantity": 60,
+    "status": "Finalizado",
+    "numFicha": "SAU1002",
+    "unidMedida": "Unidade",
+    "grupo": "Saúde",
+    "qtdReservada": 10
+  },
+  {
+    "itemName": "Repelente de insetos",
+    "quantity": 48,
+    "status": "Pendente",
+    "numFicha": "SAU1003",
+    "unidMedida": "Unidade",
+    "grupo": "Saúde",
+    "qtdReservada": 8
+  },
+  {
+    "itemName": "Colete refletivo",
+    "quantity": 30,
+    "status": "Finalizado",
+    "numFicha": "SEG2040",
+    "unidMedida": "Unidade",
+    "grupo": "Segurança",
+    "qtdReservada": 2
+  },
+  {
+    "itemName": "Cantil dobrável 2L",
+    "quantity": 40,
+    "status": "Pendente",
+    "numFicha": "EQU1090",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 5
+  },
+  {
+    "itemName": "Kit de costura tático",
+    "quantity": 16,
+    "status": "Finalizado",
+    "numFicha": "ACE4400",
+    "unidMedida": "Unidade",
+    "grupo": "Acessórios",
+    "qtdReservada": 1
+  },
+  {
+    "itemName": "Meias térmicas",
+    "quantity": 70,
+    "status": "Pendente",
+    "numFicha": "VES3070",
+    "unidMedida": "Par",
+    "grupo": "Vestuário",
+    "qtdReservada": 12
+  },
+  {
+    "itemName": "Fogareiro portátil",
+    "quantity": 22,
+    "status": "Finalizado",
+    "numFicha": "EQU1100",
+    "unidMedida": "Unidade",
+    "grupo": "Equipamentos",
+    "qtdReservada": 2
+  },
+  {
+    "itemName": "Mapa topográfico",
+    "quantity": 50,
+    "status": "Pendente",
+    "numFicha": "DOC1001",
+    "unidMedida": "Unidade",
+    "grupo": "Documentos",
+    "qtdReservada": 5
+  }
+]
