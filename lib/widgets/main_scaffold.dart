@@ -69,15 +69,6 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
     );
 
-    pages.add(const StockScreen());
-    headerItemInfo.add(
-      _HeaderItemInfo(
-        'assets/icons/navbar/estoque.svg',
-        Icons.warehouse,
-        headerItemInfo.length,
-      ),
-    );
-
     if (UserService.instance.can(AppPermission.accessAdminScreen)) {
       pages.add(const AdminScreen());
       navBarItemsInfo.add(
@@ -147,16 +138,28 @@ String fotoUrl = 'assets/foto-perfil.png';
           child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundImage: (fotoUrl != null && fotoUrl.isNotEmpty)
-                      ? NetworkImage(fotoUrl)
-                      : null,
-                  backgroundColor: Colors.grey[200],
-                  child: (fotoUrl == null || fotoUrl.isEmpty)
-                      ? Icon(Icons.person, size: 30, color: Colors.grey[600])
-                      : null,
+                GestureDetector(
+                  onTap: () {
+                    final perfilIndex = _navBarItemsInfo.indexWhere((item) => item.label == 'Perfil');
+                    if (perfilIndex != -1) {
+                      setState(() {
+                        _selectedIndex = perfilIndex;
+                      });
+                    }
+                  },
+
+                  child: CircleAvatar(
+                    radius: 25,
+                    backgroundImage: (fotoUrl != null && fotoUrl.isNotEmpty)
+                        ? NetworkImage(fotoUrl)
+                        : null,
+                    backgroundColor: Colors.grey[200],
+                    child: (fotoUrl == null || fotoUrl.isEmpty)
+                        ? Icon(Icons.person, size: 30, color: Colors.grey[600])
+                        : null,
+                  ),
                 ),
+
 
                 Text(
                   _navBarItemsInfo[_selectedIndex].label,
