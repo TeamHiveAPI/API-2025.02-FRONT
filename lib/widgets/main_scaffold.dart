@@ -19,6 +19,14 @@ class _NavBarItemInfo {
   _NavBarItemInfo(this.imagePath, this.label, this.index);
 }
 
+class _HeaderItemInfo {
+  final String imagePath;
+  final IconData label;
+  final int index;
+
+  _HeaderItemInfo(this.imagePath, this.label, this.index);
+}
+
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
@@ -39,6 +47,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   void _buildNavigationLists() {
+    final headerItemInfo = <_HeaderItemInfo>[];
     final pages = <Widget>[];
     final navBarItemsInfo = <_NavBarItemInfo>[];
 
@@ -57,6 +66,15 @@ class _MainScaffoldState extends State<MainScaffold> {
         'assets/icons/navbar/estoque.svg',
         'Estoque',
         navBarItemsInfo.length,
+      ),
+    );
+
+    pages.add(const StockScreen());
+    headerItemInfo.add(
+      _HeaderItemInfo(
+        'assets/icons/navbar/estoque.svg',
+        Icons.warehouse,
+        headerItemInfo.length,
       ),
     );
 
@@ -102,10 +120,66 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: _buildCustomHeader(),
       body: _pages.elementAt(_selectedIndex),
       bottomNavigationBar: _buildCustomNavBar(),
     );
   }
+String fotoUrl = 'assets/foto-perfil.png';
+  PreferredSizeWidget _buildCustomHeader() {
+  return PreferredSize(
+    preferredSize: const Size.fromHeight(60), // altura do header
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(24),
+            offset: const Offset(0, 1),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CircleAvatar(
+                  radius: 25,
+                  backgroundImage: (fotoUrl != null && fotoUrl.isNotEmpty)
+                      ? NetworkImage(fotoUrl)
+                      : null,
+                  backgroundColor: Colors.grey[200],
+                  child: (fotoUrl == null || fotoUrl.isEmpty)
+                      ? Icon(Icons.person, size: 30, color: Colors.grey[600])
+                      : null,
+                ),
+
+                Text(
+                  _navBarItemsInfo[_selectedIndex].label,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+
+                IconButton(
+                  icon: const Icon(Icons.exit_to_app, color: Colors.blue),
+                  onPressed: () {
+                    // ação do botão
+                  },
+                ),
+              ],
+            ),
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _buildCustomNavBar() {
     return Container(
