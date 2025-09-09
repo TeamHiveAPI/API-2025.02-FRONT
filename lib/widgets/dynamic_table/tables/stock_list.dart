@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:sistema_almox/widgets/modals/base_modal.dart';
 import 'package:sistema_almox/widgets/modals/detalhes_item_modal.dart';
+import 'package:sistema_almox/widgets/shimmer_card.dart';
 
 class StockItemsTable extends StatefulWidget {
   const StockItemsTable({super.key});
@@ -67,7 +68,9 @@ class _StockItemsTableState extends State<StockItemsTable> {
       future: _loadJsonData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerPlaceholder(
+            height: 500,
+          );
         }
         if (snapshot.hasError) {
           return Center(

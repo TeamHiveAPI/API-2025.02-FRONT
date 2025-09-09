@@ -4,11 +4,14 @@ import 'package:sistema_almox/widgets/dynamic_table/json_table.dart';
 import 'package:sistema_almox/widgets/dynamic_table/table_column.dart';
 import 'dart:convert';
 
+import 'package:sistema_almox/widgets/shimmer_card.dart';
+
 class LastMovimentationsTable extends StatefulWidget {
   const LastMovimentationsTable({super.key});
 
   @override
-  State<LastMovimentationsTable> createState() => _LastMovimentationsTableState();
+  State<LastMovimentationsTable> createState() =>
+      _LastMovimentationsTableState();
 }
 
 class _LastMovimentationsTableState extends State<LastMovimentationsTable> {
@@ -28,8 +31,10 @@ class _LastMovimentationsTableState extends State<LastMovimentationsTable> {
         if (value is! num) return Text(value?.toString() ?? '');
         final color = value > 0 ? Colors.green.shade700 : Colors.red.shade700;
         final text = value > 0 ? '+${value.toString()}' : value.toString();
-        return Text(text,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold));
+        return Text(
+          text,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        );
       },
     ),
     TableColumn(
@@ -41,8 +46,9 @@ class _LastMovimentationsTableState extends State<LastMovimentationsTable> {
   ];
 
   Future<List<Map<String, dynamic>>> _loadJsonData() async {
-    final String jsonString =
-        await rootBundle.loadString('lib/temp/teste.json');
+    final String jsonString = await rootBundle.loadString(
+      'lib/temp/teste.json',
+    );
     final List<dynamic> jsonList = json.decode(jsonString);
     return jsonList.cast<Map<String, dynamic>>();
   }
@@ -61,7 +67,9 @@ class _LastMovimentationsTableState extends State<LastMovimentationsTable> {
       future: _loadJsonData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerPlaceholder(
+            height: 250,
+          );
         }
         if (snapshot.hasError) {
           return Center(child: Text('Erro: ${snapshot.error}'));
