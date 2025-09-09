@@ -102,7 +102,7 @@ Future<void> _login() async {
             top: 16,
             left: 16,
             child: SafeArea(
-              child: Image.asset('assets/bandeira-exercito.png', width: 64),
+              child: Image.asset('assets/bandeira-exercito.png', width: 120),
             ),
           ),
 
