@@ -27,58 +27,58 @@ class _LoginState extends State<Login> {
     super.dispose();
   }
 
-Future<void> _login() async {
-  final email = _emailController.text.trim();
-  final password = _passwordController.text.trim();
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-  if (email.isEmpty || password.isEmpty) {
-    showCustomSnackbar(
-      context,
-      'Por favor, preencha o e-mail e a senha.',
-      isError: true,
-    );
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    final bool loginSuccess = await AuthService.instance.login(
-      email: email,
-      password: password,
-    );
-
-    if (loginSuccess && mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.home,
-        (route) => false,
-      );
-    } else if (mounted) {
+    if (email.isEmpty || password.isEmpty) {
       showCustomSnackbar(
         context,
-        'Usuário ou senha inválidos.',
+        'Por favor, preencha o e-mail e a senha.',
         isError: true,
       );
+      return;
     }
-  } catch (e) {
-    if (mounted) {
-      showCustomSnackbar(
-        context,
-        'Ocorreu um erro inesperado. Tente novamente.',
-        isError: true,
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final bool loginSuccess = await AuthService.instance.login(
+        email: email,
+        password: password,
       );
-    }
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+
+      if (loginSuccess && mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.home,
+          (route) => false,
+        );
+      } else if (mounted) {
+        showCustomSnackbar(
+          context,
+          'Usuário ou senha inválidos.',
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackbar(
+          context,
+          'Ocorreu um erro inesperado. Tente novamente.',
+          isError: true,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +148,7 @@ Future<void> _login() async {
 
                     CustomButton(
                       text: 'Acessar o Sistema',
-                      svgIconPath: 'assets/icons/arrow-right.svg',
+                      customIcon: 'assets/icons/arrow-right.svg',
                       widthPercent: 1.0,
                       onPressed: _isLoading ? null : () => _login(),
                       isLoading: _isLoading,

@@ -7,7 +7,8 @@ enum IconPosition { left, right }
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
-  final String? svgIconPath;
+  final String? customIcon;
+  final IconData? icon;
   final IconPosition iconPosition;
   final double? iconStrokeWidth;
   final bool isFullWidth;
@@ -21,7 +22,8 @@ class CustomButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.svgIconPath,
+    this.customIcon,
+    this.icon,
     this.iconPosition = IconPosition.right,
     this.iconStrokeWidth = 1.5,
     this.isFullWidth = false,
@@ -33,6 +35,10 @@ class CustomButton extends StatelessWidget {
   }) : assert(
          widthPercent == null || (widthPercent > 0 && widthPercent <= 1),
          'widthPercent deve estar entre 0.0 e 1.0',
+       ),
+       assert(
+         !(customIcon != null && icon != null),
+         'Use apenas customIcon OU icon, não os dois juntos.',
        );
 
   Color get _backgroundColor {
@@ -106,28 +112,34 @@ class CustomButton extends StatelessWidget {
     return SizedBox(
       width: 24,
       height: 24,
-      child: CircularProgressIndicator(
-        color: _contentColor,
-        strokeWidth: 2.5,
-      ),
+      child: CircularProgressIndicator(color: _contentColor, strokeWidth: 2.5),
     );
   }
 
   Widget _buildButtonContent() {
-    if (svgIconPath == null) {
+    // só texto
+    if (customIcon == null && icon == null) {
       return Text(
         text,
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
       );
     }
 
-    List<Widget> children = [
-      IconConfig(
-        assetPath: svgIconPath!,
+    // escolhe widget de ícone
+    Widget iconWidget;
+    if (icon != null) {
+      iconWidget = Icon(icon, color: _contentColor, size: 24);
+    } else {
+      iconWidget = IconConfig(
+        assetPath: customIcon!,
         color: _contentColor,
         width: 24,
         strokeWidth: iconStrokeWidth,
-      ),
+      );
+    }
+
+    List<Widget> children = [
+      iconWidget,
       const SizedBox(width: 12),
       Text(
         text,

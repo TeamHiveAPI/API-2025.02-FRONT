@@ -19,14 +19,6 @@ class _NavBarItemInfo {
   _NavBarItemInfo(this.imagePath, this.label, this.index);
 }
 
-class _HeaderItemInfo {
-  final String imagePath;
-  final IconData label;
-  final int index;
-
-  _HeaderItemInfo(this.imagePath, this.label, this.index);
-}
-
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
@@ -47,7 +39,6 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   void _buildNavigationLists() {
-    final headerItemInfo = <_HeaderItemInfo>[];
     final pages = <Widget>[];
     final navBarItemsInfo = <_NavBarItemInfo>[];
 
@@ -112,77 +103,69 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildCustomHeader(),
-      body: _pages.elementAt(_selectedIndex),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: _pages.elementAt(_selectedIndex),
+      ),
       bottomNavigationBar: _buildCustomNavBar(),
     );
   }
-String fotoUrl = 'assets/foto-perfil.png';
+
+  String fotoUrl = 'assets/foto-perfil.png';
   PreferredSizeWidget _buildCustomHeader() {
-  return PreferredSize(
-    preferredSize: const Size.fromHeight(60), // altura do header
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(24),
-            offset: const Offset(0, 1),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-          child: Row(
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(90),
+      child: Container(
+        decoration: const BoxDecoration(color: Colors.white),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 GestureDetector(
                   onTap: () {
-                    final perfilIndex = _navBarItemsInfo.indexWhere((item) => item.label == 'Perfil');
+                    final perfilIndex = _navBarItemsInfo.indexWhere(
+                      (item) => item.label == 'Perfil',
+                    );
                     if (perfilIndex != -1) {
                       setState(() {
                         _selectedIndex = perfilIndex;
                       });
                     }
                   },
-
                   child: CircleAvatar(
-                    radius: 25,
-                    backgroundImage: (fotoUrl != null && fotoUrl.isNotEmpty)
+                    radius: 18,
+                    backgroundImage: (fotoUrl.isNotEmpty)
                         ? NetworkImage(fotoUrl)
                         : null,
                     backgroundColor: Colors.grey[200],
-                    child: (fotoUrl == null || fotoUrl.isEmpty)
-                        ? Icon(Icons.person, size: 30, color: Colors.grey[600])
+                    child: (fotoUrl.isEmpty)
+                        ? Icon(Icons.person, size: 20, color: Colors.grey[600])
                         : null,
                   ),
                 ),
 
-
-                Text(
-                  _navBarItemsInfo[_selectedIndex].label,
-                  style: const TextStyle(
+                const Text(
+                  'SISTEMA ALMOX',
+                  style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    fontWeight: FontWeight.w700,
+                    color: brandBlue,
                   ),
                 ),
 
                 IconButton(
-                  icon: const Icon(Icons.exit_to_app, color: Colors.blue),
-                  onPressed: () {
-                    // ação do botão
-                  },
+                  icon: const Icon(Icons.exit_to_app, color: brandBlue),
+                  onPressed: () {},
                 ),
               ],
             ),
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildCustomNavBar() {
     return Container(
