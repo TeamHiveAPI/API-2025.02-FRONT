@@ -7,7 +7,8 @@ import 'package:sistema_almox/widgets/modal/content/base_modal.dart';
 import 'package:sistema_almox/widgets/modal/detalhes_item_modal.dart';
 
 class StockItemsTable extends StatefulWidget {
-  const StockItemsTable({super.key});
+  final String? searchQuery;
+  const StockItemsTable({super.key, this.searchQuery});
 
   @override
   State<StockItemsTable> createState() => _StockItemsTableState();
@@ -16,42 +17,47 @@ class StockItemsTable extends StatefulWidget {
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   @override
   List<TableColumn> get tableColumns => [
-        TableColumn(
-          title: 'Nome do Item',
-          dataField: 'itemName',
-          widthFactor: 0.5,
-          sortType: SortType.alphabetic,
-        ),
-        TableColumn(
-          title: 'QTD',
-          dataField: 'quantity',
-          widthFactor: 0.2,
-          sortType: SortType.numeric,
-        ),
-        TableColumn(
-          title: 'Status',
-          dataField: 'status',
-          widthFactor: 0.3,
-          sortType: SortType.thisOrThat,
-          primarySortValue: 'Pendente',
-          secondarySortValue: 'Finalizado',
-        ),
-      ];
+    TableColumn(
+      title: 'Nome do Item',
+      dataField: 'itemName',
+      widthFactor: 0.78,
+      sortType: SortType.alphabetic,
+    ),
+    TableColumn(
+      title: 'QTD',
+      dataField: 'quantity',
+      widthFactor: 0.22,
+      sortType: SortType.numeric,
+    ),
+  ];
 
   @override
-  Future<PaginatedResponse> performFetch(int page, SortParams sortParams) {
+  Future<PaginatedResponse> performFetch(
+    int page,
+    SortParams sortParams,
+    String? searchQuery,
+  ) {
     return fetchItemsFromAsset(
       assetPath: 'lib/temp/estoque.json',
       page: page,
       allColumns: tableColumns,
       sortParams: sortParams,
+      searchQuery: searchQuery,
     );
   }
 
   @override
   void initState() {
     super.initState();
-    initTableHandler();
+    initTableHandler(initialSearchQuery: widget.searchQuery ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant StockItemsTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      onSearchQueryChanged(widget.searchQuery ?? '');
+    }
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
@@ -82,7 +88,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
       columns: tableColumns,
       isLoading: isLoading,
       showSkeleton: showSkeleton,
-      totalResults: totalItems,  
+      totalResults: totalItems,
       canLoadMore: hasMore,
       onRowTap: showSkeleton ? null : _handleRowTap,
       onLoadMore: loadMoreData,
