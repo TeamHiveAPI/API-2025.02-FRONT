@@ -103,8 +103,9 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildCustomHeader(),
-      body: Padding(
+      body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        margin: const EdgeInsets.only(top: 20, bottom: 20),
         child: _pages.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: _buildCustomNavBar(),
@@ -112,6 +113,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   String fotoUrl = 'assets/foto-perfil.png';
+
   PreferredSizeWidget _buildCustomHeader() {
     return PreferredSize(
       preferredSize: const Size.fromHeight(90),
@@ -119,7 +121,10 @@ class _MainScaffoldState extends State<MainScaffold> {
         decoration: const BoxDecoration(color: Colors.white),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 10.0,
+              horizontal: 20.0,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -137,7 +142,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                   child: CircleAvatar(
                     radius: 18,
                     backgroundImage: (fotoUrl.isNotEmpty)
-                        ? NetworkImage(fotoUrl)
+                        ? AssetImage(fotoUrl)
                         : null,
                     backgroundColor: Colors.grey[200],
                     child: (fotoUrl.isEmpty)

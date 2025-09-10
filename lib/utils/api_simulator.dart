@@ -12,12 +12,23 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   required int page,
   required List<TableColumn> allColumns,
   required SortParams sortParams,
+  String? searchQuery,
 }) async {
   final String jsonString = await rootBundle.loadString(assetPath);
   final List<dynamic> allJsonData = json.decode(jsonString);
   List<Map<String, dynamic>> allItems = allJsonData
       .cast<Map<String, dynamic>>();
 
+  if (searchQuery != null && searchQuery.isNotEmpty) {
+    final lowerCaseQuery = searchQuery.toLowerCase();
+    allItems = allItems.where((item) {
+      final itemName = item['itemName']?.toString().toLowerCase() ?? '';
+      final itemCode = item['numFicha']?.toString().toLowerCase() ?? '';
+
+      return itemName.contains(lowerCaseQuery) ||
+             itemCode.contains(lowerCaseQuery);
+    }).toList();
+  }
   _sortOnServer(allItems, allColumns, sortParams);
 
   final int total = allItems.length;

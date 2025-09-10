@@ -5,7 +5,7 @@ import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/core/theme/global_styles.dart';
-import 'package:sistema_almox/widgets/text_field.dart';
+import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 class Login extends StatefulWidget {

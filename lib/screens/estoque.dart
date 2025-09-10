@@ -1,35 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
+import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
+import 'package:sistema_almox/widgets/inputs/search.dart';
 
-class StockScreen extends StatelessWidget {
+class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
+
+  @override
+  State<StockScreen> createState() => _StockScreenState();
+}
+
+class _StockScreenState extends State<StockScreen> {
+  String _searchQuery = '';
+
+  void _handleSearch(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomButton(
-            text: 'Adicionar novo item',
-            icon: Icons.add,
-            widthPercent: 1.0,
-            onPressed: () {},
-          ),
-
-          const SizedBox(height: 24),
-
-          Text(
-            'Listagem do Inventário',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: text40,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomButton(
+              text: 'Adicionar novo item',
+              icon: Icons.add,
+              widthPercent: 1.0,
+              onPressed: () {},
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+
+            const Text(
+              'Listagem do Inventário',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: text40,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            GenericSearchInput(
+              onSearchChanged: _handleSearch,
+              hintText: 'Pesquisar por nome ou código',
+            ),
+
+            const SizedBox(height: 24),
+
+            StockItemsTable(searchQuery: _searchQuery),
+          ],
+        ),
       ),
     );
   }
