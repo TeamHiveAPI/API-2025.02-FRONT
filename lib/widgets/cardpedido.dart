@@ -7,9 +7,6 @@ class OrderCard extends StatelessWidget {
   final String? unit;
   final String? requested;
   final String? available;
-  final ValueChanged<String>? onTitleChanged;
-  final ValueChanged<String>? onRequestedChanged;
-  final ValueChanged<String>? onAvailableChanged;
 
   const OrderCard({
     super.key,
@@ -18,17 +15,14 @@ class OrderCard extends StatelessWidget {
     this.unit,
     this.requested,
     this.available,
-    this.onTitleChanged,
-    this.onRequestedChanged,
-    this.onAvailableChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity, 
+      width: double.infinity,
       padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.symmetric(vertical: 8.0), 
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
       decoration: BoxDecoration(
         color: isSelectionMode ? const Color(0xFFF5F5F5) : const Color(0xFFF7F9FF),
         borderRadius: BorderRadius.circular(8.0),
@@ -67,18 +61,12 @@ class OrderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
-                        initialValue: title,
-                        onChanged: onTitleChanged,
+                      child: Text(
+                        title ?? 'Sem título',
                         style: const TextStyle(
                           color: Color(0xFF2847AE),
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Título',
-                          hintStyle: TextStyle(color: Color(0xFF2847AE)),
                         ),
                       ),
                     ),
@@ -111,24 +99,14 @@ class OrderCard extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Flexible(
-                      child: TextFormField(
-                        initialValue: requested,
-                        onChanged: onRequestedChanged,
-                        keyboardType: TextInputType.text,
-                        style: const TextStyle(
-                          color: Color(0xFF606060),
-                          fontSize: 14,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Digite a quantidade',
-                          hintStyle: TextStyle(color: Color(0xFF606060)),
-                          contentPadding: EdgeInsets.zero, 
-                        ),
+                    Text(
+                      requested ?? '0',
+                      style: const TextStyle(
+                        color: Color(0xFF606060),
+                        fontSize: 14,
                       ),
                     ),
-                    const SizedBox(width: 8), 
+                    const SizedBox(width: 16),
                     const Text(
                       'Disponível: ',
                       style: TextStyle(
@@ -137,21 +115,11 @@ class OrderCard extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Flexible(
-                      child: TextFormField(
-                        initialValue: available,
-                        onChanged: onAvailableChanged,
-                        keyboardType: TextInputType.text,
-                        style: const TextStyle(
-                          color: Color(0xFF606060),
-                          fontSize: 14,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Digite a quantidade',
-                          hintStyle: TextStyle(color: Color(0xFF606060)),
-                          contentPadding: EdgeInsets.zero, 
-                        ),
+                    Text(
+                      available ?? '0',
+                      style: const TextStyle(
+                        color: Color(0xFF606060),
+                        fontSize: 14,
                       ),
                     ),
                   ],
