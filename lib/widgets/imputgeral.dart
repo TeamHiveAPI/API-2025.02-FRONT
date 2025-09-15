@@ -64,7 +64,7 @@ class _CustomInputState extends State<CustomInput> {
       });
       if (widget.onDateSelected != null) {
         widget.onDateSelected!(picked);
-      };
+      }
     }
   }
 
@@ -84,7 +84,7 @@ class _CustomInputState extends State<CustomInput> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         child: Row(
           children: [
-            if (widget.iconPath != null || widget.isCalendarMode)
+            if (widget.isCalendarMode || widget.iconPath != null)
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: SvgPicture.asset(
@@ -104,6 +104,7 @@ class _CustomInputState extends State<CustomInput> {
                 inputFormatters: widget.onlyNumbers
                     ? [FilteringTextInputFormatter.digitsOnly]
                     : null,
+                textAlign: widget.onlyNumbers ? TextAlign.start : TextAlign.left,
                 decoration: InputDecoration(
                   hintText: widget.isCalendarMode ? 'Selecionar' : widget.hintText,
                   border: InputBorder.none,
@@ -111,6 +112,7 @@ class _CustomInputState extends State<CustomInput> {
                     color: Colors.grey[600],
                     fontSize: 14,
                   ),
+                  contentPadding: EdgeInsets.zero, // Remove default padding
                 ),
                 style: const TextStyle(
                   fontSize: 14,
