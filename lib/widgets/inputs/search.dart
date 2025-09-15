@@ -49,13 +49,12 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
       controller: _controller,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () {
-            _controller.clear();
-          },
+        hintStyle: const TextStyle(
+          fontSize: 14,
+          color: text80,
+          fontWeight: FontWeight.w700,
         ),
+        prefixIcon: const Icon(Icons.search),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
           borderSide: const BorderSide(color: brightGray),

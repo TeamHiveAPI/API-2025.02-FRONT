@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
-import 'package:sistema_almox/widgets/modal/content/base_modal.dart';
-import 'package:sistema_almox/widgets/modal/detalhes_item_modal.dart';
+import 'package:sistema_almox/widgets/modal/base_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 
 class StockItemsTable extends StatefulWidget {
   final String? searchQuery;
-  const StockItemsTable({super.key, this.searchQuery});
+  final UserRole userRole;
+
+  const StockItemsTable({super.key, this.searchQuery, required this.userRole});
 
   @override
   State<StockItemsTable> createState() => _StockItemsTableState();
 }
 
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
+  @override
+  String get apiEndpoint {
+    switch (widget.userRole) {
+      case UserRole.tenenteFarmacia:
+      case UserRole.soldadoFarmacia:
+        return 'farmacia';
+      default:
+        return 'estoque';
+    }
+  }
+
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
@@ -31,6 +45,21 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     ),
   ];
 
+  String get _assetPathForRole {
+    switch (widget.userRole) {
+      case UserRole.tenenteFarmacia:
+        return 'lib/temp/farmacia.json';
+      case UserRole.soldadoFarmacia:
+        return 'lib/temp/farmacia.json';
+      case UserRole.coronel:
+        return 'lib/temp/almoxarifado.json';
+      case UserRole.tenenteEstoque:
+        return 'lib/temp/almoxarifado.json';
+      case UserRole.soldadoEstoque:
+        return 'lib/temp/almoxarifado.json';
+    }
+  }
+
   @override
   Future<PaginatedResponse> performFetch(
     int page,
@@ -38,7 +67,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     String? searchQuery,
   ) {
     return fetchItemsFromAsset(
-      assetPath: 'lib/temp/estoque.json',
+      assetPath: _assetPathForRole,
       page: page,
       allColumns: tableColumns,
       sortParams: sortParams,
