@@ -28,11 +28,11 @@ class FooterComponent extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF107A15),
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0), // Reduzido o padding horizontal
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0), 
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
-          minimumSize: const Size(120, 56), // Reduzido a largura mínima
+          minimumSize: const Size(120, 56), 
         ),
         onPressed: onButtonPressed,
         child: Row(
@@ -46,7 +46,7 @@ class FooterComponent extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 6), // Reduzido o espaço entre texto e ícone
+            const SizedBox(width: 6), 
             SvgPicture.asset(
               'assets/icons/addicon.svg',
               width: 20,

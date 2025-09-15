@@ -10,6 +10,7 @@ class CustomInput extends StatefulWidget {
   final String? hintText;
   final TextEditingController? controller;
   final ValueChanged<DateTime>? onDateSelected;
+  final ValueChanged<String>? onChanged; // Adicionado
 
   const CustomInput({
     super.key,
@@ -19,6 +20,7 @@ class CustomInput extends StatefulWidget {
     this.hintText,
     this.controller,
     this.onDateSelected,
+    this.onChanged, // Adicionado
   });
 
   @override
@@ -39,6 +41,12 @@ class _CustomInputState extends State<CustomInput> {
       setState(() {
         _isFocused = _focusNode.hasFocus;
       });
+    });
+    // Adicionar listener para onChanged
+    _controller.addListener(() {
+      if (widget.onChanged != null) {
+        widget.onChanged!(_controller.text);
+      }
     });
   }
 
@@ -112,12 +120,13 @@ class _CustomInputState extends State<CustomInput> {
                     color: Colors.grey[600],
                     fontSize: 14,
                   ),
-                  contentPadding: EdgeInsets.zero, // Remove default padding
+                  contentPadding: EdgeInsets.zero,
                 ),
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black,
                 ),
+                onChanged: widget.onChanged, // Adicionado
               ),
             ),
           ],
