@@ -25,6 +25,7 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
   int _currentPage = 1;
   bool isLoading = false;
   bool hasMore = true;
+  String get apiEndpoint; 
 
   String _currentSearchQuery = '';
 
@@ -137,7 +138,7 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
   }
 
   void _printApiRoute(int page, SortParams sortParams, String searchQuery) {
-    String baseUrl = "/api/items?page=$page&limit=10";
+    String baseUrl = "/estoque/$apiEndpoint?page=$page&limit=10";
     String searchParam = searchQuery.isNotEmpty ? "&search=$searchQuery" : "";
     String sortParam = "";
     if (sortParams.activeSortColumnDataField != null) {
