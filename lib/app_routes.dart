@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
-import 'widgets/main_scaffold.dart'; 
+import 'widgets/main_scaffold/index.dart'; 
 
 class AppRoutes {
   static const String login = '/';
