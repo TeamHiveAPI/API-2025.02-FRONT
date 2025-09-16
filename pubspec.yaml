@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1 
+  supabase_flutter: ^1.10.25   # (ou a versão mais recente)
+  flutter_secure_storage: ^8.0.0  # opcional para guardar sessão de forma segura
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -22,3 +25,4 @@ flutter:
   assets:
     - assets/
     - assets/icons/
+    - .env

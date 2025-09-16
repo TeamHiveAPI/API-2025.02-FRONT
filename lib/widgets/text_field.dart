@@ -8,6 +8,7 @@ class TextField extends StatelessWidget {
   final bool obscureText;
   final String? hintText;
   final String? Function(String?)? validator;
+  final bool enabled;
 
   const TextField({
     super.key,
@@ -17,6 +18,7 @@ class TextField extends StatelessWidget {
     this.obscureText = false,
     this.hintText,
     this.validator,
+    this.enabled = true,
   });
 
   @override
@@ -29,36 +31,26 @@ class TextField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      enabled: enabled,
 
       decoration: InputDecoration(
         labelText: label,
         hintText: hintText,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: text80
-          ),
+          borderSide: BorderSide(color: text80),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: primaryColor,
-            width: 2.0,
-          ),
+          borderSide: BorderSide(color: primaryColor, width: 2.0),
         ),
-         errorBorder: OutlineInputBorder(
+        errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: errorColor,
-            width: 2.0,
-          ),
+          borderSide: BorderSide(color: errorColor, width: 2.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: errorColor,
-            width: 2.0,
-          ),
+          borderSide: BorderSide(color: errorColor, width: 2.0),
         ),
       ),
     );

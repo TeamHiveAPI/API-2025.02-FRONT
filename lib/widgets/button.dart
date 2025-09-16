@@ -6,7 +6,7 @@ enum IconPosition { left, right }
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String? svgIconPath;
   final IconPosition iconPosition;
   final double? iconStrokeWidth;
@@ -19,7 +19,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     this.svgIconPath,
     this.iconPosition = IconPosition.right,
     this.iconStrokeWidth = 1.5,
@@ -57,7 +57,7 @@ class CustomButton extends StatelessWidget {
       shadowColor: WidgetStateProperty.all(Colors.transparent),
       backgroundColor: WidgetStateProperty.all(_backgroundColor),
       foregroundColor: WidgetStateProperty.all(_contentColor),
-      overlayColor: WidgetStateProperty.all(const Color.fromARGB(40, 0, 0, 0)), 
+      overlayColor: WidgetStateProperty.all(const Color.fromARGB(40, 0, 0, 0)),
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),

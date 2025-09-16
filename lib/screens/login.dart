@@ -5,6 +5,7 @@ import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/core/theme/global_styles.dart';
 import 'package:sistema_almox/widgets/text_field.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -16,6 +17,8 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -25,10 +28,62 @@ class _LoginState extends State<Login> {
   }
 
   void _login() {
-    final email = _emailController.text;
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
-    print("Recebido Email: $email e Senha: $password");
-    Navigator.pushNamed(context, AppRoutes.home);
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Informe e-mail e senha';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    _performLogin(email, password);
+  }
+
+  Future<void> _performLogin(String email, String password) async {
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final session = response.session;
+      if (session != null) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      } else {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Falha no login. Verifique suas credenciais.';
+          });
+        }
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Erro inesperado. Tente novamente.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -53,10 +108,7 @@ class _LoginState extends State<Login> {
             top: 16,
             left: 16,
             child: SafeArea(
-              child: Image.asset(
-                'assets/bandeira-exercito.png',
-                width: 64,
-              ),
+              child: Image.asset('assets/bandeira-exercito.png', width: 64),
             ),
           ),
 
@@ -86,10 +138,30 @@ class _LoginState extends State<Login> {
                     ),
                     const SizedBox(height: 32.0),
 
+                    if (_errorMessage != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                    ],
+
                     TextField(
                       label: 'E-mail',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
+                      enabled: !_isLoading,
                     ),
                     const SizedBox(height: 16.0),
 
@@ -97,14 +169,15 @@ class _LoginState extends State<Login> {
                       label: 'Senha',
                       controller: _passwordController,
                       obscureText: true,
+                      enabled: !_isLoading,
                     ),
                     const SizedBox(height: 32.0),
 
                     CustomButton(
-                      text: 'Acessar o Sistema',
+                      text: _isLoading ? 'Entrando...' : 'Acessar o Sistema',
                       svgIconPath: 'assets/icons/arrow-right.svg',
                       widthPercent: 1.0,
-                      onPressed: _login,
+                      onPressed: _isLoading ? null : _login,
                     ),
                     const SizedBox(height: 16.0),
 
@@ -112,8 +185,23 @@ class _LoginState extends State<Login> {
                       width: double.infinity,
                       height: 48,
                       child: TextButton(
-                        onPressed: () {
-                        },
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                final supabase = Supabase.instance.client;
+                                if (supabase.auth.currentSession != null) {
+                                  if (!mounted) return;
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    AppRoutes.home,
+                                  );
+                                } else {
+                                  setState(() {
+                                    _errorMessage =
+                                        'Sem sessão ativa. Informe e-mail e senha.';
+                                  });
+                                }
+                              },
                         style: ButtonStyle(
                           foregroundColor: WidgetStateProperty.all<Color>(
                             brandBlue,
@@ -142,6 +230,8 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
+
+          if (_isLoading) Container(color: Colors.black.withOpacity(0.04)),
         ],
       ),
     );
