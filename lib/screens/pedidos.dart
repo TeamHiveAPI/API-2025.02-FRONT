@@ -25,7 +25,7 @@ class OrderScreen extends StatelessWidget {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/novopedido');
+              Navigator.pushNamed(context, '/novo-pedido');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: brandBlue,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 
-class HeaderComponent extends StatelessWidget {
+class InternalPageHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onBackPressed;
 
-  const HeaderComponent({
+  const InternalPageHeader({
     super.key,
     required this.title,
     this.onBackPressed,
@@ -19,10 +19,10 @@ class HeaderComponent extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: onBackPressed ?? () => Navigator.pop(context),
-            child: SvgPicture.asset(
-              'assets/icons/backonclick.svg',
-              width: 24,
-              height: 24,
+            child: const Icon(
+              Icons.arrow_back,
+              size: 24,
+              color: brandBlue,
             ),
           ),
           Expanded(
@@ -32,7 +32,7 @@ class HeaderComponent extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF2847AE),
+                  color: brandBlue,
                 ),
               ),
             ),

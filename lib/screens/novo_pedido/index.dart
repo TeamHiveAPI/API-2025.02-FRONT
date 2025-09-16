@@ -1,0 +1,208 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:convert';
+
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
+import 'package:sistema_almox/widgets/inputs/search.dart';
+import 'package:sistema_almox/widgets/inputs/text_field.dart';
+import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/internal_page_bottom.dart';
+import 'package:sistema_almox/widgets/cards/order_preview.dart';
+import 'package:sistema_almox/widgets/main_scaffold/index.dart';
+import 'package:sistema_almox/widgets/snackbar.dart';
+
+class NewOrderScreen extends StatefulWidget {
+  const NewOrderScreen({super.key});
+
+  @override
+  _NewOrderScreenState createState() => _NewOrderScreenState();
+}
+
+class _NewOrderScreenState extends State<NewOrderScreen> {
+  late final NewOrderFormHandler _formHandler;
+
+  final Key _searchKey = UniqueKey();
+  List<Map<String, dynamic>> inventory = [];
+  List<String> itemNamesForSuggestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _formHandler = NewOrderFormHandler();
+    _formHandler.searchController.addListener(_onSearchTextChanged);
+    loadInventory();
+  }
+
+  void _onSearchTextChanged() {
+    if (_formHandler.searchController.text.isEmpty &&
+        _formHandler.selectedItem != null) {
+      setState(() {
+        _formHandler.selectedItem = null;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _formHandler.searchController.removeListener(_onSearchTextChanged);
+    _formHandler.dispose();
+    super.dispose();
+  }
+
+  Future<void> loadInventory() async {
+    try {
+      final String response = await rootBundle.loadString(
+        'lib/temp/almoxarifado.json',
+      );
+      final List<dynamic> data = jsonDecode(response);
+      setState(() {
+        inventory = data.cast<Map<String, dynamic>>();
+        itemNamesForSuggestions = inventory
+            .map((item) => item['itemName'].toString())
+            .toList();
+      });
+    } catch (e) {
+      // Tratar erro
+    }
+  }
+
+  void _submitOrder() {
+    // Marca que o usuário tentou submeter, para habilitar validação
+    setState(() {
+      _formHandler.hasSubmitted = true;
+    });
+
+    // Valida o formulário
+    if (_formHandler.formKey.currentState?.validate() ?? false) {
+      final selectedItem = _formHandler.selectedItem!;
+      final requestedQuantity = int.parse(_formHandler.quantityController.text);
+      final selectedDate = _formHandler.selectedDate;
+
+      final Map<String, dynamic> orderPayload = {
+        'itemId': selectedItem['id'],
+        'itemName': selectedItem['itemName'],
+        'quantity': requestedQuantity,
+        'pickupDate': selectedDate?.toIso8601String(),
+      };
+
+      final jsonPayload = const JsonEncoder.withIndent(
+        '  ',
+      ).convert(orderPayload);
+
+      print(jsonPayload);
+
+      showCustomSnackbar(context, 'Pedido registrado com sucesso!');
+
+      final mainScaffoldState = context
+          .findAncestorStateOfType<MainScaffoldState>();
+      if (mainScaffoldState != null) {
+        final ordersPageIndex = mainScaffoldState.findPageIndexByName(
+          'Pedidos',
+        );
+        mainScaffoldState.onItemTapped(ordersPageIndex);
+      }
+  
+      Navigator.of(context).pop();
+    } else {
+      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const InternalPageHeader(title: 'Registrar Novo Pedido'),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formHandler.formKey,
+                  autovalidateMode: _formHandler.hasSubmitted
+                      ? AutovalidateMode.always
+                      : AutovalidateMode.disabled,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GenericSearchInput(
+                        key: _searchKey,
+                        upperLabel: 'ITEM REQUISITADO',
+                        hintText: 'Pesquisar',
+                        controller: _formHandler.searchController,
+                        suggestions: itemNamesForSuggestions,
+                        onItemSelected: (String selectedItemName) {
+                          _formHandler.searchController.text = selectedItemName;
+                          setState(() {
+                            _formHandler.selectedItem = inventory.firstWhere(
+                              (item) => item['itemName'] == selectedItemName,
+                            );
+                          });
+                          // Valida para limpar o erro caso estivesse presente
+                          _formHandler.formKey.currentState?.validate();
+                        },
+                        validator: (value) => _formHandler.validateItem(
+                          value,
+                          itemNamesForSuggestions,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      CustomTextFormField(
+                        upperLabel: 'QUANTIDADE',
+                        hintText: 'Digite a quantidade',
+                        controller: _formHandler.quantityController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        validator: _formHandler.validateQuantity,
+                        onChanged: (value) {
+                          setState(() {});
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      OrderPreviewCard(
+                        isSelectionMode:
+                            _formHandler.selectedItem == null ||
+                            _formHandler.quantityController.text.isEmpty,
+                        title: _formHandler.selectedItem?['itemName'],
+                        unit: _formHandler.selectedItem?['unidMedida'],
+                        requested: _formHandler.quantityController.text,
+                        available: _formHandler.selectedItem != null
+                            ? '${_formHandler.selectedItem!['quantity'] - _formHandler.selectedItem!['qtdReservada']} ${_formHandler.selectedItem!['unidMedida']}'
+                            : null,
+                      ),
+                      const SizedBox(height: 24),
+                      CustomTextFormField(
+                        upperLabel: 'DATA DE RETIRADA',
+                        hintText: 'Selecionar (Opcional)',
+                        controller: _formHandler.dateController,
+                        readOnly: true,
+                        onTap: () async {
+                          await _formHandler.selectDate(context);
+                          setState(() {});
+                        },
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: SvgPicture.asset('assets/icons/calendar.svg'),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            InternalPageBottom(
+              buttonText: 'Registrar Pedido',
+              onButtonPressed: _submitOrder,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
-import 'screens/novopedido.dart';
+import 'screens/novo_pedido/index.dart';
 import 'widgets/main_scaffold/index.dart';
 
 class AppRoutes {
   static const String login = '/';
   static const String home = '/home';
-  static const String newOrder = '/novopedido';
+  static const String newOrder = '/novo-pedido';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -21,9 +21,8 @@ class AppRoutes {
 
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Rota não encontrada')),
-          ),
+          builder: (_) =>
+              const Scaffold(body: Center(child: Text('Rota não encontrada'))),
         );
     }
   }

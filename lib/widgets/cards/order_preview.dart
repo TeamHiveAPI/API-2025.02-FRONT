@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 
-class OrderCard extends StatelessWidget {
+class OrderPreviewCard extends StatelessWidget {
   final bool isSelectionMode;
   final String? title;
   final String? unit;
   final String? requested;
   final String? available;
 
-  const OrderCard({
+  const OrderPreviewCard({
     super.key,
     this.isSelectionMode = true,
     this.title,
@@ -24,7 +25,9 @@ class OrderCard extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       decoration: BoxDecoration(
-        color: isSelectionMode ? const Color(0xFFF5F5F5) : const Color(0xFFF7F9FF),
+        color: isSelectionMode
+            ? const Color(0xFFF5F5F5)
+            : const Color(0xFFF7F9FF),
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: isSelectionMode
@@ -32,9 +35,9 @@ class OrderCard extends StatelessWidget {
               child: Text(
                 'Após Seleção',
                 style: TextStyle(
-                  color: Color(0xFF808080),
+                  color: text80,
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             )
@@ -47,12 +50,12 @@ class OrderCard extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF2847AE),
+                        color: brandBlue,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: SvgPicture.asset(
-                          'assets/icons/novopedido.svg',
+                          'assets/icons/box.svg',
                           width: 24,
                           height: 24,
                           color: Colors.white,
@@ -64,24 +67,9 @@ class OrderCard extends StatelessWidget {
                       child: Text(
                         title ?? 'Sem título',
                         style: const TextStyle(
-                          color: Color(0xFF2847AE),
+                          color: brandBlue,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2847AE),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        unit ?? 'Unidade de Medida',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -94,31 +82,33 @@ class OrderCard extends StatelessWidget {
                     const Text(
                       'Requisitado: ',
                       style: TextStyle(
-                        color: Color(0xFF404040),
+                        color: text60,
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
                       requested ?? '0',
                       style: const TextStyle(
-                        color: Color(0xFF606060),
+                        color: text40,
+                        fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 20),
                     const Text(
                       'Disponível: ',
                       style: TextStyle(
-                        color: Color(0xFF404040),
+                        color: text60,
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
                       available ?? '0',
                       style: const TextStyle(
-                        color: Color(0xFF606060),
+                        color: text40,
+                        fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
                     ),
