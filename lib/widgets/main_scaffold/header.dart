@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
-
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   final String fotoUrl;
@@ -37,8 +35,9 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 },
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundImage:
-                      (fotoUrl.isNotEmpty) ? AssetImage(fotoUrl) : null,
+                  backgroundImage: (fotoUrl.isNotEmpty)
+                      ? AssetImage(fotoUrl)
+                      : null,
                   backgroundColor: Colors.grey[200],
                   child: (fotoUrl.isEmpty)
                       ? Icon(Icons.person, size: 20, color: Colors.grey[600])
@@ -53,10 +52,27 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                   color: brandBlue,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.exit_to_app, color: brandBlue),
-                onPressed: () {
-                },
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: InkWell(
+                  onTap: () {
+                    print('Botão de sair pressionado!');
+                  },
+                  hoverColor: brandBlue.withAlpha(
+                    128,
+                  ),
+                  splashColor: brandBlue.withAlpha(128),
+                  highlightColor: brandBlue.withAlpha(128),
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    color: brandBlueLight,
+                    child: const Icon(
+                      Icons.exit_to_app,
+                      color: brandBlue,
+                      size: 24,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

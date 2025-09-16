@@ -52,13 +52,9 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
         hintStyle: const TextStyle(
           fontSize: 14,
           color: text80,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
-        prefixIcon: const Icon(Icons.search),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: const BorderSide(color: brightGray),
-        ),
+        prefixIcon: const Icon(Icons.search, color: text80),
       ),
     );
   }
