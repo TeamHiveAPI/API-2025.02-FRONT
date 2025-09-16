@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/screens/novopedido.dart';
 
 class OrderScreen extends StatelessWidget {
   const OrderScreen({super.key});

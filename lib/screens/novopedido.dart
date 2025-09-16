@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/widgets/imputgeral.dart';
+import 'package:sistema_almox/widgets/input_geral.dart';
 import 'package:sistema_almox/widgets/titleheader.dart';
 import 'package:sistema_almox/widgets/buttonaddfooter.dart';
 import 'package:sistema_almox/widgets/cardpedido.dart';
@@ -33,7 +32,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
 
   Future<void> loadInventory() async {
     try {
-      final String response = await rootBundle.loadString('lib/temp/estoque.json');
+      final String response = await rootBundle.loadString('lib/temp/almoxarifado.json');
       final List<dynamic> data = jsonDecode(response);
       setState(() {
         inventory = data.cast<Map<String, dynamic>>();
