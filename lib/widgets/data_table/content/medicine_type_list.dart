@@ -1,39 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
-import 'package:sistema_almox/widgets/modal/base_modal.dart';
-import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 
-class StockItemsTable extends StatefulWidget {
+class MedicineTypeTable extends StatefulWidget {
   final String? searchQuery;
-  final UserRole userRole;
 
-  const StockItemsTable({super.key, this.searchQuery, required this.userRole});
+  const MedicineTypeTable({super.key, this.searchQuery});
 
   @override
-  State<StockItemsTable> createState() => _StockItemsTableState();
+  State<MedicineTypeTable> createState() => _MedicineTypeTableState();
 }
 
-class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
+class _MedicineTypeTableState extends State<MedicineTypeTable> with TableHandler {
   @override
-  String get apiEndpoint {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-      case UserRole.soldadoFarmacia:
-        return 'farmacia';
-      default:
-        return 'estoque';
-    }
-  }
+
+  String get apiEndpoint => ''; 
 
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
-      title: 'Nome do Item',
-      dataField: 'itemName',
+      title: 'Tipo de Remédio',
+      dataField: 'typeName',
       widthFactor: 0.78,
       sortType: SortType.alphabetic,
     ),
@@ -45,21 +34,6 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     ),
   ];
 
-  String get _assetPathForRole {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-        return 'lib/temp/farmacia.json';
-      case UserRole.soldadoFarmacia:
-        return 'lib/temp/farmacia.json';
-      case UserRole.coronel:
-        return 'lib/temp/almoxarifado.json';
-      case UserRole.tenenteEstoque:
-        return 'lib/temp/almoxarifado.json';
-      case UserRole.soldadoEstoque:
-        return 'lib/temp/almoxarifado.json';
-    }
-  }
-
   @override
   Future<PaginatedResponse> performFetch(
     int page,
@@ -67,12 +41,12 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     String? searchQuery,
   ) {
     return fetchItemsFromAsset(
-      assetPath: _assetPathForRole,
+      assetPath: 'lib/temp/medicamento_tipo.json',
       page: page,
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
-      searchFields: ['itemName', 'numFicha']
+      searchFields: ['typeName']
     );
   }
 
@@ -83,7 +57,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
   @override
-  void didUpdateWidget(covariant StockItemsTable oldWidget) {
+  void didUpdateWidget(covariant MedicineTypeTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.searchQuery != oldWidget.searchQuery) {
       onSearchQueryChanged(widget.searchQuery ?? '');
@@ -91,18 +65,6 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
-    showCustomBottomSheet(
-      context: context,
-      title: "Detalhes do Item",
-      child: DetalhesItemModal(
-        nome: itemData['itemName']?.toString() ?? 'N/A',
-        numFicha: itemData['numFicha']?.toString() ?? 'N/A',
-        unidMedida: itemData['unidMedida']?.toString() ?? 'N/A',
-        qtdDisponivel: itemData['quantity'] ?? 0,
-        qtdReservada: itemData['qtdReservada'] ?? 0,
-        grupo: itemData['grupo']?.toString() ?? 'N/A',
-      ),
-    );
   }
 
   @override
