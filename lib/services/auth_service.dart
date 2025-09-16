@@ -14,7 +14,7 @@ class AuthService {
       await Future.delayed(const Duration(seconds: 1)); 
 
       // Simular que o usuário que entrou é um coronel
-      final userRoleFromAPI = UserRole.tenenteFarmacia;
+      final userRoleFromAPI = UserRole.coronel;
 
       UserService.instance.login(userRoleFromAPI);
       
