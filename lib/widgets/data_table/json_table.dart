@@ -5,7 +5,7 @@ import 'package:sistema_almox/widgets/button.dart';
 import 'table_column.dart';
 
 const TextStyle _defaultCellTextStyle = TextStyle(
-  color: text60,
+  color: text40,
   fontWeight: FontWeight.w600,
 );
 const Color _rowHighlightColor = Color(0x1A000000);
@@ -222,7 +222,7 @@ class DynamicJsonTable extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12.0,
-                    vertical: 14.0,
+                    vertical: 12.0,
                   ),
                   child: cellContent,
                 ),

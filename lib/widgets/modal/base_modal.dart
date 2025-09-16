@@ -24,7 +24,11 @@ Future<void> showCustomBottomSheet({
             20,
             20,
             20,
-            MediaQuery.of(context).viewInsets.bottom + 20,
+            MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(
+                  context,
+                ).padding.bottom +
+                20,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -49,7 +53,7 @@ Future<void> showCustomBottomSheet({
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: text40
+                        color: text40,
                       ),
                     ),
                   ),

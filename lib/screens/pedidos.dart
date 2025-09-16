@@ -8,6 +8,7 @@ class OrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40.0),
       color: Colors.white,
       width: double.infinity,
       height: double.infinity,
