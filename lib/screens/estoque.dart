@@ -27,6 +27,7 @@ class _StockScreenState extends State<StockScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
