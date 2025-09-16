@@ -41,12 +41,18 @@ class DetalhesItemModal extends StatelessWidget {
         Row(
           children: [
             Expanded(
-                child:
-                    _buildDetailItem("QTD. DISPONÍVEL", qtdDisponivel.toString())),
+              child: _buildDetailItem(
+                "QTD. DISPONÍVEL",
+                qtdDisponivel.toString(),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
-                child:
-                    _buildDetailItem("QTD. RESERVADA", qtdReservada.toString())),
+              child: _buildDetailItem(
+                "QTD. RESERVADA",
+                qtdReservada.toString(),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -58,7 +64,7 @@ class DetalhesItemModal extends StatelessWidget {
           text: "Ver Histórico de Movimentação",
           onPressed: () {},
           isFullWidth: true,
-          svgIconPath: 'assets/icons/list.svg',
+          customIcon: 'assets/icons/list.svg',
           iconPosition: IconPosition.right,
         ),
         const SizedBox(height: 12),
@@ -71,7 +77,7 @@ class DetalhesItemModal extends StatelessWidget {
                 onPressed: () {},
                 secondary: true,
                 isFullWidth: true,
-                svgIconPath: 'assets/icons/edit.svg',
+                customIcon: 'assets/icons/edit.svg',
                 iconPosition: IconPosition.right,
               ),
             ),
@@ -84,7 +90,7 @@ class DetalhesItemModal extends StatelessWidget {
                 onPressed: () {},
                 secondary: true,
                 isFullWidth: true,
-                svgIconPath: 'assets/icons/download.svg',
+                customIcon: 'assets/icons/download.svg',
                 iconPosition: IconPosition.right,
               ),
             ),
