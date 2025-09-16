@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
@@ -13,7 +14,8 @@ import 'package:sistema_almox/widgets/main_scaffold/index.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 class NewOrderScreen extends StatefulWidget {
-  const NewOrderScreen({super.key});
+  final UserRole userRole;
+  const NewOrderScreen({super.key, required this.userRole});
 
   @override
   _NewOrderScreenState createState() => _NewOrderScreenState();
@@ -50,12 +52,23 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
     super.dispose();
   }
 
+  String get _assetPathForRole {
+    switch (widget.userRole) {
+      case UserRole.tenenteFarmacia:
+      case UserRole.soldadoFarmacia:
+        return 'lib/temp/farmacia.json';
+      case UserRole.coronel:
+      case UserRole.tenenteEstoque:
+      case UserRole.soldadoEstoque:
+        return 'lib/temp/almoxarifado.json';
+    }
+  }
+
   Future<void> loadInventory() async {
     try {
-      final String response = await rootBundle.loadString(
-        'lib/temp/almoxarifado.json',
-      );
+      final String response = await rootBundle.loadString(_assetPathForRole);
       final List<dynamic> data = jsonDecode(response);
+
       setState(() {
         inventory = data.cast<Map<String, dynamic>>();
         itemNamesForSuggestions = inventory
@@ -63,17 +76,15 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
             .toList();
       });
     } catch (e) {
-      // Tratar erro
+      print('Erro ao carregar inventário: $e');
     }
   }
 
   void _submitOrder() {
-    // Marca que o usuário tentou submeter, para habilitar validação
     setState(() {
       _formHandler.hasSubmitted = true;
     });
 
-    // Valida o formulário
     if (_formHandler.formKey.currentState?.validate() ?? false) {
       final selectedItem = _formHandler.selectedItem!;
       final requestedQuantity = int.parse(_formHandler.quantityController.text);
@@ -102,7 +113,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
         );
         mainScaffoldState.onItemTapped(ordersPageIndex);
       }
-  
+
       Navigator.of(context).pop();
     } else {
       showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
@@ -141,7 +152,6 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
                               (item) => item['itemName'] == selectedItemName,
                             );
                           });
-                          // Valida para limpar o erro caso estivesse presente
                           _formHandler.formKey.currentState?.validate();
                         },
                         validator: (value) => _formHandler.validateItem(
