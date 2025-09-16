@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-
+import 'package:sistema_almox/widgets/data_table/content/pedidos_list.dart';
 class OrderScreen extends StatelessWidget {
   const OrderScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40.0),
-      color: Colors.white,
-
-      width: double.infinity,
-      height: double.infinity,
-
-      child: const Center(
-        child: Text(
-          'Página Pedidos',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: text40,
+    return Scaffold(
+      body: Column(
+        children: [
+          const Text(
+            'Página Pedidos',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
-        ),
+          Expanded(
+            child: PedidosTable(
+              searchQuery: '', 
+              userRole: UserRole.coronel,
+            ),
+          ),
+        ],
       ),
     );
   }
