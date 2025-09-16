@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'screens/login.dart';
 import 'screens/novo_pedido/index.dart';
 import 'widgets/main_scaffold/index.dart';
@@ -17,7 +18,10 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const MainScaffold());
 
       case newOrder:
-        return MaterialPageRoute(builder: (_) => const NewOrderScreen());
+        final role = UserService.instance.currentUser!.role;
+        return MaterialPageRoute(
+          builder: (_) => NewOrderScreen(userRole: role),
+        );
 
       default:
         return MaterialPageRoute(
