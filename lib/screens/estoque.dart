@@ -64,7 +64,7 @@ class _StockScreenState extends State<StockScreen> {
                 if (isPharmacyRole) {
                   // Ação para Farmácia
                 } else {
-                  // Ação para Almoxarifado
+                  showNewStockItemModal(context);
                 }
               },
             ),
