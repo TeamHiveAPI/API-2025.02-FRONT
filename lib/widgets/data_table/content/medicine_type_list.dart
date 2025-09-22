@@ -13,18 +13,32 @@ class MedicineTypeTable extends StatefulWidget {
   State<MedicineTypeTable> createState() => _MedicineTypeTableState();
 }
 
-class _MedicineTypeTableState extends State<MedicineTypeTable> with TableHandler {
+class _MedicineTypeTableState extends State<MedicineTypeTable>
+    with TableHandler {
   @override
-
-  String get apiEndpoint => ''; 
+  String get apiEndpoint => '';
 
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
-      title: 'Tipo de Remédio',
+      title: 'Nome',
       dataField: 'typeName',
-      widthFactor: 0.78,
+      widthFactor: 0.5,
       sortType: SortType.alphabetic,
+    ),
+    TableColumn(
+      title: 'Contr.',
+      dataField: 'controlado',
+      widthFactor: 0.3,
+      formatter: (value) {
+        if (value is bool) {
+          return value ? 'Sim' : 'Não';
+        }
+        return '';
+      },
+      sortType: SortType.thisOrThat,
+      primarySortValue: "true",
+      secondarySortValue: "false",
     ),
     TableColumn(
       title: 'QTD',
@@ -46,7 +60,7 @@ class _MedicineTypeTableState extends State<MedicineTypeTable> with TableHandler
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
-      searchFields: ['typeName']
+      searchFields: ['typeName'],
     );
   }
 
@@ -64,8 +78,7 @@ class _MedicineTypeTableState extends State<MedicineTypeTable> with TableHandler
     }
   }
 
-  void _handleRowTap(Map<String, dynamic> itemData) {
-  }
+  void _handleRowTap(Map<String, dynamic> itemData) {}
 
   @override
   Widget build(BuildContext context) {
