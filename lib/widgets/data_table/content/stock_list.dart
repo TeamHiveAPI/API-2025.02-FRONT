@@ -49,6 +49,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
       page: page,
       sortParams: sortParams,
       searchQuery: searchQuery,
+      userRole: widget.userRole,
     );
   }
 
