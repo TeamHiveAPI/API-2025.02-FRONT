@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
-import 'screens/home.dart';
+import 'widgets/main_scaffold/index.dart'; 
 
 class AppRoutes {
   static const String login = '/';
@@ -10,11 +10,13 @@ class AppRoutes {
     switch (settings.name) {
       case login:
         return MaterialPageRoute(builder: (_) => const Login());
+      
       case home:
-        return MaterialPageRoute(builder: (_) => const Home());
+        return MaterialPageRoute(builder: (_) => const MainScaffold());
+
       default:
         return MaterialPageRoute(
-          builder: (_) => Scaffold(
+          builder: (_) => const Scaffold(
             body: Center(child: Text('Rota não encontrada')),
           ),
         );

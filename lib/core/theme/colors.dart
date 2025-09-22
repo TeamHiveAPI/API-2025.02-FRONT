@@ -14,4 +14,6 @@ const Color text40 = Color(0xFF404040);
 const Color text60 = Color(0xFF606060);
 const Color text80 = Color(0xFF808080);
 
+const Color brightGray = Color(0xFFFBFBFB);
+const Color coolGray = Color(0xFFF5F5F5);
 
