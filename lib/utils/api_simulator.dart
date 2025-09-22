@@ -13,6 +13,7 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   required List<TableColumn> allColumns,
   required SortParams sortParams,
   String? searchQuery,
+  required List<String> searchFields,
 }) async {
   final String jsonString = await rootBundle.loadString(assetPath);
   final List<dynamic> allJsonData = json.decode(jsonString);
@@ -22,11 +23,10 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
     allItems = allItems.where((item) {
-      final itemName = item['itemName']?.toString().toLowerCase() ?? '';
-      final itemCode = item['numFicha']?.toString().toLowerCase() ?? '';
-
-      return itemName.contains(lowerCaseQuery) ||
-             itemCode.contains(lowerCaseQuery);
+      return searchFields.any((field) {
+        final fieldValue = item[field]?.toString().toLowerCase() ?? '';
+        return fieldValue.contains(lowerCaseQuery);
+      });
     }).toList();
   }
   _sortOnServer(allItems, allColumns, sortParams);

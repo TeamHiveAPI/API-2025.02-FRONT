@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../config/permissions.dart';
 
 class UserModel {
@@ -7,7 +8,7 @@ class UserModel {
   UserModel({required this.name, required this.role});
 }
 
-class UserService {
+class UserService with ChangeNotifier {
   UserService._privateConstructor();
   static final UserService instance = UserService._privateConstructor();
 
@@ -16,10 +17,12 @@ class UserService {
 
   void login(UserRole role) {
     _currentUser = UserModel(name: role.name.toUpperCase(), role: role);
+    notifyListeners();
   }
 
   void logout() {
     _currentUser = null;
+    notifyListeners();
   }
   
   bool can(AppPermission permission) {
