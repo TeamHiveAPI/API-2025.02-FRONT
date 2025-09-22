@@ -7,6 +7,7 @@ import 'package:sistema_almox/widgets/data_table/content/medicine_type_list.dart
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_item.dart';
+import 'package:sistema_almox/widgets/modal/content/novo_tipo_remedio.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -56,13 +57,13 @@ class _StockScreenState extends State<StockScreen> {
           children: [
             CustomButton(
               text: isPharmacyRole
-                  ? 'Adicionar Tipo de Lote'
-                  : 'Adicionar novo item',
+                  ? 'Cadastrar Novo Tipo de Lote'
+                  : 'Cadastrar Novo Item',
               icon: Icons.add,
               widthPercent: 1.0,
               onPressed: () {
                 if (isPharmacyRole) {
-                  // Ação para Farmácia
+                  showAddMedicineType(context);
                 } else {
                   showNewStockItemModal(context);
                 }
