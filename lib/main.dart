@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/services/sector_service.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_routes.dart';
 
@@ -14,7 +17,15 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
-  runApp(const MyApp());
+runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => UserService.instance),
+        ChangeNotifierProvider(create: (context) => SectorService.instance),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 final supabase = Supabase.instance.client;
