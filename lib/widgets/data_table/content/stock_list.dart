@@ -72,6 +72,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
+      searchFields: ['itemName', 'numFicha']
     );
   }
 
