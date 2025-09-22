@@ -15,12 +15,10 @@ class AuthService {
   }) async {
     try {
       await Future.delayed(const Duration(seconds: 1)); 
-
       
       final userRoleFromAPI = UserRole.coronel;
-
-      
-      _userName = 'João Silva'; 
+    
+      _userName = 'Eliane Silva'; 
 
       UserService.instance.login(userRoleFromAPI);
       
