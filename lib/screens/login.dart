@@ -145,14 +145,14 @@ class _LoginState extends State<Login> {
                       ),
                       const SizedBox(height: 32.0),
 
-                      TextField(
+                      CustomTextFormField(
                         label: 'E-mail',
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 16.0),
 
-                      TextField(
+                      CustomTextFormField(
                         label: 'Senha',
                         controller: _passwordController,
                         obscureText: true,

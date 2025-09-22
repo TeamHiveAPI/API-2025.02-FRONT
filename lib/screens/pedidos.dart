@@ -9,19 +9,38 @@ class OrderScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40.0),
       color: Colors.white,
-
       width: double.infinity,
       height: double.infinity,
-
-      child: const Center(
-        child: Text(
-          'Página Pedidos',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: text40,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Página Pedidos',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: text40,
+            ),
           ),
-        ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/novo-pedido');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: brandBlue,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text(
+              'Novo Pedido',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

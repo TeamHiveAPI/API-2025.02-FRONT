@@ -14,10 +14,10 @@ class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
   @override
-  State<MainScaffold> createState() => _MainScaffoldState();
+  State<MainScaffold> createState() => MainScaffoldState();
 }
 
-class _MainScaffoldState extends State<MainScaffold> {
+class MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
   String fotoUrl = 'assets/foto-perfil.png';
 
@@ -85,7 +85,12 @@ class _MainScaffoldState extends State<MainScaffold> {
     _navBarItemsInfo = navBarItemsInfo;
   }
 
-  void _onItemTapped(int index) {
+  int findPageIndexByName(String name) {
+    final index = _navBarItemsInfo.indexWhere((item) => item.label == name);
+    return index != -1 ? index : 0;
+  }
+
+  void onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
@@ -102,7 +107,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         appBar: CustomHeader(
           fotoUrl: fotoUrl,
           navBarItemsInfo: _navBarItemsInfo,
-          onProfileTap: _onItemTapped,
+          onProfileTap: onItemTapped,
         ),
 
         body: Container(
@@ -113,7 +118,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         bottomNavigationBar: CustomNavBar(
           selectedIndex: _selectedIndex,
           navBarItemsInfo: _navBarItemsInfo,
-          onItemTapped: _onItemTapped,
+          onItemTapped: onItemTapped,
         ),
       ),
     );

@@ -8,7 +8,7 @@ void showCustomSnackbar(
 }) {
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-  final Color backgroundColor = isError ? deleteRed : brandBlue;
+  final Color backgroundColor = isError ? deleteRed : successGreen;
 
   final snackBar = SnackBar(
     content: Text(

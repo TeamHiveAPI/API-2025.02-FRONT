@@ -1,66 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
-class TextField extends StatelessWidget {
-  final String label;
+class CustomTextFormField extends StatelessWidget {
+  final String? label;
+  final String? upperLabel;
   final TextEditingController? controller;
   final TextInputType keyboardType;
-  final bool obscureText;
   final String? hintText;
   final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onTap;
+  final bool readOnly;
+  final Widget? prefixIcon;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool obscureText;
+  final AutovalidateMode? autovalidateMode;
 
-  const TextField({
+  const CustomTextFormField({
     super.key,
-    required this.label,
+    this.label,
+    this.upperLabel,
     this.controller,
     this.keyboardType = TextInputType.text,
-    this.obscureText = false,
     this.hintText,
     this.validator,
-  });
+    this.onChanged,
+    this.onTap,
+    this.readOnly = false,
+    this.prefixIcon,
+    this.inputFormatters,
+    this.obscureText = false,
+    this.autovalidateMode,
+  }) : assert(
+          label != null || upperLabel != null,
+          'Você deve fornecer um Label ou UpperLabel.',
+        );
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = brandBlue;
-    final errorColor = deleteRed;
-
-    return TextFormField(
+    final textField = TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      obscureText: obscureText,
       validator: validator,
-
+      onChanged: onChanged,
+      onTap: onTap,
+      readOnly: readOnly,
+      inputFormatters: inputFormatters,
+      obscureText: obscureText,
+      autovalidateMode: autovalidateMode,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: upperLabel == null ? label : null,
         hintText: hintText,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: text80
-          ),
+        prefixIcon: prefixIcon,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 10.0,
+          horizontal: 12.0,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: primaryColor,
-            width: 2.0,
-          ),
-        ),
-         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: errorColor,
-            width: 2.0,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: errorColor,
-            width: 2.0,
-          ),
+        errorStyle: const TextStyle(
+          fontWeight: FontWeight.w600,
+          height: 2.0,
         ),
       ),
     );
+
+    if (upperLabel != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            upperLabel!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: text80,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          textField,
+        ],
+      );
+    }
+
+    return textField;
   }
 }
