@@ -5,15 +5,14 @@ final supabase = Supabase.instance.client;
 const int _itemsPerPage = 8;
 
 class StockItemService {
+
   Future<PaginatedResponse> fetchItems({
     required int page,
     required SortParams sortParams,
     String? searchQuery,
   }) async {
     try {
-      var baseQuery = supabase
-          .from('item')
-          .select('id_item, nome, num_ficha, unidade, qtd_atual');
+      var baseQuery = supabase.from('item').select('*, grupo(nome)');
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery.or(
@@ -43,6 +42,18 @@ class StockItemService {
     } catch (e) {
       print('Erro ao buscar itens do Supabase: $e');
       return PaginatedResponse(items: [], totalCount: 0);
+    }
+  }
+
+  Future<void> createItem(Map<String, dynamic> itemData) async {
+    try {
+      await supabase.from('item').insert(itemData);
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao criar item: ${e.message}');
+      throw 'Falha ao cadastrar item: ${e.message}';
+    } catch (e) {
+      print('Erro desconhecido ao criar item: $e');
+      throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
 }

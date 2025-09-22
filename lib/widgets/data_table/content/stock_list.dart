@@ -76,7 +76,10 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
         unidMedida: itemData['unidade']?.toString() ?? 'N/A',
         qtdDisponivel: itemData['qtd_atual'] ?? 0,
         qtdReservada: itemData['qnt_reservada'] ?? 0,
-        grupo: itemData['grupo']?.toString() ?? 'N/A',
+        grupo: (itemData['grupo'] != null)
+    ? itemData['grupo']['nome']?.toString() ?? 'Sem Grupo'
+    : 'Sem Grupo',
+
       ),
     );
   }
