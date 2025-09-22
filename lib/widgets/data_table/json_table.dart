@@ -28,6 +28,7 @@ class DynamicJsonTable extends StatelessWidget {
   final ThisOrThatSortState thisOrThatState;
 
   final bool showSkeleton;
+  final bool hidePagination;
 
   const DynamicJsonTable({
     super.key,
@@ -43,6 +44,7 @@ class DynamicJsonTable extends StatelessWidget {
     required this.isAscending,
     required this.thisOrThatState,
     this.showSkeleton = false,
+    this.hidePagination = false,
   });
 
   dynamic _getValueFromPath(Map<String, dynamic> data, String path) {
@@ -84,7 +86,7 @@ class DynamicJsonTable extends StatelessWidget {
             ),
           ),
         ),
-        if (totalResults > 0)
+        if (totalResults > 0 && !hidePagination)
           Padding(
             padding: const EdgeInsets.only(top: 16.0),
             child: _buildFooter(),

@@ -17,8 +17,8 @@ Future<PaginatedResponse> fetchItemsFromAsset({
 }) async {
   final String jsonString = await rootBundle.loadString(assetPath);
   final List<dynamic> allJsonData = json.decode(jsonString);
-  List<Map<String, dynamic>> allItems = allJsonData
-      .cast<Map<String, dynamic>>();
+  List<Map<String, dynamic>> allItems =
+      allJsonData.cast<Map<String, dynamic>>();
 
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
@@ -60,8 +60,8 @@ void _sortOnServer(
       final valueB = b[column.dataField]?.toString();
       final targetValue =
           sortParams.thisOrThatState == ThisOrThatSortState.primaryFirst
-          ? column.primarySortValue
-          : column.secondarySortValue;
+              ? column.primarySortValue
+              : column.secondarySortValue;
       if (valueA == targetValue && valueB != targetValue) return -1;
       if (valueB == targetValue && valueA != targetValue) return 1;
       return 0;
@@ -78,10 +78,37 @@ void _sortOnServer(
         comparison = (valueA as num).compareTo(valueB as num);
       } else {
         comparison = valueA.toString().toLowerCase().compareTo(
-          valueB.toString().toLowerCase(),
-        );
+              valueB.toString().toLowerCase(),
+            );
       }
       return sortParams.isAscending ? comparison : -comparison;
     });
   }
+}
+
+Future<PaginatedResponse> getRecentMovements() async {
+  await Future.delayed(const Duration(milliseconds: 500));
+
+  final data = [
+    {
+      'item_name': 'Kit Primeiros Socorros',
+      'quantity': '+2',
+      'responsible': 'Mauro'
+    },
+    {
+      'item_name': 'Vestimenta',
+      'quantity': '-5',
+      'responsible': 'Gabriel'
+    },
+    {
+      'item_name': 'Munição 9mm',
+      'quantity': '-50',
+      'responsible': 'Almeida'
+    },
+  ];
+
+  return PaginatedResponse(
+    items: data,
+    totalCount: data.length,
+  );
 }
