@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/screens/novo_item/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'screens/login.dart';
 import 'screens/novo_pedido/index.dart';
@@ -8,6 +9,7 @@ class AppRoutes {
   static const String login = '/';
   static const String home = '/home';
   static const String newOrder = '/novo-pedido';
+  static const String newItem = '/novo-item';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -22,6 +24,9 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => NewOrderScreen(userRole: role),
         );
+
+      case newItem:
+        return MaterialPageRoute(builder: (_) => const NewItemScreen());
 
       default:
         return MaterialPageRoute(
