@@ -6,6 +6,7 @@ import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'package:sistema_almox/widgets/modal/base_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
+
 class PedidosTable extends StatefulWidget {
   final String? searchQuery;
   final UserRole userRole;
@@ -48,6 +49,12 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
           dataField: 'qnt_ped',
           widthFactor: 0.25,
           sortType: SortType.numeric,
+        ),
+        TableColumn(
+          title: 'Estado do Pedido', // título alterado
+          dataField: 'estado_pedido', // usa o campo criado no build()
+          widthFactor: 0.25,
+          sortType: SortType.alphabetic,
         ),
       ];
 
@@ -97,7 +104,8 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       child: DetalhesPedidoModal(
         Item_nome: pedidoData['item_nome']?.toString() ?? 'N/A',
         Num_ped: pedidoData['num_ped']?.toString() ?? 'N/A',
-        Data_ret: DateTime.tryParse(pedidoData['data_ped'] ?? '') ?? DateTime.now(),
+        // Aqui você pode passar a data original para o modal
+        Data_ret: DateTime.tryParse(pedidoData['data_ret'] ?? '') ?? DateTime.now(),
         Qnt_ped: pedidoData['qnt_ped']?.toString() ?? '0',
       ),
     );
@@ -107,9 +115,25 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   Widget build(BuildContext context) {
     final bool showSkeleton = isLoading && loadedItems.isEmpty;
 
+    // Pré-processa os dados: cria 'estado_pedido'
     final List<Map<String, dynamic>> displayData = showSkeleton
         ? List.generate(8, (_) => <String, dynamic>{})
-        : loadedItems;
+        : loadedItems.map((item) {
+            final dataString = item['data_ret']?.toString();
+            DateTime? data = DateTime.tryParse(dataString ?? '');
+            String estado;
+
+            if (data == null) {
+              estado = 'Pendente';
+            } else {
+              estado = data.isBefore(DateTime.now()) ? 'Finalizado' : 'Pendente';
+            }
+
+            return {
+              ...item,
+              'estado_pedido': estado,
+            };
+          }).toList();
 
     return DynamicJsonTable(
       jsonData: displayData,
