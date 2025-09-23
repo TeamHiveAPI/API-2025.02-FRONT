@@ -81,10 +81,19 @@ class _NewItemScreenState extends State<NewItemScreen> {
           currentUserRole == UserRole.tenenteFarmacia ||
           currentUserRole == UserRole.soldadoFarmacia;
 
+      final String unidadeDeMedida;
+
+      if (isPharmacyUser) {
+        final unidadesPorLote = _formHandler.unitOfMeasureController.text;
+        unidadeDeMedida = 'Lote ($unidadesPorLote un.)';
+      } else {
+        unidadeDeMedida = _formHandler.unitOfMeasureController.text;
+      }
+
       final itemPayload = {
         'nome': _formHandler.nameController.text,
         'num_ficha': int.tryParse(_formHandler.recordNumberController.text),
-        'unidade': _formHandler.unitOfMeasureController.text,
+        'unidade': unidadeDeMedida,
         'qtd_atual':
             int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
         'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
@@ -173,9 +182,19 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: 'UNIDADE DE MEDIDA',
-                              hintText: 'Digite aqui',
+                              upperLabel: isPharmacyUser
+                                  ? 'UNID. POR LOTE'
+                                  : 'UNIDADE DE MEDIDA',
+                              hintText: isPharmacyUser
+                                  ? 'Número'
+                                  : 'Digite aqui',
                               controller: _formHandler.unitOfMeasureController,
+                              keyboardType: isPharmacyUser
+                                  ? TextInputType.number
+                                  : TextInputType.text,
+                              inputFormatters: isPharmacyUser
+                                  ? [FilteringTextInputFormatter.digitsOnly]
+                                  : [],
                               validator: (value) => _formHandler
                                   .validateRequired(value, 'Unidade de Medida'),
                             ),
@@ -265,8 +284,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                         ),
                         const SizedBox(height: 24),
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
                               'É CONTROLADO?',
@@ -276,9 +294,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                                 color: text80,
                               ),
                             ),
-                            const SizedBox(
-                              height: 12.0,
-                            ),
+                            const SizedBox(height: 12.0),
                             Row(
                               children: [
                                 CustomRadioButton<bool>(
