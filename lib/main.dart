@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/config/supabase_config.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'app_routes.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await SupabaseConfig.initialize();
+    print('Supabase inicializado com sucesso');
+
+    // Tentar carregar usuário do storage local
+    await UserService.instance.loadUserFromStorage();
+  } catch (e) {
+    print('Erro ao inicializar Supabase: $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -26,24 +40,18 @@ class MyApp extends StatelessWidget {
             vertical: 12.0,
             horizontal: 12.0,
           ),
-          
+
           labelStyle: const TextStyle(fontWeight: FontWeight.normal),
           floatingLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(
-              color: Color(0xFFC4C4C4),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Color(0xFFC4C4C4), width: 1),
           ),
 
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(
-              color: brandBlue,
-              width: 2.0,
-            ),
+            borderSide: const BorderSide(color: brandBlue, width: 2.0),
           ),
 
           errorBorder: OutlineInputBorder(

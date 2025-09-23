@@ -34,6 +34,7 @@ class MainScaffoldState extends State<MainScaffold> {
     final pages = <Widget>[];
     final navBarItemsInfo = <NavBarItemInfo>[];
 
+    // Início - sempre disponível
     pages.add(const HomeScreen());
     navBarItemsInfo.add(
       NavBarItemInfo(
@@ -43,15 +44,31 @@ class MainScaffoldState extends State<MainScaffold> {
       ),
     );
 
-    pages.add(const StockScreen());
-    navBarItemsInfo.add(
-      NavBarItemInfo(
-        'assets/icons/navbar/estoque.svg',
-        'Estoque',
-        navBarItemsInfo.length,
-      ),
-    );
+    // Estoque - apenas para quem pode ver itens de estoque
+    if (UserService.instance.can(AppPermission.viewStockItems)) {
+      pages.add(const StockScreen());
+      navBarItemsInfo.add(
+        NavBarItemInfo(
+          'assets/icons/navbar/estoque.svg',
+          'Estoque',
+          navBarItemsInfo.length,
+        ),
+      );
+    }
 
+    // Farmácia - apenas para quem pode ver itens de farmácia
+    if (UserService.instance.can(AppPermission.viewPharmacyItems)) {
+      pages.add(const StockScreen()); // Usar mesma tela, mas filtrar por setor
+      navBarItemsInfo.add(
+        NavBarItemInfo(
+          'assets/icons/navbar/estoque.svg', // Usar ícone de farmácia se tiver
+          'Farmácia',
+          navBarItemsInfo.length,
+        ),
+      );
+    }
+
+    // Admin - apenas para tenentes e coronel
     if (UserService.instance.can(AppPermission.accessAdminScreen)) {
       pages.add(const AdminScreen());
       navBarItemsInfo.add(
@@ -63,6 +80,7 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
+    // Pedidos - sempre disponível (todos podem criar pedidos)
     pages.add(const OrderScreen());
     navBarItemsInfo.add(
       NavBarItemInfo(
@@ -72,6 +90,7 @@ class MainScaffoldState extends State<MainScaffold> {
       ),
     );
 
+    // Perfil - sempre disponível
     pages.add(const ProfileScreen());
     navBarItemsInfo.add(
       NavBarItemInfo(

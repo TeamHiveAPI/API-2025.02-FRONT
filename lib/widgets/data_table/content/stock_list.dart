@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
@@ -9,18 +10,26 @@ import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 
 class StockItemsTable extends StatefulWidget {
   final String? searchQuery;
-  final UserRole userRole;
+  final UserRole? userRole; // Tornar opcional para usar contexto real
 
-  const StockItemsTable({super.key, this.searchQuery, required this.userRole});
+  const StockItemsTable({super.key, this.searchQuery, this.userRole});
 
   @override
   State<StockItemsTable> createState() => _StockItemsTableState();
 }
 
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
+  // Usar contexto real do usuário
+  UserRole get _currentUserRole =>
+      widget.userRole ??
+      UserService.instance.currentUser?.role ??
+      UserRole.soldadoComum;
+
+  int? get _currentUserSetor => UserService.instance.currentUser?.idSetor;
+
   @override
   String get apiEndpoint {
-    switch (widget.userRole) {
+    switch (_currentUserRole) {
       case UserRole.tenenteFarmacia:
       case UserRole.soldadoFarmacia:
         return 'farmacia';
@@ -46,18 +55,33 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   ];
 
   String get _assetPathForRole {
-    switch (widget.userRole) {
+    switch (_currentUserRole) {
       case UserRole.tenenteFarmacia:
-        return 'lib/temp/farmacia.json';
       case UserRole.soldadoFarmacia:
         return 'lib/temp/farmacia.json';
       case UserRole.coronel:
-        return 'lib/temp/almoxarifado.json';
+        return 'lib/temp/almoxarifado.json'; // Coronel vê tudo
       case UserRole.tenenteEstoque:
-        return 'lib/temp/almoxarifado.json';
       case UserRole.soldadoEstoque:
         return 'lib/temp/almoxarifado.json';
+      case UserRole.soldadoComum:
+        return 'lib/temp/almoxarifado.json'; // Soldado comum não deveria ver, mas mantém para compatibilidade
     }
+  }
+
+  // Verificar se o usuário pode ver itens baseado no setor
+  bool _canViewItem(Map<String, dynamic> item) {
+    // Coronel vê tudo
+    if (_currentUserRole == UserRole.coronel) return true;
+
+    // Soldado comum não vê itens
+    if (_currentUserRole == UserRole.soldadoComum) return false;
+
+    // Verificar se o item pertence ao setor do usuário
+    final itemSetor = item['id_setor'] ?? item['setor'];
+    if (itemSetor == null || _currentUserSetor == null) return false;
+
+    return itemSetor == _currentUserSetor;
   }
 
   @override
@@ -65,13 +89,22 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     int page,
     SortParams sortParams,
     String? searchQuery,
-  ) {
-    return fetchItemsFromAsset(
+  ) async {
+    // Buscar dados do asset
+    final response = await fetchItemsFromAsset(
       assetPath: _assetPathForRole,
       page: page,
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
+    );
+
+    // Filtrar itens baseado nas permissões do usuário
+    final filteredItems = response.items.where(_canViewItem).toList();
+
+    return PaginatedResponse(
+      items: filteredItems,
+      totalCount: filteredItems.length,
     );
   }
 
