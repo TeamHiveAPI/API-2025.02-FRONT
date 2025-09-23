@@ -102,8 +102,7 @@ void showNewStockItemModal(BuildContext context) {
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed(AppRoutes.newItem);
+                Navigator.of(context).pushReplacementNamed(AppRoutes.newItem);
               },
               highlightColor: Colors.black.withAlpha(20),
               splashColor: Colors.black.withAlpha(20),
