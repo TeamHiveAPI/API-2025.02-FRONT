@@ -1,5 +1,6 @@
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/services/sector_service.dart';
+import 'package:sistema_almox/config/supabase_config.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,38 +10,38 @@ class AuthService {
   AuthService._privateConstructor();
   static final AuthService instance = AuthService._privateConstructor();
 
-  String? _userName; 
-  String? getUserName() => _userName;
-
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     try {
-      final authResponse = await supabase.auth.signInWithPassword(
+      final response = await SupabaseConfig.client.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
-      if (authResponse.user == null) {
-        throw 'Usuário ou senha inválidos.';
+      if (response.user != null) {
+        // Buscar dados do usuário na tabela public.usuario
+        final userData = await SupabaseConfig.client
+            .from('usuario')
+            .select(
+              'id_usuario, nome, email, cpf, nivel_acesso, id_setor, auth_uid',
+            )
+            .eq('auth_uid', response.user!.id)
+            .single();
+
+        // Fazer login com dados reais do banco
+        UserService.instance.login(
+          idUsuario: userData['id_usuario'],
+          nome: userData['nome'],
+          email: userData['email'],
+          cpf: userData['cpf'],
+          nivelAcesso: userData['nivel_acesso'],
+          idSetor: userData['id_setor'],
+          authUid: userData['auth_uid'],
+        );
+
+        return true;
       }
 
-      final userProfile = await supabase
-          .from('usuario')
-          .select()
-          .eq('auth_uid', authResponse.user!.id)
-          .single();
-
-      _userName = userProfile['nome'];
-      final userRoleFromAPI = UserRole.values[userProfile['nivel_acesso']];
-      final userSectorFromAPI = userProfile['id_setor'];
-
-      UserService.instance.login(userRoleFromAPI);
-      SectorService.instance.setSector(userSectorFromAPI);
-      
-      return true;
-
+      return false;
     } catch (e) {
       print("Falha na autenticação: $e");
       await logout();
@@ -49,9 +50,21 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await supabase.auth.signOut();
-    UserService.instance.logout();
-    SectorService.instance.clearSector();
-    _userName = null;
+    try {
+      await SupabaseConfig.client.auth.signOut();
+      UserService.instance.logout();
+    } catch (e) {
+      print("Erro ao fazer logout: $e");
+    }
+  }
+
+  Future<bool> isLoggedIn() async {
+    try {
+      final session = SupabaseConfig.client.auth.currentSession;
+      return session != null;
+    } catch (e) {
+      print("Erro ao verificar login: $e");
+      return false;
+    }
   }
 }
