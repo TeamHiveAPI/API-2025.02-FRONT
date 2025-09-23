@@ -3,6 +3,9 @@ import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
+import 'package:sistema_almox/services/auth_service.dart';
+import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/app_routes.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   final String fotoUrl;
@@ -46,9 +49,9 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                       : null,
                 ),
               ),
-              const Text(
-                'SISTEMA ALMOX',
-                style: TextStyle(
+              Text(
+                UserService.instance.currentUser?.nome ?? 'SISTEMA ALMOX',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: brandBlue,
@@ -60,10 +63,10 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                   onTap: () async {
                     await AuthService.instance.logout();
                     if (context.mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
                         AppRoutes.login,
-                        (Route<dynamic> route) =>
-                            false,
+                        (route) => false,
                       );
                     }
                   },

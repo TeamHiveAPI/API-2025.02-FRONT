@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/services/item_service.dart';
+import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -9,9 +11,9 @@ import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 
 class StockItemsTable extends StatefulWidget {
   final String? searchQuery;
-  final UserRole userRole;
+  final UserRole? userRole;
 
-  const StockItemsTable({super.key, this.searchQuery, required this.userRole});
+  const StockItemsTable({super.key, this.searchQuery, this.userRole});
 
   @override
   State<StockItemsTable> createState() => _StockItemsTableState();
@@ -50,6 +52,14 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
       sortParams: sortParams,
       searchQuery: searchQuery,
       userRole: widget.userRole,
+    );
+
+    // Filtrar itens baseado nas permissões do usuário
+    final filteredItems = response.items.where(_canViewItem).toList();
+
+    return PaginatedResponse(
+      items: filteredItems,
+      totalCount: filteredItems.length,
     );
   }
 
