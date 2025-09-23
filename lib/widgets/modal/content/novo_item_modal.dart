@@ -1,148 +1,155 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/screens/pedidos.dart';
-import 'package:sistema_almox/widgets/custom_bottom_sheet.dart';
+import 'package:sistema_almox/widgets/modal/base_modal.dart';
 
-void showNovoItemModal(BuildContext context) {
+void showNewStockItemModal(BuildContext context) {
   showCustomBottomSheet(
     context: context,
-    title: 'Novo Item',
+    title: 'Escolha uma Ação',
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.pop(context); 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const OrderScreen(),
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withAlpha(48),
+                spreadRadius: 0,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.indigo,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.qr_code_scanner,
-                      size: 28, color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Aumentar estoque de um item',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: text40,
+            ],
+          ),
+          child: Material(
+            color: brightGray,
+            borderRadius: BorderRadius.circular(8),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () {},
+              highlightColor: Colors.black.withAlpha(20),
+              splashColor: Colors.black.withAlpha(20),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      color: brandBlue,
+                      child: SvgPicture.asset(
+                        'assets/icons/qr-code.svg',
+                        width: 28,
+                        height: 28,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Via escaneamento de QR Code',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Modificar estoque de um item',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: text40,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Via escaneamento de QR Code',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF616161),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
 
-        GestureDetector(
-          onTap: () {
-            Navigator.pop(context); 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const OrderScreen(), 
+        Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withAlpha(48),
+                spreadRadius: 0,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.only(bottom: 24),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.indigo,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.inventory_2,
-                      size: 28, color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Cadastrar do zero',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: text40,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Adicione um item novo ao estoque',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
-        ),
-
-        Center(
-          child: TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.grey.shade50,
-              foregroundColor: Colors.indigo,
-              padding: const EdgeInsets.symmetric(
-                  vertical: 12, horizontal: 24),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          child: Material(
+            color: brightGray,
+            borderRadius: BorderRadius.circular(8),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () {},
+              highlightColor: Colors.black.withAlpha(20),
+              splashColor: Colors.black.withAlpha(20),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      color: brandBlue,
+                      child: SvgPicture.asset(
+                        'assets/icons/navbar/estoque.svg',
+                        width: 28,
+                        height: 28,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Cadastrar do zero',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: text40,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Adicione um item novo ao almoxarifado',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF616161),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'Voltar',
-              style: TextStyle(fontSize: 16),
             ),
           ),
         ),
