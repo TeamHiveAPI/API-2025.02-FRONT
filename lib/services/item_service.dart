@@ -78,4 +78,16 @@ class StockItemService {
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
+
+  Future<void> updateItem(int itemId, Map<String, dynamic> itemData) async {
+    try {
+      await supabase.from('item').update(itemData).eq('id_item', itemId);
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao atualizar item: ${e.message}');
+      throw 'Falha ao atualizar item: ${e.message}';
+    } catch (e) {
+      print('Erro desconhecido ao atualizar item: $e');
+      throw 'Ocorreu um erro inesperado. Tente novamente.';
+    }
+  }
 }
