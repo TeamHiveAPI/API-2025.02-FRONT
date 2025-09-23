@@ -61,6 +61,8 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
       case UserRole.tenenteEstoque:
       case UserRole.soldadoEstoque:
         return 'lib/temp/almoxarifado.json';
+      case UserRole.soldadoComum:
+        return 'lib/temp/almoxarifado.json';
     }
   }
 
