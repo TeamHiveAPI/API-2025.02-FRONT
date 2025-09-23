@@ -67,23 +67,29 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     }
   }
 
-  void _handleRowTap(Map<String, dynamic> itemData) {
-    showCustomBottomSheet(
-      context: context,
-      title: "Detalhes do Item",
-      child: DetalhesItemModal(
-        nome: itemData['nome']?.toString() ?? 'N/A',
-        numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
-        unidMedida: itemData['unidade']?.toString() ?? 'N/A',
-        qtdDisponivel: itemData['qtd_atual'] ?? 0,
-        qtdReservada: itemData['qnt_reservada'] ?? 0,
-        grupo: (itemData['grupo'] != null)
-    ? itemData['grupo']['nome']?.toString() ?? 'Sem Grupo'
-    : 'Sem Grupo',
+void _handleRowTap(Map<String, dynamic> itemData) {
+  // 1. Lógica para extrair o nome do grupo de forma segura
+  final grupoMap = itemData['grupo'];
+  final nomeDoGrupo = (grupoMap != null)
+      ? grupoMap['nome']?.toString() ?? 'Sem Grupo'
+      : 'Sem Grupo';
 
-      ),
-    );
-  }
+  showCustomBottomSheet(
+    context: context,
+    title: "Detalhes do item",
+    child: DetalhesItemModal(
+      nome: itemData['nome']?.toString() ?? 'N/A',
+      numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
+      unidMedida: itemData['unidade']?.toString() ?? 'N/A',
+      qtdDisponivel: itemData['qtd_atual'] ?? 0,
+      qtdReservada: itemData['qtd_reservada'] ?? 0,
+      grupo: nomeDoGrupo,
+      dataValidade: itemData['data_validade'],
+      controlado: itemData['controlado'],
+      userRole: widget.userRole,
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
