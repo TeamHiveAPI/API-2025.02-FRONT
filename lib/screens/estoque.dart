@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
@@ -15,7 +14,6 @@ class StockScreen extends StatefulWidget {
 
 class _StockScreenState extends State<StockScreen> {
   String _searchQuery = '';
-  final UserRole _currentUserRole = UserRole.tenenteEstoque; 
 
   void _handleSearch(String query) {
     setState(() {
@@ -39,7 +37,6 @@ class _StockScreenState extends State<StockScreen> {
               onPressed: () => showNovoItemModal(context),
             ),
             const SizedBox(height: 24),
-
 
             const Text(
               'Listagem do Inventário',
@@ -72,7 +69,7 @@ class _StockScreenState extends State<StockScreen> {
 
             SizedBox(height: 20),
 
-            StockItemsTable(searchQuery: _searchQuery, userRole: _currentUserRole, ),
+            StockItemsTable(searchQuery: _searchQuery),
           ],
         ),
       ),
