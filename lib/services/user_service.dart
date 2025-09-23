@@ -90,6 +90,21 @@ class UserService {
       role: role,
     );
 
+    // Print detalhado das informações do usuário logado
+    print('=== INFORMAÇÕES DO USUÁRIO LOGADO ===');
+    print('Nome: $nome');
+    print('Email: $email');
+    print('CPF: $cpf');
+    print('ID Usuário: $idUsuario');
+    print('Nível de Acesso: $nivelAcesso');
+    print('ID Setor: $idSetor');
+    print('Auth UID: $authUid');
+    print('UserRole: ${role.name}');
+    print('Tipo de Usuário: ${_getUserTypeDescription(role)}');
+    print('Setor: ${_getSetorDescription(idSetor)}');
+    print('Permissões: ${_getUserPermissions(role)}');
+    print('=====================================');
+
     // Salvar no storage local
     _saveUserToStorage();
   }
@@ -153,5 +168,64 @@ class UserService {
     if (userPermissions == null) return false;
 
     return userPermissions.contains(permission);
+  }
+
+  // Métodos auxiliares para descrições legíveis
+  String _getUserTypeDescription(UserRole role) {
+    switch (role) {
+      case UserRole.coronel:
+        return 'Coronel - Comando Geral';
+      case UserRole.tenenteEstoque:
+        return 'Tenente - Comando de Estoque';
+      case UserRole.tenenteFarmacia:
+        return 'Tenente - Comando de Farmácia';
+      case UserRole.soldadoEstoque:
+        return 'Soldado - Setor de Estoque';
+      case UserRole.soldadoFarmacia:
+        return 'Soldado - Setor de Farmácia';
+      case UserRole.soldadoComum:
+        return 'Soldado - Sem Setor Específico';
+    }
+  }
+
+  String _getSetorDescription(int idSetor) {
+    switch (idSetor) {
+      case 0:
+        return 'Sem Setor Específico';
+      case 1:
+        return 'Estoque/Almoxarifado';
+      case 2:
+        return 'Farmácia';
+      case 3:
+        return 'Comando Geral';
+      default:
+        return 'Setor Desconhecido ($idSetor)';
+    }
+  }
+
+  String _getUserPermissions(UserRole role) {
+    final permissions = permissionsByRole[role];
+    if (permissions == null) return 'Nenhuma permissão';
+    
+    return permissions.map((p) => _getPermissionDescription(p)).join(', ');
+  }
+
+  String _getPermissionDescription(AppPermission permission) {
+    switch (permission) {
+      case AppPermission.accessAdminScreen:
+        return 'Acesso à Tela Admin';
+      case AppPermission.viewStockItems:
+        return 'Ver Itens do Estoque';
+      case AppPermission.viewPharmacyItems:
+        return 'Ver Itens da Farmácia';
+      case AppPermission.createOrders:
+        return 'Criar Pedidos';
+      case AppPermission.viewAllOrders:
+        return 'Ver Todos os Pedidos';
+      case AppPermission.editItems:
+        return 'Editar Itens';
+      case AppPermission.viewReports:
+        return 'Ver Relatórios';
+    }
   }
 }
