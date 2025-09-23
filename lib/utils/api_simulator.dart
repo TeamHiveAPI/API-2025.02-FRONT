@@ -13,21 +13,20 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   required List<TableColumn> allColumns,
   required SortParams sortParams,
   String? searchQuery,
+  required List<String> searchFields,
 }) async {
   final String jsonString = await rootBundle.loadString(assetPath);
   final List<dynamic> allJsonData = json.decode(jsonString);
   List<Map<String, dynamic>> allItems = allJsonData.cast<Map<String, dynamic>>();
 
-  // Filtro de pesquisa
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
     allItems = allItems.where((item) {
-      final itemNome = item['item_nome']?.toString().toLowerCase() ?? '';
-      final numPed = item['num_ped']?.toString().toLowerCase() ?? '';
-      final idPedido = item['id_pedido']?.toString() ?? '';
-      return itemNome.contains(lowerCaseQuery) ||
-             numPed.contains(lowerCaseQuery) ||
-             idPedido.contains(lowerCaseQuery);
+      final itemName = item['itemName']?.toString().toLowerCase() ?? '';
+      final itemCode = item['numFicha']?.toString().toLowerCase() ?? '';
+
+      return itemName.contains(lowerCaseQuery) ||
+             itemCode.contains(lowerCaseQuery);
     }).toList();
   }
 
@@ -58,26 +57,61 @@ void _sortOnServer(
   );
   if (column == null) return;
 
-  data.sort((a, b) {
-    final valueA = a[column.dataField];
-    final valueB = b[column.dataField];
+  if (column.sortType == SortType.thisOrThat) {
+    data.sort((a, b) {
+      final valueA = a[column.dataField]?.toString();
+      final valueB = b[column.dataField]?.toString();
+      final targetValue =
+          sortParams.thisOrThatState == ThisOrThatSortState.primaryFirst
+          ? column.primarySortValue
+          : column.secondarySortValue;
+      if (valueA == targetValue && valueB != targetValue) return -1;
+      if (valueB == targetValue && valueA != targetValue) return 1;
+      return 0;
+    });
+  } else {
+    data.sort((a, b) {
+      final valueA = a[column.dataField];
+      final valueB = b[column.dataField];
+      if (valueA == null) return sortParams.isAscending ? -1 : 1;
+      if (valueB == null) return sortParams.isAscending ? 1 : -1;
 
-    if (valueA == null) return sortParams.isAscending ? -1 : 1;
-    if (valueB == null) return sortParams.isAscending ? 1 : -1;
+      int comparison;
+      if (column.sortType == SortType.numeric) {
+        comparison = (valueA as num).compareTo(valueB as num);
+      } else {
+        comparison = valueA.toString().toLowerCase().compareTo(
+          valueB.toString().toLowerCase(),
+        );
+      }
+      return sortParams.isAscending ? comparison : -comparison;
+    });
+  }
+}
 
-    int comparison;
-    // Tratar como numérico se o valor puder ser convertido
-    final numA = num.tryParse(valueA.toString());
-    final numB = num.tryParse(valueB.toString());
+Future<PaginatedResponse> getRecentMovements() async {
+  await Future.delayed(const Duration(milliseconds: 500));
 
-    if (column.sortType == SortType.numeric && numA != null && numB != null) {
-      comparison = numA.compareTo(numB);
-    } else {
-      comparison = valueA.toString().toLowerCase().compareTo(
-        valueB.toString().toLowerCase(),
-      );
-    }
+  final data = [
+    {
+      'item_name': 'Kit Primeiros Socorros',
+      'quantity': '+2',
+      'responsible': 'Mauro'
+    },
+    {
+      'item_name': 'Vestimenta',
+      'quantity': '-5',
+      'responsible': 'Gabriel'
+    },
+    {
+      'item_name': 'Munição 9mm',
+      'quantity': '-50',
+      'responsible': 'Almeida'
+    },
+  ];
 
-    return sortParams.isAscending ? comparison : -comparison;
-  });
+  return PaginatedResponse(
+    items: data,
+    totalCount: data.length,
+  );
 }

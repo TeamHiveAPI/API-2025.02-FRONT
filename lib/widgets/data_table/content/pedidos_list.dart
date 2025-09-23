@@ -39,12 +39,6 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
           sortType: SortType.alphabetic,
         ),
         TableColumn(
-          title: 'Nº Pedido',
-          dataField: 'num_ped',
-          widthFactor: 0.25,
-          sortType: SortType.alphabetic,
-        ),
-        TableColumn(
           title: 'QTD',
           dataField: 'qnt_ped',
           widthFactor: 0.25,
@@ -80,6 +74,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
+      searchFields: ['item_nome', 'num_ped'],
     );
   }
 

@@ -32,7 +32,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
-      title: 'Nome do Item',
+      title: 'Nome do item',
       dataField: 'itemName',
       widthFactor: 0.78,
       sortType: SortType.alphabetic,
@@ -72,6 +72,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
+      searchFields: ['itemName', 'numFicha']
     );
   }
 

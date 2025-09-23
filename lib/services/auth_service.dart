@@ -5,16 +5,20 @@ class AuthService {
   AuthService._privateConstructor();
   static final AuthService instance = AuthService._privateConstructor();
 
+  String? _userName; 
+
+  String? getUserName() => _userName; 
+
   Future<bool> login({
     required String email,
     required String password,
   }) async {
-
     try {
       await Future.delayed(const Duration(seconds: 1)); 
-
-      // Simular que o usuário que entrou é um coronel
+      
       final userRoleFromAPI = UserRole.coronel;
+    
+      _userName = 'Eliane Silva'; 
 
       UserService.instance.login(userRoleFromAPI);
       
