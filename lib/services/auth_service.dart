@@ -1,5 +1,3 @@
-import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/services/sector_service.dart';
 import 'package:sistema_almox/config/supabase_config.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +16,6 @@ class AuthService {
       );
 
       if (response.user != null) {
-        // Buscar dados do usuário na tabela public.usuario
         final userData = await SupabaseConfig.client
             .from('usuario')
             .select(
@@ -27,7 +24,6 @@ class AuthService {
             .eq('auth_uid', response.user!.id)
             .single();
 
-        // Fazer login com dados reais do banco
         UserService.instance.login(
           idUsuario: userData['id_usuario'],
           nome: userData['nome'],

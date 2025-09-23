@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/permissions.dart';
 
@@ -34,7 +35,6 @@ class UserService with ChangeNotifier {
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
-  // Mapear role baseado em nivel_acesso e id_setor
   static UserRole _mapRoleFromDatabase(int nivelAcesso, int idSetor) {
     switch (nivelAcesso) {
       case 1:
@@ -67,7 +67,6 @@ class UserService with ChangeNotifier {
     }
   }
 
-  // Login com dados reais do banco
   void login({
     required int idUsuario,
     required String nome,
@@ -90,8 +89,7 @@ class UserService with ChangeNotifier {
       role: role,
     );
 
-    // Print detalhado das informações do usuário logado
-    print('=== INFORMAÇÕES DO USUÁRIO LOGADO ===');
+    print('Teste: Informações do Usuário Logado');
     print('Nome: $nome');
     print('Email: $email');
     print('CPF: $cpf');
@@ -103,13 +101,10 @@ class UserService with ChangeNotifier {
     print('Tipo de Usuário: ${_getUserTypeDescription(role)}');
     print('Setor: ${_getSetorDescription(idSetor)}');
     print('Permissões: ${_getUserPermissions(role)}');
-    print('=====================================');
 
-    // Salvar no storage local
     _saveUserToStorage();
   }
 
-  // Salvar usuário no storage local
   Future<void> _saveUserToStorage() async {
     if (_currentUser != null) {
       final userJson = jsonEncode({
@@ -126,7 +121,6 @@ class UserService with ChangeNotifier {
     }
   }
 
-  // Carregar usuário do storage local
   Future<bool> loadUserFromStorage() async {
     try {
       final userJson = await _storage.read(key: _userKey);
@@ -155,7 +149,6 @@ class UserService with ChangeNotifier {
     return false;
   }
 
-  // Logout - limpar contexto local
   Future<void> logout() async {
     _currentUser = null;
     await _storage.delete(key: _userKey);
@@ -170,7 +163,6 @@ class UserService with ChangeNotifier {
     return userPermissions.contains(permission);
   }
 
-  // Métodos auxiliares para descrições legíveis
   String _getUserTypeDescription(UserRole role) {
     switch (role) {
       case UserRole.coronel:
