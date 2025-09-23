@@ -98,6 +98,63 @@ class _NewItemScreenState extends State<NewItemScreen> {
     }
   }
 
+  Future<void> _deactivateItem() async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: const Text(
+            'Tem certeza que deseja desativar este item? Esta ação não pode ser desfeita.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: deleteRed),
+              child: const Text('Excluir'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final itemId = widget.itemToEdit?['id_item'];
+      if (itemId == null) {
+        throw 'ID do item não encontrado. Não é possível excluir.';
+      }
+
+      await _itemService.deactivateItem(itemId as int);
+
+      if (mounted) {
+        showCustomSnackbar(context, 'Item desativado com sucesso!');
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackbar(context, e.toString(), isError: true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
   Future<void> _loadGroups() async {
     try {
       final groupsData = await _groupService.fetchAllGroups();
@@ -403,6 +460,9 @@ class _NewItemScreenState extends State<NewItemScreen> {
               onButtonPressed: _isSaving
                   ? null
                   : (isEditMode ? _updateItem : _registerItem),
+              isEditMode: isEditMode,
+              onDeletePressed: _isSaving ? null : _deactivateItem,
+              isLoading: _isSaving,
             ),
           ],
         ),

@@ -14,8 +14,10 @@ class StockItemService {
     required UserRole userRole,
   }) async {
     try {
-      var baseQuery = supabase.from('item').select('*, grupo(nome)');
-
+      var baseQuery = supabase
+          .from('item')
+          .select('*, grupo(nome)')
+          .eq('ativo', true);
       final userSectorId = SectorService.instance.currentSectorId;
       if (userSectorId != null) {
         baseQuery = baseQuery.eq('id_setor', userSectorId);
@@ -87,6 +89,21 @@ class StockItemService {
       throw 'Falha ao atualizar item: ${e.message}';
     } catch (e) {
       print('Erro desconhecido ao atualizar item: $e');
+      throw 'Ocorreu um erro inesperado. Tente novamente.';
+    }
+  }
+
+  Future<void> deactivateItem(int itemId) async {
+    try {
+      await supabase
+          .from('item')
+          .update({'ativo': false})
+          .eq('id_item', itemId);
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao inativar item: ${e.message}');
+      throw 'Falha ao inativar item: ${e.message}';
+    } catch (e) {
+      print('Erro desconhecido ao inativar item: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
