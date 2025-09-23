@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/utils/formatters.dart';
@@ -16,6 +17,8 @@ class DetalhesItemModal extends StatelessWidget {
   final String? dataValidade;
   final bool? controlado;
 
+  final Map<String, dynamic> itemData;
+
   const DetalhesItemModal({
     super.key,
     required this.nome,
@@ -25,6 +28,7 @@ class DetalhesItemModal extends StatelessWidget {
     required this.qtdReservada,
     required this.grupo,
     required this.userRole,
+    required this.itemData,
     this.dataValidade,
     this.controlado,
   });
@@ -101,7 +105,14 @@ class DetalhesItemModal extends StatelessWidget {
             Expanded(
               child: CustomButton(
                 text: "Editar",
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.newItem,
+                    arguments: itemData,
+                  );
+                },
                 secondary: true,
                 isFullWidth: true,
                 customIcon: 'assets/icons/edit.svg',

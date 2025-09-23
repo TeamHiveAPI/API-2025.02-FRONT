@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/services/item_stock_service.dart';
+import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -68,7 +68,6 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
 void _handleRowTap(Map<String, dynamic> itemData) {
-  // 1. Lógica para extrair o nome do grupo de forma segura
   final grupoMap = itemData['grupo'];
   final nomeDoGrupo = (grupoMap != null)
       ? grupoMap['nome']?.toString() ?? 'Sem Grupo'
@@ -78,6 +77,7 @@ void _handleRowTap(Map<String, dynamic> itemData) {
     context: context,
     title: "Detalhes do item",
     child: DetalhesItemModal(
+      itemData: itemData,
       nome: itemData['nome']?.toString() ?? 'N/A',
       numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
       unidMedida: itemData['unidade']?.toString() ?? 'N/A',

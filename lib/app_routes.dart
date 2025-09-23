@@ -26,7 +26,14 @@ class AppRoutes {
         );
 
       case newItem:
-        return MaterialPageRoute(builder: (_) => const NewItemScreen());
+        final arguments = settings.arguments;
+        if (arguments is Map<String, dynamic>) {
+          return MaterialPageRoute(
+            builder: (_) => NewItemScreen(itemToEdit: arguments),
+          );
+        } else {
+          return MaterialPageRoute(builder: (_) => const NewItemScreen());
+        }
 
       default:
         return MaterialPageRoute(

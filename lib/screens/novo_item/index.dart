@@ -7,7 +7,7 @@ import 'package:sistema_almox/core/theme/colors.dart';
 
 import 'package:sistema_almox/screens/novo_item/form_handler.dart';
 import 'package:sistema_almox/services/group_service.dart';
-import 'package:sistema_almox/services/item_stock_service.dart';
+import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
@@ -17,7 +17,8 @@ import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 class NewItemScreen extends StatefulWidget {
-  const NewItemScreen({super.key});
+  final Map<String, dynamic>? itemToEdit;
+  const NewItemScreen({super.key, this.itemToEdit});
 
   @override
   _NewItemScreenState createState() => _NewItemScreenState();
@@ -28,6 +29,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
   final _groupService = GroupService();
   final _itemService = StockItemService();
 
+  bool get isEditMode => widget.itemToEdit != null;
+
   bool _isLoadingGroups = true;
   bool _isSaving = false;
   String? _loadingError;
@@ -36,6 +39,63 @@ class _NewItemScreenState extends State<NewItemScreen> {
   void initState() {
     super.initState();
     _loadGroups();
+
+    if (isEditMode) {
+      _populateFormForEdit();
+    }
+  }
+
+  void _populateFormForEdit() {
+    final item = widget.itemToEdit!;
+    _formHandler.nameController.text = item['nome']?.toString() ?? '';
+    _formHandler.recordNumberController.text =
+        item['num_ficha']?.toString() ?? '';
+
+    final unidade = item['unidade']?.toString() ?? '';
+    if (unidade.startsWith('Lote')) {
+      final match = RegExp(r'\((\d+)\s*un\.\)').firstMatch(unidade);
+      _formHandler.unitOfMeasureController.text = match?.group(1) ?? '';
+    } else {
+      _formHandler.unitOfMeasureController.text = unidade;
+    }
+
+    _formHandler.initialQuantityController.text =
+        item['qtd_atual']?.toString() ?? '0';
+    _formHandler.minStockController.text =
+        item['min_estoque']?.toString() ?? '0';
+    _formHandler.selectedGroupId = item['id_grupo'];
+
+    if (item['data_validade'] != null) {
+      _formHandler.expirationDateController.text = item['data_validade']
+          .toString();
+      _formHandler.isControlled = item['controlado'] ?? false;
+    }
+  }
+
+  Future<void> _updateItem() async {
+    FocusScope.of(context).unfocus();
+    setState(() => _formHandler.hasSubmitted = true);
+    print(widget.itemToEdit);
+
+    if (!(_formHandler.formKey.currentState?.validate() ?? false)) {
+      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final itemPayload = _buildItemPayload();
+      final itemId = widget.itemToEdit!['id_item'] as int;
+
+      await _itemService.updateItem(itemId, itemPayload);
+      showCustomSnackbar(context, 'Item atualizado com sucesso!');
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) showCustomSnackbar(context, e.toString(), isError: true);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Future<void> _loadGroups() async {
@@ -61,7 +121,44 @@ class _NewItemScreenState extends State<NewItemScreen> {
     super.dispose();
   }
 
+  Map<String, dynamic> _buildItemPayload() {
+    final currentUserRole = Provider.of<UserService>(
+      context,
+      listen: false,
+    ).currentUser!.role;
+    final isPharmacyUser =
+        currentUserRole == UserRole.tenenteFarmacia ||
+        currentUserRole == UserRole.soldadoFarmacia;
+
+    final String unidadeDeMedida;
+
+    if (isPharmacyUser) {
+      final unidadesPorLote = _formHandler.unitOfMeasureController.text;
+      unidadeDeMedida = 'Lote ($unidadesPorLote un.)';
+    } else {
+      unidadeDeMedida = _formHandler.unitOfMeasureController.text;
+    }
+
+    final payload = {
+      'nome': _formHandler.nameController.text,
+      'num_ficha': int.tryParse(_formHandler.recordNumberController.text),
+      'unidade': unidadeDeMedida,
+      'qtd_atual':
+          int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
+      'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
+      'id_grupo': _formHandler.selectedGroupId,
+    };
+
+    if (isPharmacyUser) {
+      payload['data_validade'] = _formHandler.expirationDateController.text;
+      payload['controlado'] = _formHandler.isControlled;
+    }
+
+    return payload;
+  }
+
   Future<void> _registerItem() async {
+    print(widget.itemToEdit);
     FocusScope.of(context).unfocus();
     setState(() => _formHandler.hasSubmitted = true);
 
@@ -73,38 +170,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final currentUserRole = Provider.of<UserService>(
-        context,
-        listen: false,
-      ).currentUser!.role;
-      final isPharmacyUser =
-          currentUserRole == UserRole.tenenteFarmacia ||
-          currentUserRole == UserRole.soldadoFarmacia;
-
-      final String unidadeDeMedida;
-
-      if (isPharmacyUser) {
-        final unidadesPorLote = _formHandler.unitOfMeasureController.text;
-        unidadeDeMedida = 'Lote ($unidadesPorLote un.)';
-      } else {
-        unidadeDeMedida = _formHandler.unitOfMeasureController.text;
-      }
-
-      final itemPayload = {
-        'nome': _formHandler.nameController.text,
-        'num_ficha': int.tryParse(_formHandler.recordNumberController.text),
-        'unidade': unidadeDeMedida,
-        'qtd_atual':
-            int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
-        'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
-        'id_grupo': _formHandler.selectedGroupId,
-      };
-
-      if (isPharmacyUser) {
-        itemPayload['data_validade'] =
-            _formHandler.expirationDateController.text;
-        itemPayload['controlado'] = _formHandler.isControlled;
-      }
+      final itemPayload = _buildItemPayload();
 
       await _itemService.createItem(itemPayload);
       showCustomSnackbar(context, 'Item cadastrado com sucesso!');
@@ -145,7 +211,9 @@ class _NewItemScreenState extends State<NewItemScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const InternalPageHeader(title: 'Cadastrar Novo Item'),
+            InternalPageHeader(
+              title: isEditMode ? 'Editar Item' : 'Cadastrar Novo Item',
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -331,8 +399,10 @@ class _NewItemScreenState extends State<NewItemScreen> {
               ),
             ),
             InternalPageBottom(
-              buttonText: 'Cadastrar Item',
-              onButtonPressed: _isSaving ? null : _registerItem,
+              buttonText: isEditMode ? 'Salvar Alterações' : 'Cadastrar Item',
+              onButtonPressed: _isSaving
+                  ? null
+                  : (isEditMode ? _updateItem : _registerItem),
             ),
           ],
         ),
