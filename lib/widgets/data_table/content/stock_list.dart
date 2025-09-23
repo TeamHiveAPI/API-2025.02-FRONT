@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/services/item_service.dart';
-import 'package:sistema_almox/services/user_service.dart';
-import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -47,19 +45,12 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     SortParams sortParams,
     String? searchQuery,
   ) {
+
     return _itemService.fetchItems(
       page: page,
       sortParams: sortParams,
       searchQuery: searchQuery,
-      userRole: widget.userRole,
-    );
-
-    // Filtrar itens baseado nas permissões do usuário
-    final filteredItems = response.items.where(_canViewItem).toList();
-
-    return PaginatedResponse(
-      items: filteredItems,
-      totalCount: filteredItems.length,
+      userRole: widget.userRole!,
     );
   }
 
@@ -77,29 +68,29 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     }
   }
 
-void _handleRowTap(Map<String, dynamic> itemData) {
-  final grupoMap = itemData['grupo'];
-  final nomeDoGrupo = (grupoMap != null)
-      ? grupoMap['nome']?.toString() ?? 'Sem Grupo'
-      : 'Sem Grupo';
+  void _handleRowTap(Map<String, dynamic> itemData) {
+    final grupoMap = itemData['grupo'];
+    final nomeDoGrupo = (grupoMap != null)
+        ? grupoMap['nome']?.toString() ?? 'Sem Grupo'
+        : 'Sem Grupo';
 
-  showCustomBottomSheet(
-    context: context,
-    title: "Detalhes do item",
-    child: DetalhesItemModal(
-      itemData: itemData,
-      nome: itemData['nome']?.toString() ?? 'N/A',
-      numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
-      unidMedida: itemData['unidade']?.toString() ?? 'N/A',
-      qtdDisponivel: itemData['qtd_atual'] ?? 0,
-      qtdReservada: itemData['qtd_reservada'] ?? 0,
-      grupo: nomeDoGrupo,
-      dataValidade: itemData['data_validade'],
-      controlado: itemData['controlado'],
-      userRole: widget.userRole,
-    ),
-  );
-}
+    showCustomBottomSheet(
+      context: context,
+      title: "Detalhes do item",
+      child: DetalhesItemModal(
+        itemData: itemData,
+        nome: itemData['nome']?.toString() ?? 'N/A',
+        numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
+        unidMedida: itemData['unidade']?.toString() ?? 'N/A',
+        qtdDisponivel: itemData['qtd_atual'] ?? 0,
+        qtdReservada: itemData['qtd_reservada'] ?? 0,
+        grupo: nomeDoGrupo,
+        dataValidade: itemData['data_validade'],
+        controlado: itemData['controlado'],
+        userRole: widget.userRole!,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
