@@ -5,9 +5,7 @@ import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
-import 'package:sistema_almox/widgets/modal/content/novo_item.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_item_modal.dart';
-import 'package:sistema_almox/widgets/modal/content/novo_tipo_remedio.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
