@@ -8,7 +8,7 @@ class AuthService {
   AuthService._privateConstructor();
   static final AuthService instance = AuthService._privateConstructor();
 
-  Future<bool> login({required String email, required String password}) async {
+Future<bool> login({required String email, required String password}) async {
     try {
       final response = await SupabaseConfig.client.auth.signInWithPassword(
         email: email,
@@ -16,25 +16,8 @@ class AuthService {
       );
 
       if (response.user != null) {
-        final userData = await SupabaseConfig.client
-            .from('usuario')
-            .select(
-              'id_usuario, nome, email, cpf, nivel_acesso, id_setor, auth_uid',
-            )
-            .eq('auth_uid', response.user!.id)
-            .single();
-
-        UserService.instance.login(
-          idUsuario: userData['id_usuario'],
-          nome: userData['nome'],
-          email: userData['email'],
-          cpf: userData['cpf'],
-          nivelAcesso: userData['nivel_acesso'],
-          idSetor: userData['id_setor'],
-          authUid: userData['auth_uid'],
-        );
-
-        return true;
+        final success = await UserService.instance.fetchAndSetCurrentUser(response.user!.id);
+        return success;
       }
 
       return false;

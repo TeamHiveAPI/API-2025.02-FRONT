@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/permissions.dart';
 
 class UserModel {
@@ -11,6 +12,7 @@ class UserModel {
   final int nivelAcesso;
   final int idSetor;
   final String authUid;
+  final String? fotoUrl;
   final UserRole role;
 
   UserModel({
@@ -21,6 +23,7 @@ class UserModel {
     required this.nivelAcesso,
     required this.idSetor,
     required this.authUid,
+    this.fotoUrl,
     required this.role,
   });
 }
@@ -30,12 +33,169 @@ class UserService with ChangeNotifier {
   static final UserService instance = UserService._privateConstructor();
 
   static const _storage = FlutterSecureStorage();
+  final supabase = Supabase.instance.client;
+
   static const String _userKey = 'current_user';
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
+  bool get isLoggedIn => _currentUser != null;
 
-  static UserRole _mapRoleFromDatabase(int nivelAcesso, int idSetor) {
+  Future<bool> fetchAndSetCurrentUser(String userId) async {
+    try {
+      final userData = await supabase
+          .from('usuario')
+          .select(
+            'id_usuario, nome, email, cpf, nivel_acesso, id_setor, auth_uid, foto_url',
+          )
+          .eq('auth_uid', userId)
+          .single();
+
+      _setCurrentUser(
+        idUsuario: userData['id_usuario'],
+        nome: userData['nome'],
+        email: userData['email'],
+        cpf: userData['cpf'],
+        nivelAcesso: userData['nivel_acesso'],
+        idSetor: userData['id_setor'],
+        authUid: userData['auth_uid'],
+        fotoUrl: userData['foto_url'],
+      );
+      return true;
+    } catch (e) {
+      print("Erro ao buscar perfil do usuário no UserService: $e");
+      await logout();
+      return false;
+    }
+  }
+
+  Future<bool> loadUserFromStorage() async {
+    try {
+      final userJson = await _storage.read(key: _userKey);
+      if (userJson != null) {
+        final userData = jsonDecode(userJson);
+        final role = UserRole.values.firstWhere(
+          (r) => r.name == userData['role'],
+          orElse: () => UserRole.soldadoComum,
+        );
+
+        _currentUser = UserModel(
+          idUsuario: userData['idUsuario'],
+          nome: userData['nome'],
+          email: userData['email'],
+          cpf: userData['cpf'],
+          nivelAcesso: userData['nivelAcesso'],
+          idSetor: userData['idSetor'],
+          authUid: userData['authUid'],
+          fotoUrl: userData['fotoUrl'],
+          role: role,
+        );
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      print('Erro ao carregar usuário do storage: $e');
+    }
+    return false;
+  }
+
+  Future<void> logout() async {
+    _currentUser = null;
+    _cachedAvatarUrlFuture = null; 
+    await _storage.delete(key: _userKey);
+    notifyListeners();
+  }
+
+  bool can(AppPermission permission) {
+    if (_currentUser == null) return false;
+
+    final userPermissions = permissionsByRole[_currentUser!.role];
+    if (userPermissions == null) return false;
+
+    return userPermissions.contains(permission);
+  }
+
+  void _setCurrentUser({
+    required int idUsuario,
+    required String nome,
+    required String email,
+    required String cpf,
+    required int nivelAcesso,
+    required int idSetor,
+    required String authUid,
+    required String? fotoUrl,
+  }) {
+    final role = _mapRoleFromDatabase(nivelAcesso, idSetor);
+
+    _currentUser = UserModel(
+      idUsuario: idUsuario,
+      nome: nome,
+      email: email,
+      cpf: cpf,
+      nivelAcesso: nivelAcesso,
+      idSetor: idSetor,
+      authUid: authUid,
+      fotoUrl: fotoUrl,
+      role: role,
+    );
+
+    _cachedAvatarUrlFuture = null;
+    print('Usuário ${_currentUser?.nome} configurado no UserService.');
+
+    _saveUserToStorage();
+    notifyListeners();
+  }
+
+  Future<void> _saveUserToStorage() async {
+    if (_currentUser != null) {
+      final userJson = jsonEncode({
+        'idUsuario': _currentUser!.idUsuario,
+        'nome': _currentUser!.nome,
+        'email': _currentUser!.email,
+        'cpf': _currentUser!.cpf,
+        'nivelAcesso': _currentUser!.nivelAcesso,
+        'idSetor': _currentUser!.idSetor,
+        'authUid': _currentUser!.authUid,
+        'fotoUrl': _currentUser!.fotoUrl,
+        'role': _currentUser!.role.name,
+      });
+      await _storage.write(key: _userKey, value: userJson);
+    }
+  }
+
+  Future<String>? _cachedAvatarUrlFuture;
+
+  // --- MUDANÇA 2: A função agora gerencia o cache do Future ---
+  Future<String> getSignedAvatarUrl() {
+    // Se não há usuário ou foto, retorna um Future já completo com uma string vazia.
+    if (_currentUser == null || _currentUser!.fotoUrl == null || _currentUser!.fotoUrl!.isEmpty) {
+      return Future.value('');
+    }
+
+    // Se já temos um Future em cache, retorna ele imediatamente.
+    if (_cachedAvatarUrlFuture != null) {
+      return _cachedAvatarUrlFuture!;
+    }
+
+    // Se não há cache, cria o Future, guarda no cache e o retorna.
+    _cachedAvatarUrlFuture = _fetchAndCacheUrl();
+    return _cachedAvatarUrlFuture!;
+  }
+
+  Future<String> _fetchAndCacheUrl() async {
+    try {
+      final url = await supabase.storage
+          .from('user-avatars')
+          .createSignedUrl(_currentUser!.fotoUrl!, 3600);
+      return url;
+    } catch (e) {
+      print("Erro ao gerar URL assinada no service: $e");
+      _cachedAvatarUrlFuture = null; 
+      return '';
+    }
+  }
+
+  UserRole _mapRoleFromDatabase(int nivelAcesso, int idSetor) {
     switch (nivelAcesso) {
       case 1:
         switch (idSetor) {
@@ -64,160 +224,6 @@ class UserService with ChangeNotifier {
         return UserRole.soldadoComum;
       default:
         return UserRole.soldadoComum;
-    }
-  }
-
-  void login({
-    required int idUsuario,
-    required String nome,
-    required String email,
-    required String cpf,
-    required int nivelAcesso,
-    required int idSetor,
-    required String authUid,
-  }) {
-    final role = _mapRoleFromDatabase(nivelAcesso, idSetor);
-
-    _currentUser = UserModel(
-      idUsuario: idUsuario,
-      nome: nome,
-      email: email,
-      cpf: cpf,
-      nivelAcesso: nivelAcesso,
-      idSetor: idSetor,
-      authUid: authUid,
-      role: role,
-    );
-
-    print('Teste: Informações do Usuário Logado');
-    print('Nome: $nome');
-    print('Email: $email');
-    print('CPF: $cpf');
-    print('ID Usuário: $idUsuario');
-    print('Nível de Acesso: $nivelAcesso');
-    print('ID Setor: $idSetor');
-    print('Auth UID: $authUid');
-    print('UserRole: ${role.name}');
-    print('Tipo de Usuário: ${_getUserTypeDescription(role)}');
-    print('Setor: ${_getSetorDescription(idSetor)}');
-    print('Permissões: ${_getUserPermissions(role)}');
-
-    _saveUserToStorage();
-  }
-
-  Future<void> _saveUserToStorage() async {
-    if (_currentUser != null) {
-      final userJson = jsonEncode({
-        'idUsuario': _currentUser!.idUsuario,
-        'nome': _currentUser!.nome,
-        'email': _currentUser!.email,
-        'cpf': _currentUser!.cpf,
-        'nivelAcesso': _currentUser!.nivelAcesso,
-        'idSetor': _currentUser!.idSetor,
-        'authUid': _currentUser!.authUid,
-        'role': _currentUser!.role.name,
-      });
-      await _storage.write(key: _userKey, value: userJson);
-    }
-  }
-
-  Future<bool> loadUserFromStorage() async {
-    try {
-      final userJson = await _storage.read(key: _userKey);
-      if (userJson != null) {
-        final userData = jsonDecode(userJson);
-        final role = UserRole.values.firstWhere(
-          (r) => r.name == userData['role'],
-          orElse: () => UserRole.soldadoComum,
-        );
-
-        _currentUser = UserModel(
-          idUsuario: userData['idUsuario'],
-          nome: userData['nome'],
-          email: userData['email'],
-          cpf: userData['cpf'],
-          nivelAcesso: userData['nivelAcesso'],
-          idSetor: userData['idSetor'],
-          authUid: userData['authUid'],
-          role: role,
-        );
-        return true;
-      }
-    } catch (e) {
-      print('Erro ao carregar usuário do storage: $e');
-    }
-    return false;
-  }
-
-  Future<void> logout() async {
-    _currentUser = null;
-    await _storage.delete(key: _userKey);
-  }
-
-  bool can(AppPermission permission) {
-    if (_currentUser == null) return false;
-
-    final userPermissions = permissionsByRole[_currentUser!.role];
-    if (userPermissions == null) return false;
-
-    return userPermissions.contains(permission);
-  }
-
-  String _getUserTypeDescription(UserRole role) {
-    switch (role) {
-      case UserRole.coronel:
-        return 'Coronel - Comando Geral';
-      case UserRole.tenenteEstoque:
-        return 'Tenente - Comando de Estoque';
-      case UserRole.tenenteFarmacia:
-        return 'Tenente - Comando de Farmácia';
-      case UserRole.soldadoEstoque:
-        return 'Soldado - Setor de Estoque';
-      case UserRole.soldadoFarmacia:
-        return 'Soldado - Setor de Farmácia';
-      case UserRole.soldadoComum:
-        return 'Soldado - Sem Setor Específico';
-    }
-  }
-
-  String _getSetorDescription(int idSetor) {
-    switch (idSetor) {
-      case 0:
-        return 'Sem Setor Específico';
-      case 1:
-        return 'Estoque/Almoxarifado';
-      case 2:
-        return 'Farmácia';
-      case 3:
-        return 'Comando Geral';
-      default:
-        return 'Setor Desconhecido ($idSetor)';
-    }
-  }
-
-  String _getUserPermissions(UserRole role) {
-    final permissions = permissionsByRole[role];
-    if (permissions == null) return 'Nenhuma permissão';
-    
-    return permissions.map((p) => _getPermissionDescription(p)).join(', ');
-  }
-
-  String _getPermissionDescription(AppPermission permission) {
-    switch (permission) {
-      case AppPermission.accessAdminScreen:
-        return 'Acesso à Tela Admin';
-      case AppPermission.viewStockItems:
-        return 'Ver Itens do Estoque';
-      case AppPermission.viewPharmacyItems:
-        return 'Ver Itens da Farmácia';
-      case AppPermission.createOrders:
-        return 'Criar Pedidos';
-      case AppPermission.viewAllOrders:
-        return 'Ver Todos os Pedidos';
-      case AppPermission.editItems:
-        return 'Editar Itens';
-      case AppPermission.viewReports:
-        return 'Ver Relatórios';
     }
   }
 }

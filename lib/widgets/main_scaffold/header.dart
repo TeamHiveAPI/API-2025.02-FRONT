@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/auth_service.dart';
-import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
+import 'package:sistema_almox/services/user_service.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
-  final String fotoUrl;
-  final List<NavBarItemInfo> navBarItemsInfo;
   final Function(int) onProfileTap;
 
-  const CustomHeader({
-    super.key,
-    required this.fotoUrl,
-    required this.navBarItemsInfo,
-    required this.onProfileTap,
-  });
+  const CustomHeader({super.key, required this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
@@ -28,31 +21,49 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  final perfilIndex = navBarItemsInfo.indexWhere(
-                    (item) => item.label == 'Perfil',
-                  );
-                  if (perfilIndex != -1) {
-                    onProfileTap(perfilIndex);
-                  }
+                  onProfileTap(0);
                 },
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundImage: (fotoUrl.isNotEmpty)
-                      ? AssetImage(fotoUrl)
-                      : null,
-                  backgroundColor: Colors.grey[200],
-                  child: (fotoUrl.isEmpty)
-                      ? Icon(Icons.person, size: 20, color: Colors.grey[600])
-                      : null,
+                child: FutureBuilder<String>(
+                  future: UserService.instance.getSignedAvatarUrl(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.grey[200],
+                        child: const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.hasError ||
+                        !snapshot.hasData ||
+                        snapshot.data!.isEmpty) {
+                      return CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.grey[200],
+                        child: Icon(
+                          Icons.person,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    }
+
+                    final imageUrl = snapshot.data!;
+                    return CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage(imageUrl),
+                      backgroundColor: Colors.grey[200],
+                    );
+                  },
                 ),
               ),
-              Text(
+              const Text(
                 'SISTEMA ALMOX',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: brandBlue,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: brandBlue),
               ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
