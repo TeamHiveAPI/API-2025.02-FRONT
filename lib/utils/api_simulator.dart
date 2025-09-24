@@ -17,20 +17,23 @@ Future<PaginatedResponse> fetchItemsFromAsset({
 }) async {
   final String jsonString = await rootBundle.loadString(assetPath);
   final List<dynamic> allJsonData = json.decode(jsonString);
-  List<Map<String, dynamic>> allItems =
-      allJsonData.cast<Map<String, dynamic>>();
+  List<Map<String, dynamic>> allItems = allJsonData.cast<Map<String, dynamic>>();
 
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
     allItems = allItems.where((item) {
-      return searchFields.any((field) {
-        final fieldValue = item[field]?.toString().toLowerCase() ?? '';
-        return fieldValue.contains(lowerCaseQuery);
-      });
+      final itemName = item['itemName']?.toString().toLowerCase() ?? '';
+      final itemCode = item['numFicha']?.toString().toLowerCase() ?? '';
+
+      return itemName.contains(lowerCaseQuery) ||
+             itemCode.contains(lowerCaseQuery);
     }).toList();
   }
+
+  // Ordenação
   _sortOnServer(allItems, allColumns, sortParams);
 
+  // Paginação
   final int total = allItems.length;
   final int startIndex = (page - 1) * _itemsPerPage;
   final int endIndex = startIndex + _itemsPerPage;
@@ -60,8 +63,8 @@ void _sortOnServer(
       final valueB = b[column.dataField]?.toString();
       final targetValue =
           sortParams.thisOrThatState == ThisOrThatSortState.primaryFirst
-              ? column.primarySortValue
-              : column.secondarySortValue;
+          ? column.primarySortValue
+          : column.secondarySortValue;
       if (valueA == targetValue && valueB != targetValue) return -1;
       if (valueB == targetValue && valueA != targetValue) return 1;
       return 0;
@@ -78,8 +81,8 @@ void _sortOnServer(
         comparison = (valueA as num).compareTo(valueB as num);
       } else {
         comparison = valueA.toString().toLowerCase().compareTo(
-              valueB.toString().toLowerCase(),
-            );
+          valueB.toString().toLowerCase(),
+        );
       }
       return sortParams.isAscending ? comparison : -comparison;
     });
