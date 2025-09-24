@@ -19,7 +19,6 @@ class MainScaffold extends StatefulWidget {
 
 class MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-  String fotoUrl = 'assets/foto-perfil.png';
 
   late final List<Widget> _pages;
   late final List<NavBarItemInfo> _navBarItemsInfo;
@@ -117,10 +116,14 @@ class MainScaffoldState extends State<MainScaffold> {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        appBar: CustomHeader(
-          fotoUrl: fotoUrl,
-          navBarItemsInfo: _navBarItemsInfo,
-          onProfileTap: onItemTapped,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(90),
+          child: AnimatedBuilder(
+            animation: UserService.instance,
+            builder: (context, child) {
+              return CustomHeader(onProfileTap: onItemTapped);
+            },
+          ),
         ),
 
         body: Container(
