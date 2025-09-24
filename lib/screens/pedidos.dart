@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
-import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/data_table/content/pedidos_list.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -15,12 +14,6 @@ class OrderScreen extends StatefulWidget {
 class _OrderScreenState extends State<OrderScreen> {
   String _searchQuery = '';
   final UserRole _currentUserRole = UserRole.coronel;
-
-  void _handleSearch(String query) {
-    setState(() {
-      _searchQuery = query;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
