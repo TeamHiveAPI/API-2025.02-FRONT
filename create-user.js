@@ -9,6 +9,7 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   throw new Error("As variáveis não foram identificadas!");
 }
+
 // Troque pelo caminho do seu computador
 const CAMINHO_DA_IMAGEM_LOCAL = 'D:/API-2025.02-FRONT/assets/foto-perfil-teste.png';
 
@@ -23,13 +24,13 @@ async function criarUsuarioComFoto() {
   console.log('Iniciando processo de criação de usuário com upload de foto...');
 
   const dadosIniciaisUsuario = {
-    email: 'dioga@gmail.com',
-    password: '123456',
+    email: 'fabiane@gmail.com',
+    password: '123',
     email_confirm: true,
     user_metadata: {
-      display_name: 'Dioga',
-      cpf: '234568',
-      nivel_acesso: 2,
+      display_name: 'Fabiane',
+      cpf: '12345678',
+      nivel_acesso: 3,
       id_setor: 1,
     }
   };

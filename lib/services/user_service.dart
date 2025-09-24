@@ -41,6 +41,9 @@ class UserService with ChangeNotifier {
   UserModel? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
 
+  int? _viewingSectorId;
+  int? get viewingSectorId => _viewingSectorId;
+
   Future<bool> fetchAndSetCurrentUser(String userId) async {
     try {
       final userData = await supabase
@@ -101,9 +104,22 @@ class UserService with ChangeNotifier {
 
   Future<void> logout() async {
     _currentUser = null;
-    _cachedAvatarUrlFuture = null; 
+    _cachedAvatarUrlFuture = null;
+    _viewingSectorId = null;
     await _storage.delete(key: _userKey);
     notifyListeners();
+  }
+
+  void toggleViewingSector() {
+    if (_currentUser?.nivelAcesso == 3) {
+      if (_viewingSectorId == 1) {
+        _viewingSectorId = 2;
+      } else {
+        _viewingSectorId = 1;
+      }
+      print('Setor de visualização alterado para: $_viewingSectorId');
+      notifyListeners();
+    }
   }
 
   bool can(AppPermission permission) {
@@ -139,6 +155,8 @@ class UserService with ChangeNotifier {
       role: role,
     );
 
+    _viewingSectorId = _currentUser!.idSetor;
+
     _cachedAvatarUrlFuture = null;
     print('Usuário ${_currentUser?.nome} configurado no UserService.');
 
@@ -165,19 +183,17 @@ class UserService with ChangeNotifier {
 
   Future<String>? _cachedAvatarUrlFuture;
 
-  // --- MUDANÇA 2: A função agora gerencia o cache do Future ---
   Future<String> getSignedAvatarUrl() {
-    // Se não há usuário ou foto, retorna um Future já completo com uma string vazia.
-    if (_currentUser == null || _currentUser!.fotoUrl == null || _currentUser!.fotoUrl!.isEmpty) {
+    if (_currentUser == null ||
+        _currentUser!.fotoUrl == null ||
+        _currentUser!.fotoUrl!.isEmpty) {
       return Future.value('');
     }
 
-    // Se já temos um Future em cache, retorna ele imediatamente.
     if (_cachedAvatarUrlFuture != null) {
       return _cachedAvatarUrlFuture!;
     }
 
-    // Se não há cache, cria o Future, guarda no cache e o retorna.
     _cachedAvatarUrlFuture = _fetchAndCacheUrl();
     return _cachedAvatarUrlFuture!;
   }
@@ -190,7 +206,7 @@ class UserService with ChangeNotifier {
       return url;
     } catch (e) {
       print("Erro ao gerar URL assinada no service: $e");
-      _cachedAvatarUrlFuture = null; 
+      _cachedAvatarUrlFuture = null;
       return '';
     }
   }
@@ -218,10 +234,7 @@ class UserService with ChangeNotifier {
             return UserRole.soldadoComum;
         }
       case 3:
-        if (idSetor == 3) {
           return UserRole.coronel;
-        }
-        return UserRole.soldadoComum;
       default:
         return UserRole.soldadoComum;
     }

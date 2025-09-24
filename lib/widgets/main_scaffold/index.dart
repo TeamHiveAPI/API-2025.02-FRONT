@@ -42,23 +42,13 @@ class MainScaffoldState extends State<MainScaffold> {
       ),
     );
 
-    if (UserService.instance.can(AppPermission.viewStockItems)) {
+    if (UserService.instance.can(AppPermission.viewStockItems) ||
+        UserService.instance.can(AppPermission.viewPharmacyItems)) {
       pages.add(const StockScreen());
       navBarItemsInfo.add(
         NavBarItemInfo(
           'assets/icons/navbar/estoque.svg',
           'Estoque',
-          navBarItemsInfo.length,
-        ),
-      );
-    }
-
-    if (UserService.instance.can(AppPermission.viewPharmacyItems)) {
-      pages.add(const StockScreen());
-      navBarItemsInfo.add(
-        NavBarItemInfo(
-          'assets/icons/navbar/estoque.svg',
-          'Farmácia',
           navBarItemsInfo.length,
         ),
       );
@@ -110,6 +100,8 @@ class MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final userService = UserService.instance;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -129,6 +121,33 @@ class MainScaffoldState extends State<MainScaffold> {
         body: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: _pages.elementAt(_selectedIndex),
+        ),
+
+        floatingActionButton: AnimatedBuilder(
+          animation: userService,
+          builder: (context, child) {
+            final isCoronel = userService.currentUser?.nivelAcesso == 3;
+
+            if (!isCoronel) {
+              return const SizedBox.shrink();
+            }
+
+            final bool isViewingStock = userService.viewingSectorId == 1;
+            final IconData icon = isViewingStock
+                ? Icons.local_pharmacy_outlined
+                : Icons.inventory_2_outlined;
+            final String tooltip = isViewingStock
+                ? 'Visualizar Farmácia (Setor 2)'
+                : 'Visualizar Almoxarifado (Setor 1)';
+
+            return FloatingActionButton(
+              onPressed: () {
+                userService.toggleViewingSector();
+              },
+              tooltip: tooltip,
+              child: Icon(icon),
+            );
+          },
         ),
 
         bottomNavigationBar: CustomNavBar(

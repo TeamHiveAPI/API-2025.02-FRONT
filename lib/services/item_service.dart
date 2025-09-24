@@ -1,5 +1,5 @@
 import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/services/sector_service.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 
@@ -18,23 +18,15 @@ class StockItemService {
           .from('item')
           .select('*, grupo(nome)')
           .eq('ativo', true);
-      final userSectorId = SectorService.instance.currentSectorId;
-      if (userSectorId != null) {
-        baseQuery = baseQuery.eq('id_setor', userSectorId);
+
+      final viewingSectorId = UserService.instance.viewingSectorId;
+      if (viewingSectorId != null) {
+        baseQuery = baseQuery.eq('id_setor', viewingSectorId);
       }
 
-      final isPharmacyUser =
-          userRole == UserRole.tenenteFarmacia ||
-          userRole == UserRole.soldadoFarmacia;
-
-      final isStockUser =
-          userRole == UserRole.tenenteEstoque ||
-          userRole == UserRole.soldadoEstoque ||
-          userRole == UserRole.coronel;
-
-      if (isPharmacyUser) {
+      if (viewingSectorId == 2) {
         baseQuery = baseQuery.not('data_validade', 'is', null);
-      } else if (isStockUser) {
+      } else if (viewingSectorId == 1) {
         baseQuery = baseQuery.filter('data_validade', 'is', null);
       }
 
