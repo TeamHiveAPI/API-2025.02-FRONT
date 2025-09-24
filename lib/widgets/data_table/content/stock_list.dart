@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/utils/api_simulator.dart';
+import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -9,56 +9,35 @@ import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 
 class StockItemsTable extends StatefulWidget {
   final String? searchQuery;
-  final UserRole userRole;
+  final UserRole? userRole;
 
-  const StockItemsTable({super.key, this.searchQuery, required this.userRole});
+  const StockItemsTable({super.key, this.searchQuery, this.userRole});
 
   @override
   State<StockItemsTable> createState() => _StockItemsTableState();
 }
 
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
+  final StockItemService _itemService = StockItemService();
+
   @override
-  String get apiEndpoint {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-      case UserRole.soldadoFarmacia:
-        return 'farmacia';
-      default:
-        return 'estoque';
-    }
-  }
+  String get apiEndpoint => 'item';
 
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: 'itemName',
+      dataField: 'nome',
       widthFactor: 0.78,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
-      dataField: 'quantity',
+      dataField: 'qtd_atual',
       widthFactor: 0.22,
       sortType: SortType.numeric,
     ),
   ];
-
-  String get _assetPathForRole {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-        return 'lib/temp/farmacia.json';
-      case UserRole.soldadoFarmacia:
-        return 'lib/temp/farmacia.json';
-      case UserRole.coronel:
-        return 'lib/temp/almoxarifado.json';
-      case UserRole.tenenteEstoque:
-        return 'lib/temp/almoxarifado.json';
-      case UserRole.soldadoEstoque:
-        return 'lib/temp/almoxarifado.json';
-    }
-  }
 
   @override
   Future<PaginatedResponse> performFetch(
@@ -66,13 +45,12 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     SortParams sortParams,
     String? searchQuery,
   ) {
-    return fetchItemsFromAsset(
-      assetPath: _assetPathForRole,
+
+    return _itemService.fetchItems(
       page: page,
-      allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
-      searchFields: ['itemName', 'numFicha']
+      userRole: widget.userRole!,
     );
   }
 
@@ -91,16 +69,25 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
+    final grupoMap = itemData['grupo'];
+    final nomeDoGrupo = (grupoMap != null)
+        ? grupoMap['nome']?.toString() ?? 'Sem Grupo'
+        : 'Sem Grupo';
+
     showCustomBottomSheet(
       context: context,
-      title: "Detalhes do Item",
+      title: "Detalhes do item",
       child: DetalhesItemModal(
-        nome: itemData['itemName']?.toString() ?? 'N/A',
-        numFicha: itemData['numFicha']?.toString() ?? 'N/A',
-        unidMedida: itemData['unidMedida']?.toString() ?? 'N/A',
-        qtdDisponivel: itemData['quantity'] ?? 0,
-        qtdReservada: itemData['qtdReservada'] ?? 0,
-        grupo: itemData['grupo']?.toString() ?? 'N/A',
+        itemData: itemData,
+        nome: itemData['nome']?.toString() ?? 'N/A',
+        numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
+        unidMedida: itemData['unidade']?.toString() ?? 'N/A',
+        qtdDisponivel: itemData['qtd_atual'] ?? 0,
+        qtdReservada: itemData['qtd_reservada'] ?? 0,
+        grupo: nomeDoGrupo,
+        dataValidade: itemData['data_validade'],
+        controlado: itemData['controlado'],
+        userRole: widget.userRole!,
       ),
     );
   }
@@ -110,7 +97,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     final bool showSkeleton = isLoading && loadedItems.isEmpty;
 
     final List<Map<String, dynamic>> displayData = showSkeleton
-        ? List.generate(8, (_) => <String, dynamic>{})
+        ? List.generate(8, (_) => {})
         : loadedItems;
 
     return DynamicJsonTable(
