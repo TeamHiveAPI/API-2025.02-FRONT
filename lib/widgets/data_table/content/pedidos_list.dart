@@ -20,7 +20,6 @@ class PedidosTable extends StatefulWidget {
 class _PedidosTableState extends State<PedidosTable> with TableHandler {
   @override
   String get apiEndpoint {
-    // Ajuste conforme o papel do usuário
     switch (widget.userRole) {
       case UserRole.tenenteFarmacia:
       case UserRole.soldadoFarmacia:
@@ -41,13 +40,13 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         TableColumn(
           title: 'QTD',
           dataField: 'qnt_ped',
-          widthFactor: 0.25,
+          widthFactor: 0.3,
           sortType: SortType.numeric,
         ),
         TableColumn(
-          title: 'Estado do Pedido', // título alterado
-          dataField: 'estado_pedido', // usa o campo criado no build()
-          widthFactor: 0.25,
+          title: 'Status',
+          dataField: 'estado_pedido',
+          widthFactor: 0.3,
           sortType: SortType.alphabetic,
         ),
       ];
@@ -99,7 +98,6 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       child: DetalhesPedidoModal(
         Item_nome: pedidoData['item_nome']?.toString() ?? 'N/A',
         Num_ped: pedidoData['num_ped']?.toString() ?? 'N/A',
-        // Aqui você pode passar a data original para o modal
         Data_ret: DateTime.tryParse(pedidoData['data_ret'] ?? '') ?? DateTime.now(),
         Qnt_ped: pedidoData['qnt_ped']?.toString() ?? '0',
       ),
@@ -110,7 +108,6 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   Widget build(BuildContext context) {
     final bool showSkeleton = isLoading && loadedItems.isEmpty;
 
-    // Pré-processa os dados: cria 'estado_pedido'
     final List<Map<String, dynamic>> displayData = showSkeleton
         ? List.generate(8, (_) => <String, dynamic>{})
         : loadedItems.map((item) {
