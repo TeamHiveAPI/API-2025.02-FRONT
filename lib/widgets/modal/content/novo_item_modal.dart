@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/modal/base_modal.dart';
 
@@ -100,7 +101,9 @@ void showNewStockItemModal(BuildContext context) {
             borderRadius: BorderRadius.circular(8),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pushReplacementNamed(AppRoutes.newItem);
+              },
               highlightColor: Colors.black.withAlpha(20),
               splashColor: Colors.black.withAlpha(20),
               child: IntrinsicHeight(

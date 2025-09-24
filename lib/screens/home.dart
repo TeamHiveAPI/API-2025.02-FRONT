@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/data_table/content/last_order_summary.dart';
 import 'package:sistema_almox/widgets/data_table/content/recent_movimentation.dart';
 import 'package:sistema_almox/widgets/view_all_button.dart';
-import 'package:sistema_almox/services/auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userName = AuthService.instance.getUserName() ?? 'Usuário';
+    final userName = UserService.instance.currentUser?.nome ?? 'Usuário';
 
     return Container(
       padding: EdgeInsets.symmetric(),
@@ -44,9 +44,7 @@ class HomeScreen extends StatelessWidget {
                     color: text40,
                   ),
                 ),
-                VerTudoButton(
-                  onPressed: () {},
-                ),
+                VerTudoButton(onPressed: () {}),
               ],
             ),
             RecentMovementsTable(),
@@ -62,9 +60,7 @@ class HomeScreen extends StatelessWidget {
                     color: text40,
                   ),
                 ),
-                VerTudoButton(
-                  onPressed: () {},
-                ),
+                VerTudoButton(onPressed: () {}),
               ],
             ),
             LastOrderSummary(),

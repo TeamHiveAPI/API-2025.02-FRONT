@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/app_routes.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
 
 class DetalhesItemModal extends StatelessWidget {
@@ -10,6 +13,12 @@ class DetalhesItemModal extends StatelessWidget {
   final int qtdReservada;
   final String grupo;
 
+  final UserRole userRole;
+  final String? dataValidade;
+  final bool? controlado;
+
+  final Map<String, dynamic> itemData;
+
   const DetalhesItemModal({
     super.key,
     required this.nome,
@@ -18,17 +27,24 @@ class DetalhesItemModal extends StatelessWidget {
     required this.qtdDisponivel,
     required this.qtdReservada,
     required this.grupo,
+    required this.userRole,
+    required this.itemData,
+    this.dataValidade,
+    this.controlado,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool isPharmacyUser =
+        userRole == UserRole.tenenteFarmacia ||
+        userRole == UserRole.soldadoFarmacia;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildDetailItem("NOME", nome),
         const SizedBox(height: 12),
-
         Row(
           children: [
             Expanded(child: _buildDetailItem("Nº DA FICHA", numFicha)),
@@ -37,7 +53,6 @@ class DetalhesItemModal extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-
         Row(
           children: [
             Expanded(
@@ -56,10 +71,27 @@ class DetalhesItemModal extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-
+        if (isPharmacyUser)
+          Row(
+            children: [
+              Expanded(
+                child: _buildDetailItem(
+                  "DATA DE VALIDADE",
+                  formatDate(dataValidade),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDetailItem(
+                  "CONTROLADO",
+                  (controlado ?? false) ? 'Sim' : 'Não',
+                ),
+              ),
+            ],
+          ),
+        const SizedBox(height: 12),
         _buildDetailItem("GRUPO", grupo),
-        const SizedBox(height: 24),
-
+        const SizedBox(height: 12),
         CustomButton(
           text: "Ver Histórico de Movimentação",
           onPressed: () {},
@@ -68,22 +100,26 @@ class DetalhesItemModal extends StatelessWidget {
           iconPosition: IconPosition.right,
         ),
         const SizedBox(height: 12),
-
         Row(
           children: [
             Expanded(
               child: CustomButton(
                 text: "Editar",
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.newItem,
+                    arguments: itemData,
+                  );
+                },
                 secondary: true,
                 isFullWidth: true,
                 customIcon: 'assets/icons/edit.svg',
                 iconPosition: IconPosition.right,
               ),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
               child: CustomButton(
                 text: "QR Code",
