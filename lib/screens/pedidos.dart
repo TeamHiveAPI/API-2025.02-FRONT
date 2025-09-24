@@ -12,7 +12,7 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  String _searchQuery = '';
+  final String _searchQuery = '';
   final UserRole _currentUserRole = UserRole.coronel;
 
   @override
@@ -20,7 +20,7 @@ class _OrderScreenState extends State<OrderScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -34,39 +34,26 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             const SizedBox(height: 16),
 
-             SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // ação para histórico
-                },
-                label: const Text('Meu Histórico de Pedidos'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF7F9FF), 
-                  foregroundColor: const Color(0xFF2847AE), 
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
+            CustomButton(
+              text: 'Meu Histórico de Pedidos',
+              icon: Icons.history,
+              widthPercent: 1.0,
+              secondary: true,
+              onPressed: () {},
             ),
             const SizedBox(height: 24),
 
             const Text(
-              'Listagem de Pedidos do Sistema',
+              'Listagem de Pedidos',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: text40,
               ),
             ),
-            const SizedBox(height: 16),
             const SizedBox(height: 20),
 
-            PedidosTable(
-              searchQuery: _searchQuery,
-              userRole: _currentUserRole,
-            ),
+            PedidosTable(searchQuery: _searchQuery, userRole: _currentUserRole),
           ],
         ),
       ),

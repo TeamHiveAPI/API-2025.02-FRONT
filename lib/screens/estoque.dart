@@ -3,11 +3,9 @@ import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
-import 'package:sistema_almox/widgets/data_table/content/medicine_type_list.dart';
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_item_modal.dart';
-import 'package:sistema_almox/widgets/modal/content/novo_tipo_remedio.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -56,17 +54,11 @@ class _StockScreenState extends State<StockScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomButton(
-              text: isPharmacyRole
-                  ? 'Cadastrar Novo Tipo de Lote'
-                  : 'Cadastrar Novo Item',
+              text: 'Cadastrar Novo Item',
               icon: Icons.add,
               widthPercent: 1.0,
               onPressed: () {
-                if (isPharmacyRole) {
-                  showAddMedicineType(context);
-                } else {
-                  showNewStockItemModal(context);
-                }
+                showNewStockItemModal(context);
               },
             ),
             const SizedBox(height: 24),
@@ -90,9 +82,7 @@ class _StockScreenState extends State<StockScreen> {
                 Expanded(
                   child: GenericSearchInput(
                     onSearchChanged: _handleSearch,
-                    hintText: isPharmacyRole
-                        ? 'Pesquisar por nome'
-                        : 'Pesquisar por nome ou código',
+                    hintText: 'Pesquisar por nome ou código',
                   ),
                 ),
 
@@ -107,12 +97,10 @@ class _StockScreenState extends State<StockScreen> {
 
             SizedBox(height: 20),
 
-            isPharmacyRole
-                ? MedicineTypeTable(searchQuery: _searchQuery)
-                : StockItemsTable(
-                    searchQuery: _searchQuery,
-                    userRole: currentUserRole,
-                  ),
+            StockItemsTable(
+              searchQuery: _searchQuery,
+              userRole: currentUserRole,
+            ),
           ],
         ),
       ),

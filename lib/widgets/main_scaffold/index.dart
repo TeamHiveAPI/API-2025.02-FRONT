@@ -43,14 +43,27 @@ class MainScaffoldState extends State<MainScaffold> {
       ),
     );
 
-    pages.add(const StockScreen());
-    navBarItemsInfo.add(
-      NavBarItemInfo(
-        'assets/icons/navbar/estoque.svg',
-        'Estoque',
-        navBarItemsInfo.length,
-      ),
-    );
+    if (UserService.instance.can(AppPermission.viewStockItems)) {
+      pages.add(const StockScreen());
+      navBarItemsInfo.add(
+        NavBarItemInfo(
+          'assets/icons/navbar/estoque.svg',
+          'Estoque',
+          navBarItemsInfo.length,
+        ),
+      );
+    }
+
+    if (UserService.instance.can(AppPermission.viewPharmacyItems)) {
+      pages.add(const StockScreen());
+      navBarItemsInfo.add(
+        NavBarItemInfo(
+          'assets/icons/navbar/estoque.svg',
+          'Farmácia',
+          navBarItemsInfo.length,
+        ),
+      );
+    }
 
     if (UserService.instance.can(AppPermission.accessAdminScreen)) {
       pages.add(const AdminScreen());
