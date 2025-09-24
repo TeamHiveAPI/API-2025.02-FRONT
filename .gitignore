@@ -13,6 +13,8 @@ windows/
 ios/
 android/
 
+.env
+
 # Arquivos de IDE
 .idea/
 *.iml

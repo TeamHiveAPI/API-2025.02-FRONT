@@ -10,14 +10,14 @@ class CustomRadioButton<T> extends StatelessWidget {
   final double borderRadius;
 
   const CustomRadioButton({
-    Key? key,
+    super.key,
     required this.value,
     required this.groupValue,
     required this.onChanged,
     required this.label,
     this.size = 29.0,
     this.borderRadius = 4.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

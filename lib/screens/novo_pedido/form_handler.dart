@@ -11,22 +11,20 @@ class NewOrderFormHandler {
   Map<String, dynamic>? selectedItem;
   DateTime? selectedDate;
 
-String? validateItem(String? value, List<String> validItemNames) {
-  if (value == null || value.trim().isEmpty) {
-    return 'Campo obrigatório.';
+  String? validateItem(String? value, List<String> validItemNames) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Campo obrigatório';
+    }
+
+    final normalizedValue = value.trim().toLowerCase();
+    final normalizedNames = validItemNames.map((e) => e.toLowerCase()).toList();
+
+    if (!normalizedNames.contains(normalizedValue)) {
+      return 'Item inválido. Selecione uma opção da lista.';
+    }
+
+    return null;
   }
-
-  final normalizedValue = value.trim().toLowerCase();
-  final normalizedNames =
-      validItemNames.map((e) => e.toLowerCase()).toList();
-
-  if (!normalizedNames.contains(normalizedValue)) {
-    return 'Item inválido. Selecione uma opção da lista.';
-  }
-
-  return null;
-}
-
 
   String? validateQuantity(String? value) {
     if ((value == null || value.isEmpty) && !hasSubmitted) {
@@ -34,7 +32,7 @@ String? validateItem(String? value, List<String> validItemNames) {
     }
 
     if (value == null || value.isEmpty) {
-      return 'Campo obrigatório.';
+      return 'Campo obrigatório';
     }
 
     final quantity = int.tryParse(value) ?? 0;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -44,9 +46,9 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                       : null,
                 ),
               ),
-              const Text(
+              Text(
                 'SISTEMA ALMOX',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: brandBlue,
@@ -55,12 +57,17 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: InkWell(
-                  onTap: () {
-                    print('Botão de sair pressionado!');
+                  onTap: () async {
+                    await AuthService.instance.logout();
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.login,
+                        (route) => false,
+                      );
+                    }
                   },
-                  hoverColor: brandBlue.withAlpha(
-                    128,
-                  ),
+                  hoverColor: brandBlue.withAlpha(128),
                   splashColor: brandBlue.withAlpha(128),
                   highlightColor: brandBlue.withAlpha(128),
                   child: Container(
