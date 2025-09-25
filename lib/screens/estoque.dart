@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
@@ -29,7 +28,9 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   void _onUserChanged() {
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _handleSearch(String query) {
@@ -40,11 +41,10 @@ class _StockScreenState extends State<StockScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserRole = UserService.instance.currentUser!.role;
+    final userService = UserService.instance;
 
-    final bool isPharmacyRole =
-        currentUserRole == UserRole.tenenteFarmacia ||
-        currentUserRole == UserRole.soldadoFarmacia;
+    final currentUserRole = userService.currentUser!.role;
+    final bool isViewingPharmacy = userService.viewingSectorId == 2;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -64,7 +64,7 @@ class _StockScreenState extends State<StockScreen> {
             const SizedBox(height: 24),
 
             Text(
-              isPharmacyRole
+              isViewingPharmacy
                   ? 'Listagem de Medicamentos'
                   : 'Listagem do Inventário',
               style: TextStyle(
@@ -98,6 +98,7 @@ class _StockScreenState extends State<StockScreen> {
             SizedBox(height: 20),
 
             StockItemsTable(
+              key: ValueKey(userService.viewingSectorId),
               searchQuery: _searchQuery,
               userRole: currentUserRole,
             ),
