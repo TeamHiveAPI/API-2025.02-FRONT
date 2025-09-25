@@ -29,7 +29,7 @@ class CustomButton extends StatelessWidget {
     this.iconStrokeWidth = 1.5,
     this.isFullWidth = false,
     this.widthPercent,
-    this.borderRadius = 8.0,
+    this.borderRadius = 6.0,
     this.secondary = false,
     this.danger = false,
     this.isLoading = false,

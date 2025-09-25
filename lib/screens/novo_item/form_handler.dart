@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/config/permissions.dart';
 
 class ItemGroup {
   final int id;
@@ -37,11 +36,10 @@ class RegisterItemFormHandler {
     return null;
   }
 
-  String? validateExpirationDate(String? value, UserRole role) {
-    final bool isPharmacyUser =
-        role == UserRole.tenenteFarmacia || role == UserRole.soldadoFarmacia;
+String? validateExpirationDate(String? value, int? viewingSectorId) {
+    final bool isPharmacyView = viewingSectorId == 2;
 
-    if (isPharmacyUser && (value == null || value.isEmpty)) {
+    if (isPharmacyView && (value == null || value.isEmpty)) {
       return 'Campo obrigatório';
     }
     return null;

@@ -35,9 +35,8 @@ class DetalhesItemModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isPharmacyUser =
-        userRole == UserRole.tenenteFarmacia ||
-        userRole == UserRole.soldadoFarmacia;
+    final int itemSectorId = itemData['id_setor'] ?? 0;
+    final bool isPharmacyItem = itemSectorId == 2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -71,7 +70,7 @@ class DetalhesItemModal extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        if (isPharmacyUser)
+        if (isPharmacyItem)
           Row(
             children: [
               Expanded(
