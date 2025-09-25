@@ -66,6 +66,57 @@ Future<void> showCustomBottomSheet({
           ),
         ),
       );
+      },
+  );
+}
+
+Future<void> showCustomDialog({
+  required BuildContext context,
+  required Widget child,
+  required String title,
+}) {
+  return showDialog(
+    context: context,
+    barrierDismissible: true, // fecha ao clicar fora
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Título
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: text40,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Conteúdo
+              Flexible(child: SingleChildScrollView(child: child)),
+
+              const SizedBox(height: 16),
+
+              // Botão fechar
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Fechar'),
+                ),
+              )
+            ],
+          ),
+        ),
+      );
     },
   );
 }

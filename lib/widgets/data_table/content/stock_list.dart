@@ -20,32 +20,29 @@ class StockItemsTable extends StatefulWidget {
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   final StockItemService _itemService = StockItemService();
 
+  // --- IMPLEMENTAÇÃO OBRIGATÓRIA DO MIXIN ---
   @override
   String get apiEndpoint => 'item';
 
   @override
   List<TableColumn> get tableColumns => [
-    TableColumn(
-      title: 'Nome do item',
-      dataField: 'nome',
-      widthFactor: 0.78,
-      sortType: SortType.alphabetic,
-    ),
-    TableColumn(
-      title: 'QTD',
-      dataField: 'qtd_atual',
-      widthFactor: 0.22,
-      sortType: SortType.numeric,
-    ),
-  ];
+        TableColumn(
+          title: 'Nome do item',
+          dataField: 'nome',
+          widthFactor: 0.78,
+          sortType: SortType.alphabetic,
+        ),
+        TableColumn(
+          title: 'QTD',
+          dataField: 'qtd_atual',
+          widthFactor: 0.22,
+          sortType: SortType.numeric,
+        ),
+      ];
 
   @override
   Future<PaginatedResponse> performFetch(
-    int page,
-    SortParams sortParams,
-    String? searchQuery,
-  ) {
-
+      int page, SortParams sortParams, String? searchQuery) {
     return _itemService.fetchItems(
       page: page,
       sortParams: sortParams,
@@ -54,6 +51,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     );
   }
 
+  // --- INICIALIZAÇÃO DO TABLE HANDLER ---
   @override
   void initState() {
     super.initState();
@@ -68,6 +66,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     }
   }
 
+  // --- ABRIR MODAL AO TOCAR NA LINHA ---
   void _handleRowTap(Map<String, dynamic> itemData) {
     final grupoMap = itemData['grupo'];
     final nomeDoGrupo = (grupoMap != null)
@@ -95,10 +94,8 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   @override
   Widget build(BuildContext context) {
     final bool showSkeleton = isLoading && loadedItems.isEmpty;
-
-    final List<Map<String, dynamic>> displayData = showSkeleton
-        ? List.generate(8, (_) => {})
-        : loadedItems;
+    final List<Map<String, dynamic>> displayData =
+        showSkeleton ? List.generate(8, (_) => {}) : loadedItems;
 
     return DynamicJsonTable(
       jsonData: displayData,

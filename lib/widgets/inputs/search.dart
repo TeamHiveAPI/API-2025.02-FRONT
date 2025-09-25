@@ -170,11 +170,13 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
         },
       );
     } else {
-      searchField = TextFormField(
-        controller: _controller,
-        decoration: _buildInputDecoration(),
-        validator: widget.validator,
-      );
+     searchField = TextFormField(
+      controller: _controller,
+      decoration: _buildInputDecoration(),
+      validator: widget.validator,
+      onChanged: (_) => _onSearchTextChanged(), 
+    );
+
     }
 
     if (widget.upperLabel != null) {
