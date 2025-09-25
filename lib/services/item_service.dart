@@ -14,15 +14,17 @@ class StockItemService {
     required UserRole userRole,
   }) async {
     try {
+      final viewingSectorId = UserService.instance.viewingSectorId;
+
+      if (viewingSectorId == null) {
+        return PaginatedResponse(items: [], totalCount: 0);
+      }
+
       var baseQuery = supabase
           .from('item')
           .select('*, grupo(nome)')
-          .eq('ativo', true);
-
-      final viewingSectorId = UserService.instance.viewingSectorId;
-      if (viewingSectorId != null) {
-        baseQuery = baseQuery.eq('id_setor', viewingSectorId);
-      }
+          .eq('ativo', true)
+          .eq('id_setor', viewingSectorId);
 
       if (viewingSectorId == 2) {
         baseQuery = baseQuery.not('data_validade', 'is', null);

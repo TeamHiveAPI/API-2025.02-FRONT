@@ -155,7 +155,16 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
   Future<void> _loadGroups() async {
     try {
-      final groupsData = await _groupService.fetchAllGroups();
+      final int? viewingSectorId = UserService.instance.viewingSectorId;
+      if (viewingSectorId == null) {
+        setState(() {
+          _loadingError = 'ID do setor de visualização não encontrado.';
+          _isLoadingGroups = false;
+        });
+        return;
+      }
+      
+      final groupsData = await _groupService.fetchAllGroups(viewingSectorId);
       setState(() {
         _formHandler.groupOptions = groupsData
             .map((g) => ItemGroup(id: g['id_grupo'], nome: g['nome']))

@@ -3,11 +3,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 class GroupService {
-  Future<List<Map<String, dynamic>>> fetchAllGroups() async {
+  Future<List<Map<String, dynamic>>> fetchAllGroups(int idSetor) async {
     try {
       final response = await supabase
           .from('grupo')
           .select('id_grupo, nome')
+          .eq('id_setor', idSetor)
           .order('nome', ascending: true);
 
       return response; 
