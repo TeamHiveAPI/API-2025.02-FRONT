@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/main_scaffold/header.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
 import 'package:sistema_almox/config/permissions.dart';
@@ -19,7 +21,6 @@ class MainScaffold extends StatefulWidget {
 
 class MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-  String fotoUrl = 'assets/foto-perfil.png';
 
   late final List<Widget> _pages;
   late final List<NavBarItemInfo> _navBarItemsInfo;
@@ -43,23 +44,13 @@ class MainScaffoldState extends State<MainScaffold> {
       ),
     );
 
-    if (UserService.instance.can(AppPermission.viewStockItems)) {
+    if (UserService.instance.can(AppPermission.viewStockItems) ||
+        UserService.instance.can(AppPermission.viewPharmacyItems)) {
       pages.add(const StockScreen());
       navBarItemsInfo.add(
         NavBarItemInfo(
           'assets/icons/navbar/estoque.svg',
           'Estoque',
-          navBarItemsInfo.length,
-        ),
-      );
-    }
-
-    if (UserService.instance.can(AppPermission.viewPharmacyItems)) {
-      pages.add(const StockScreen());
-      navBarItemsInfo.add(
-        NavBarItemInfo(
-          'assets/icons/navbar/estoque.svg',
-          'Farmácia',
           navBarItemsInfo.length,
         ),
       );
@@ -111,21 +102,75 @@ class MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final userService = UserService.instance;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        appBar: CustomHeader(
-          fotoUrl: fotoUrl,
-          navBarItemsInfo: _navBarItemsInfo,
-          onProfileTap: onItemTapped,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(90),
+          child: AnimatedBuilder(
+            animation: UserService.instance,
+            builder: (context, child) {
+              return CustomHeader(onProfileTap: onItemTapped);
+            },
+          ),
         ),
 
-        body: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: _pages.elementAt(_selectedIndex),
+        body: Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: _pages.elementAt(_selectedIndex),
+            ),
+
+            Positioned(
+              bottom: 20.0,
+              right: 20.0,
+              child: AnimatedBuilder(
+                animation: userService,
+                builder: (context, child) {
+                  final isCoronel = userService.currentUser?.nivelAcesso == 3;
+
+                  final int profilePageIndex = findPageIndexByName('Perfil');
+                  final int adminPageIndex = findPageIndexByName('Admin');
+
+                  if (!isCoronel ||
+                      _selectedIndex == profilePageIndex ||
+                      _selectedIndex == adminPageIndex) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final String tooltip = 'Trocar Visualização';
+
+                  return FloatingActionButton(
+                    onPressed: () {
+                      userService.toggleViewingSector();
+                    },
+                    tooltip: tooltip,
+                    backgroundColor: brandBlueLight,
+                    foregroundColor: Colors.white,
+                    elevation: 2.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                    child: SvgPicture.asset(
+                      'assets/icons/switch.svg',
+                      colorFilter: const ColorFilter.mode(
+                        brandBlue,
+                        BlendMode.srcIn,
+                      ),
+                      width: 24,
+                      height: 24,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
 
         bottomNavigationBar: CustomNavBar(

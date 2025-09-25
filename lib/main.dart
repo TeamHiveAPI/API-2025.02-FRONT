@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/config/supabase_config.dart';
-import 'package:sistema_almox/services/sector_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_routes.dart'; 
@@ -24,7 +23,6 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => UserService.instance),
-        ChangeNotifierProvider(create: (context) => SectorService.instance),
       ],
       child: const MyApp(),
     ),
