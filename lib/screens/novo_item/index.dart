@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
-import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
 import 'package:sistema_almox/screens/novo_item/form_handler.dart';
@@ -179,17 +177,12 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Map<String, dynamic> _buildItemPayload() {
-    final currentUserRole = Provider.of<UserService>(
-      context,
-      listen: false,
-    ).currentUser!.role;
-    final isPharmacyUser =
-        currentUserRole == UserRole.tenenteFarmacia ||
-        currentUserRole == UserRole.soldadoFarmacia;
+    final viewingSectorId = UserService.instance.viewingSectorId;
+    final isPharmacyView = viewingSectorId == 2;
 
     final String unidadeDeMedida;
 
-    if (isPharmacyUser) {
+    if (isPharmacyView) {
       final unidadesPorLote = _formHandler.unitOfMeasureController.text;
       unidadeDeMedida = 'Lote ($unidadesPorLote un.)';
     } else {
@@ -204,9 +197,10 @@ class _NewItemScreenState extends State<NewItemScreen> {
           int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
       'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
       'id_grupo': _formHandler.selectedGroupId,
+      'id_setor': viewingSectorId,
     };
 
-    if (isPharmacyUser) {
+    if (isPharmacyView) {
       payload['data_validade'] = _formHandler.expirationDateController.text;
       payload['controlado'] = _formHandler.isControlled;
     }
@@ -255,13 +249,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserRole = Provider.of<UserService>(
-      context,
-      listen: false,
-    ).currentUser!.role;
-    final isPharmacyUser =
-        currentUserRole == UserRole.tenenteFarmacia ||
-        currentUserRole == UserRole.soldadoFarmacia;
+    final viewingSectorId = UserService.instance.viewingSectorId;
+    final isPharmacyView = viewingSectorId == 2;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -307,17 +296,17 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: isPharmacyUser
+                              upperLabel: isPharmacyView
                                   ? 'UNID. POR LOTE'
                                   : 'UNIDADE DE MEDIDA',
-                              hintText: isPharmacyUser
+                              hintText: isPharmacyView
                                   ? 'Número'
                                   : 'Digite aqui',
                               controller: _formHandler.unitOfMeasureController,
-                              keyboardType: isPharmacyUser
+                              keyboardType: isPharmacyView
                                   ? TextInputType.number
                                   : TextInputType.text,
-                              inputFormatters: isPharmacyUser
+                              inputFormatters: isPharmacyView
                                   ? [FilteringTextInputFormatter.digitsOnly]
                                   : [],
                               validator: (value) => _formHandler
@@ -390,7 +379,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                         ),
                       const SizedBox(height: 24),
 
-                      if (isPharmacyUser) ...[
+                      if (isPharmacyView) ...[
                         CustomTextFormField(
                           upperLabel: 'DATA DE VALIDADE',
                           hintText: 'Selecione a data',
@@ -398,7 +387,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           readOnly: true,
                           onTap: _selectDate,
                           validator: (value) => _formHandler
-                              .validateExpirationDate(value, currentUserRole),
+                              .validateExpirationDate(value, viewingSectorId),
 
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(12.0),
