@@ -163,8 +163,11 @@ class _NewItemScreenState extends State<NewItemScreen> {
         });
         return;
       }
-      
-      final groupsData = await _groupService.fetchAllGroups(viewingSectorId);
+
+      final groupsData = await _groupService.fetchGroupsBySector(
+        viewingSectorId,
+      );
+
       setState(() {
         _formHandler.groupOptions = groupsData
             .map((g) => ItemGroup(id: g['id_grupo'], nome: g['nome']))

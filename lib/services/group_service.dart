@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 class GroupService {
-  Future<List<Map<String, dynamic>>> fetchAllGroups(int idSetor) async {
+  Future<List<Map<String, dynamic>>> fetchGroupsBySector(int idSetor) async {
     try {
       final response = await supabase
           .from('grupo')
@@ -11,7 +11,7 @@ class GroupService {
           .eq('id_setor', idSetor)
           .order('nome', ascending: true);
 
-      return response; 
+      return response;
     } catch (e) {
       print('Erro ao buscar grupos: $e');
       return [];
