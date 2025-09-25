@@ -73,7 +73,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
-      searchFields: ['item_nome', 'num_ped'],
+      searchFields: ['item_nome', 'num_ped', 'qnt_ped', 'data_ret', 'estado_pedido'],
     );
   }
 
