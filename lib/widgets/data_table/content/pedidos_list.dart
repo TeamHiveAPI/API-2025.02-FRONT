@@ -4,7 +4,7 @@ import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
-import 'package:sistema_almox/widgets/modal/base_modal.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
 
 class PedidosTable extends StatefulWidget {

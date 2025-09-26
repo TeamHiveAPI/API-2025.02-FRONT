@@ -4,9 +4,6 @@ import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/pedidos_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
-import 'package:sistema_almox/widgets/main_scaffold/index.dart';
-import 'package:sistema_almox/widgets/view_all_button.dart';
-
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -17,7 +14,6 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen> {
   String _searchQuery = '';
-  final UserRole _currentUserRole = UserRole.coronel;
 
   void _handleSearch(String query) {
     setState(() {
@@ -25,12 +21,14 @@ class _OrderScreenState extends State<OrderScreen> {
     });
   }
 
+  final UserRole _currentUserRole = UserRole.coronel;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -44,32 +42,24 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             const SizedBox(height: 16),
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // ação para histórico
-                },
-                label: const Text('Meu Histórico de Pedidos'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF7F9FF),
-                  foregroundColor: const Color(0xFF2847AE),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
+            CustomButton(
+              text: 'Meu Histórico de Pedidos',
+              icon: Icons.history,
+              widthPercent: 1.0,
+              secondary: true,
+              onPressed: () {},
             ),
             const SizedBox(height: 24),
 
             const Text(
-              'Listagem de Pedidos do Sistema',
+              'Listagem de Pedidos',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: text40,
               ),
             ),
+
             const SizedBox(height: 16),
 
             Row(
@@ -78,17 +68,15 @@ class _OrderScreenState extends State<OrderScreen> {
                 Expanded(
                   child: GenericSearchInput(
                     onSearchChanged: _handleSearch, 
-                    hintText: 'Pesquisar por nome, numero do pedido, status ou data (aaaa-mm-dd)',
+                    hintText: 'Pesquisar',
                   ),
                 ),
               ],
             ), 
+            
             const SizedBox(height: 20),
 
-            PedidosTable(
-              searchQuery: _searchQuery,
-              userRole: _currentUserRole,
-            ),
+            PedidosTable(searchQuery: _searchQuery, userRole: _currentUserRole),
           ],
         ),
       ),

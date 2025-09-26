@@ -11,6 +11,7 @@ import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
@@ -73,7 +74,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
   Future<void> _updateItem() async {
     FocusScope.of(context).unfocus();
     setState(() => _formHandler.hasSubmitted = true);
-    print(widget.itemToEdit);
 
     if (!(_formHandler.formKey.currentState?.validate() ?? false)) {
       showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
@@ -97,31 +97,43 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Future<void> _deactivateItem() async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmar Exclusão'),
-          content: const Text(
-            'Tem certeza que deseja desativar este item? Esta ação não pode ser desfeita.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: deleteRed),
-              child: const Text('Excluir'),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
+    // 1. Validar o ID primeiro, antes de abrir qualquer diálogo
+    final itemId = widget.itemToEdit?['id_item'];
+    if (itemId == null) {
+      if (mounted) {
+        showCustomSnackbar(
+          context,
+          'ID do item inválido. Não é possível excluir.',
+          isError: true,
         );
-      },
+      }
+      return;
+    }
+
+    final bool? confirmed = await showCustomDialog(
+      context: context,
+      title: 'Confirmar Exclusão',
+      primaryButtonText: 'Excluir',
+      primaryButtonDanger: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'Tem certeza que deseja desativar este item?',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: text60,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Não será possível realizar pedidos com este itém até ele ser reativado.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: text60, fontSize: 14),
+          ),
+        ],
+      ),
     );
 
     if (confirmed != true) {
@@ -129,13 +141,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     }
 
     setState(() => _isSaving = true);
-
     try {
-      final itemId = widget.itemToEdit?['id_item'];
-      if (itemId == null) {
-        throw 'ID do item não encontrado. Não é possível excluir.';
-      }
-
       await _itemService.deactivateItem(itemId as int);
 
       if (mounted) {
