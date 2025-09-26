@@ -82,6 +82,7 @@ class PedidoService {
       if (currentUser == null || viewingSectorId == null) {
         throw 'Usuário não identificado';
       }
+      
 
       final itemResponse = await supabase
           .from('item')
@@ -198,6 +199,10 @@ class PedidoService {
           .eq('id_pedido', pedidoId)
           .single();
 
+      if (pedidoResponse.isEmpty) {
+        throw 'Pedido não encontrado';
+      }
+
       final status = pedidoResponse['status'] as int;
 
       if (status == PedidoConstants.statusCancelado) {
@@ -237,7 +242,6 @@ class PedidoService {
           ''')
           .eq('id_pedido', pedidoId)
           .single();
-
       return response;
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao buscar detalhes do pedido: ${e.message}');
