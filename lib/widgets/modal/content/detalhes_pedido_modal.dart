@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
-import 'package:sistema_almox/widgets/modal/base_modal.dart';
 import 'package:http/http.dart' as http;
 
 class DetalhesPedidoModal extends StatelessWidget {
