@@ -15,6 +15,7 @@ import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
+import 'package:sistema_almox/widgets/shimmer_card.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 class NewItemScreen extends StatefulWidget {
@@ -381,7 +382,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                       const SizedBox(height: 24),
 
                       if (_isLoadingGroups)
-                        const Center(child: CircularProgressIndicator())
+                        const ShimmerPlaceholder(height: 64)
                       else if (_loadingError != null)
                         Text(
                           _loadingError!,
