@@ -82,7 +82,6 @@ class _StockScreenState extends State<StockScreen> {
                 Expanded(
                   child: GenericSearchInput(
                     onSearchChanged: _handleSearch,
-                    hintText: 'Pesquisar por nome ou código',
                   ),
                 ),
 

@@ -66,6 +66,6 @@ Future<void> showCustomBottomSheet({
           ),
         ),
       );
-    },
+      },
   );
 }
