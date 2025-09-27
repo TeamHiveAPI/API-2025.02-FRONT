@@ -62,6 +62,6 @@ Future<T?> showCustomBottomSheet<T>({
           ),
         ),
       );
-    },
+      },
   );
 }

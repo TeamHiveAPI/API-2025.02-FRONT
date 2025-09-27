@@ -4,7 +4,7 @@ import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
-import 'package:sistema_almox/widgets/modal/base_modal.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
 
 class PedidosTable extends StatefulWidget {
@@ -73,7 +73,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       allColumns: tableColumns,
       sortParams: sortParams,
       searchQuery: searchQuery,
-      searchFields: ['item_nome', 'num_ped'],
+      searchFields: ['item_nome', 'num_ped', 'qnt_ped', 'data_ret', 'estado_pedido'],
     );
   }
 
@@ -96,10 +96,10 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       context: context,
       title: "Detalhes do Pedido",
       child: DetalhesPedidoModal(
-        Item_nome: pedidoData['item_nome']?.toString() ?? 'N/A',
-        Num_ped: pedidoData['num_ped']?.toString() ?? 'N/A',
-        Data_ret: DateTime.tryParse(pedidoData['data_ret'] ?? '') ?? DateTime.now(),
-        Qnt_ped: pedidoData['qnt_ped']?.toString() ?? '0',
+        itemNome: pedidoData['item_nome']?.toString() ?? 'N/A',
+        idPedido: pedidoData['num_ped']?.toString() ?? 'N/A',
+        dataRet: pedidoData['data_ret']?.toString() ?? 'Em aberto',
+        qtdSolicitada: pedidoData['qnt_ped']?.toString() ?? '0',
       ),
     );
   }
