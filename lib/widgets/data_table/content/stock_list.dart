@@ -20,7 +20,6 @@ class StockItemsTable extends StatefulWidget {
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   final StockItemService _itemService = StockItemService();
 
-  // --- IMPLEMENTAÇÃO OBRIGATÓRIA DO MIXIN ---
   @override
   String get apiEndpoint => 'item';
 
@@ -51,7 +50,6 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     );
   }
 
-  // --- INICIALIZAÇÃO DO TABLE HANDLER ---
   @override
   void initState() {
     super.initState();
@@ -66,7 +64,6 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     }
   }
 
-  // --- ABRIR MODAL AO TOCAR NA LINHA ---
   void _handleRowTap(Map<String, dynamic> itemData) {
     final grupoMap = itemData['grupo'];
     final nomeDoGrupo = (grupoMap != null)
