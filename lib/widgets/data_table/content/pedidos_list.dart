@@ -96,10 +96,10 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       context: context,
       title: "Detalhes do Pedido",
       child: DetalhesPedidoModal(
-        Item_nome: pedidoData['item_nome']?.toString() ?? 'N/A',
-        Num_ped: pedidoData['num_ped']?.toString() ?? 'N/A',
-        Data_ret: DateTime.tryParse(pedidoData['data_ret'] ?? '') ?? DateTime.now(),
-        Qnt_ped: pedidoData['qnt_ped']?.toString() ?? '0',
+        itemNome: pedidoData['item_nome']?.toString() ?? 'N/A',
+        idPedido: pedidoData['num_ped']?.toString() ?? 'N/A',
+        dataRet: pedidoData['data_ret']?.toString() ?? 'Em aberto',
+        qtdSolicitada: pedidoData['qnt_ped']?.toString() ?? '0',
       ),
     );
   }

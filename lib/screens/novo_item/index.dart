@@ -128,7 +128,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Não será possível realizar pedidos com este itém até ele ser reativado.',
+            'Não será possível realizar pedidos com este item até ele ser reativado.',
             textAlign: TextAlign.center,
             style: TextStyle(color: text60, fontSize: 14),
           ),
