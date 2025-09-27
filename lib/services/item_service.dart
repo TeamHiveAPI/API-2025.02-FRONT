@@ -26,12 +26,6 @@ class StockItemService {
           .eq('ativo', true)
           .eq('id_setor', viewingSectorId);
 
-      if (viewingSectorId == 2) {
-        baseQuery = baseQuery.not('data_validade', 'is', null);
-      } else if (viewingSectorId == 1) {
-        baseQuery = baseQuery.filter('data_validade', 'is', null);
-      }
-
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery.or(
           'nome.ilike.%$searchQuery%,num_ficha.ilike.%$searchQuery%',
