@@ -102,12 +102,9 @@ class _CustomDropdownInputState<T> extends State<CustomDropdownInput<T>> {
   }
 
   void _onItemSelected(DropdownOption<T> option, FormFieldState<T> field) {
-    field.didChange(
-      option.value,
-    ); // Atualiza o estado do formulário com o VALOR (ID)
-    _textController.text =
-        option.label; // Atualiza o texto do campo com o RÓTULO (Nome)
-    widget.onChanged(option.value); // Chama o callback com o VALOR (ID)
+    field.didChange(option.value);
+    _textController.text = option.label;
+    widget.onChanged(option.value);
     _focusNode.unfocus();
   }
 
@@ -117,12 +114,12 @@ class _CustomDropdownInputState<T> extends State<CustomDropdownInput<T>> {
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 250),
+        constraints: const BoxConstraints(maxHeight: 200),
         child: ListView.separated(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           itemCount: widget.items.length,
           separatorBuilder: (context, index) =>
-              const Divider(height: 1, color: Color(0xFFF5F5F5)),
+              const Divider(height: 1, color: coolGray),
           itemBuilder: (context, index) {
             final option = widget.items[index];
             return InkWell(
@@ -164,12 +161,18 @@ class _CustomDropdownInputState<T> extends State<CustomDropdownInput<T>> {
                 focusNode: _focusNode,
                 readOnly: true,
                 decoration: InputDecoration(
+                  prefix: const SizedBox(width: 10.0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 0.0,
+                  ),
                   hintText: widget.hintText,
+                  hintStyle: const TextStyle(color: text80, fontSize: 14),
                   errorText: field.errorText,
                   suffixIcon: Icon(
                     _focusNode.hasFocus
-                        ? Icons.arrow_drop_up
-                        : Icons.arrow_drop_down,
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                   ),
                   errorStyle: const TextStyle(
                     fontWeight: FontWeight.w600,
@@ -189,11 +192,7 @@ class _CustomDropdownInputState<T> extends State<CustomDropdownInput<T>> {
         children: [
           Text(
             widget.upperLabel!,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: text80,
-            ),
+            style: const TextStyle(fontSize: 15, color: text60),
           ),
           const SizedBox(height: 8.0),
           field,

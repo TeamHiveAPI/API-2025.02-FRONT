@@ -1,17 +1,33 @@
 import 'package:intl/intl.dart';
 
-String formatDate(String? dateString) {
-  if (dateString == null || dateString.isEmpty) {
+String formatDate(dynamic date) {
+  if (date == null) {
     return 'N/A';
   }
 
-  try {
-    final DateTime dateObject = DateTime.parse(dateString);
-    final DateFormat formatter = DateFormat('dd/MM/yyyy');
-    return formatter.format(dateObject);
-    
-  } catch (e) {
-    print('Erro ao formatar data: $e');
-    return 'N/A';
+  if (date is String && date == 'Em aberto') {
+    return 'Em aberto';
   }
+
+  DateTime? dateObject;
+
+  if (date is DateTime) {
+    dateObject = date;
+  } else if (date is String) {
+    if (date.isEmpty) {
+      return 'N/A';
+    }
+    try {
+      dateObject = DateTime.parse(date);
+    } catch (e) {
+      print('Erro ao formatar data a partir da String: $e');
+      return 'Erro';
+    }
+  } else {
+    print('Erro: tipo de dado inválido: ${date.runtimeType}');
+    return 'Erro';
+  }
+
+  final DateFormat formatter = DateFormat('dd/MM/yyyy');
+  return formatter.format(dateObject);
 }

@@ -147,7 +147,7 @@ class CustomButton extends StatelessWidget {
     if (customIcon == null && icon == null) {
       return Text(
         text!,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       );
     }
 
