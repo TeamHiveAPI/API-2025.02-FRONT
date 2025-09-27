@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
+import 'package:sistema_almox/widgets/modal/content/finalizar_pedido_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/cancelar_pedido_modal.dart';
+
 
 class DetalhesPedidoModal extends StatelessWidget {
-  final String Item_nome;
-  final String Num_ped;
-  final DateTime Data_ret; 
-  final String Qnt_ped;
+  final String itemNome;
+  final String idPedido;
+  final String dataRet;
+  final String qtdSolicitada;
 
   const DetalhesPedidoModal({
     super.key,
-    required this.Item_nome,
-    required this.Num_ped,
-    required this.Data_ret,
-    required this.Qnt_ped,
+    required this.itemNome,
+    required this.idPedido,
+    required this.dataRet,
+    required this.qtdSolicitada,
   });
 
   @override
@@ -22,46 +26,79 @@ class DetalhesPedidoModal extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ITEM REQUISITADO
-        _buildDetailItem("ITEM REQUISITADO", Item_nome),
+        _buildDetailItem("ITEM REQUISITADO", itemNome),
         const SizedBox(height: 12),
 
-        // Nº DO PEDIDO + DATA DE RETIRADA
         Row(
           children: [
-            Expanded(child: _buildDetailItem("Nº DO PEDIDO", Num_ped)),
+            Expanded(child: _buildDetailItem("Nº DO PEDIDO", idPedido)),
             const SizedBox(width: 12),
-            Expanded(child: _buildDetailItem("DATA DE RETIRADA", Data_ret.toString().split(' ')[0])), // Formata a data para exibir apenas a parte da data
+            Expanded(
+              child: _buildDetailItem("DATA DE RETIRADA", formatDate(dataRet)),
+            ),
           ],
         ),
         const SizedBox(height: 12),
 
-        // QTD SOLICITADA
-        _buildDetailItem("QTD. SOLICITADA", Qnt_ped),
+        _buildDetailItem("QTD. SOLICITADA", qtdSolicitada),
         const SizedBox(height: 24),
 
-        // BOTÕES
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: CustomButton(
-                text: "Finalizar Pedido",
-                onPressed: () {
-                  // ação para finalizar pedido
+                text: "Finalizar",
+                onPressed: () async {
+                  final DateTime dataAtual = DateTime.now();
+                  final bool? confirmed = await showFinalizarPedidoModal(
+                    context,
+                    dataAtual,
+                  );
+
+                  if (confirmed == true) {
+                    try {
+                      await finalizarPedido(idPedido);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Pedido finalizado com sucesso!',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Erro ao finalizar pedido: $e',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
-                isFullWidth: true,
-                // Ex: customIcon: 'assets/icons/check.svg',
               ),
             ),
-            const SizedBox(width: 12),
+
+            const SizedBox(width: 16),
+
             Expanded(
               child: CustomButton(
-                text: "Cancelar Pedido",
-                onPressed: () {
-                  // ação para cancelar pedido
-                },
+                text: "Cancelar",
                 secondary: true,
-                isFullWidth: true,
+                danger: true,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showCancelarPedidoModal(
+                    context,
+                    idPedido: idPedido,
+                    cancelarPedido: cancelarPedido,
+                  );
+                },
               ),
             ),
           ],
@@ -102,3 +139,7 @@ class DetalhesPedidoModal extends StatelessWidget {
     );
   }
 }
+
+Future<void> cancelarPedido(String numPed, String motivo) async {}
+
+Future<void> finalizarPedido(String numPed) async {}

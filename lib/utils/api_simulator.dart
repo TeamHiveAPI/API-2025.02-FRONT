@@ -19,14 +19,14 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   final List<dynamic> allJsonData = json.decode(jsonString);
   List<Map<String, dynamic>> allItems = allJsonData.cast<Map<String, dynamic>>();
 
+  // Pesquisa genérica em todos os campos definidos em searchFields
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
     allItems = allItems.where((item) {
-      final itemName = item['itemName']?.toString().toLowerCase() ?? '';
-      final itemCode = item['numFicha']?.toString().toLowerCase() ?? '';
-
-      return itemName.contains(lowerCaseQuery) ||
-             itemCode.contains(lowerCaseQuery);
+      return searchFields.any((field) {
+        final value = item[field]?.toString().toLowerCase() ?? '';
+        return value.contains(lowerCaseQuery);
+      });
     }).toList();
   }
 
@@ -63,8 +63,8 @@ void _sortOnServer(
       final valueB = b[column.dataField]?.toString();
       final targetValue =
           sortParams.thisOrThatState == ThisOrThatSortState.primaryFirst
-          ? column.primarySortValue
-          : column.secondarySortValue;
+              ? column.primarySortValue
+              : column.secondarySortValue;
       if (valueA == targetValue && valueB != targetValue) return -1;
       if (valueB == targetValue && valueA != targetValue) return 1;
       return 0;
@@ -81,15 +81,16 @@ void _sortOnServer(
         comparison = (valueA as num).compareTo(valueB as num);
       } else {
         comparison = valueA.toString().toLowerCase().compareTo(
-          valueB.toString().toLowerCase(),
-        );
+              valueB.toString().toLowerCase(),
+            );
       }
       return sortParams.isAscending ? comparison : -comparison;
     });
   }
 }
 
-Future<PaginatedResponse> getRecentMovements() async {
+// Simulador de API para testes
+Future<PaginatedResponse> getRecentMovements({String? searchQuery}) async {
   await Future.delayed(const Duration(milliseconds: 500));
 
   final data = [
@@ -110,8 +111,20 @@ Future<PaginatedResponse> getRecentMovements() async {
     },
   ];
 
+  List<Map<String, dynamic>> filteredData = data;
+
+  if (searchQuery != null && searchQuery.isNotEmpty) {
+    final lowerCaseQuery = searchQuery.toLowerCase();
+    filteredData = data.where((item) {
+      return ['item_name', 'quantity', 'responsible', 'date'].any((field) {
+        final value = item[field]?.toString().toLowerCase() ?? '';
+        return value.contains(lowerCaseQuery);
+      });
+    }).toList();
+  }
+
   return PaginatedResponse(
-    items: data,
-    totalCount: data.length,
+    items: filteredData,
+    totalCount: filteredData.length,
   );
 }
