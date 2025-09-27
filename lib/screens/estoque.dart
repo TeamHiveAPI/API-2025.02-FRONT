@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/screens/qrcode.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
@@ -85,12 +86,19 @@ class _StockScreenState extends State<StockScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 20),
-                CustomButton(
-                  customIcon: "assets/icons/qr-code.svg",
-                  squareMode: true,
-                  onPressed: () {},
-                ),
+              CustomButton(
+                customIcon: "assets/icons/qr-code.svg",
+                squareMode: true,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const QrPage(), 
+                    ),
+                  );
+                },
+              ),
+
               ],
             ),
 
