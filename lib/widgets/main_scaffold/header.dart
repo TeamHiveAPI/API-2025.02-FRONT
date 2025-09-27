@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
@@ -70,13 +69,6 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 child: InkWell(
                   onTap: () async {
                     await AuthService.instance.logout();
-                    if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.login,
-                        (route) => false,
-                      );
-                    }
                   },
                   hoverColor: brandBlue.withAlpha(128),
                   splashColor: brandBlue.withAlpha(128),
