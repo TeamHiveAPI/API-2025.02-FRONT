@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:collection/collection.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
+import 'package:sistema_almox/core/constants/pedido_constants.dart';
 import 'table_handler_mixin.dart';
 
 const int _itemsPerPage = 8;
@@ -35,8 +36,8 @@ Future<PaginatedResponse> fetchItemsFromAsset({
 
   // Paginação
   final int total = allItems.length;
-  final int startIndex = (page - 1) * _itemsPerPage;
-  final int endIndex = startIndex + _itemsPerPage;
+  final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
+  final int endIndex = startIndex + SystemConstants.itemsPorPagina;
   final paginatedItems = allItems.sublist(
     startIndex,
     endIndex > total ? total : endIndex,

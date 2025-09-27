@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/utils/api_simulator.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
+import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:sistema_almox/services/pedido_service.dart';
+import 'package:sistema_almox/core/constants/pedido_constants.dart'; 
 
 class PedidosTable extends StatefulWidget {
   final String? searchQuery;
@@ -18,63 +20,56 @@ class PedidosTable extends StatefulWidget {
 }
 
 class _PedidosTableState extends State<PedidosTable> with TableHandler {
+  final _pedidoService = PedidoService();
+
   @override
-  String get apiEndpoint {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-      case UserRole.soldadoFarmacia:
-        return 'pedidos_farmacia';
-      default:
-        return 'pedido';
-    }
-  }
+  String get apiEndpoint => 'pedidos';
 
   @override
   List<TableColumn> get tableColumns => [
         TableColumn(
           title: 'Item',
           dataField: 'item_nome',
-          widthFactor: 0.5,
+          widthFactor: 0.4,
+          sortType: SortType.alphabetic,
+        ),
+        TableColumn(
+          title: 'Usuário',
+          dataField: 'usuario_nome',
+          widthFactor: 0.25,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
           title: 'QTD',
-          dataField: 'qnt_ped',
-          widthFactor: 0.3,
+          dataField: 'qtd_solicitada',
+          widthFactor: 0.15,
           sortType: SortType.numeric,
         ),
         TableColumn(
           title: 'Status',
-          dataField: 'estado_pedido',
-          widthFactor: 0.3,
+          dataField: 'status_descricao',
+          widthFactor: 0.2,
           sortType: SortType.alphabetic,
         ),
       ];
-
-  String get _assetPathForRole {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-      case UserRole.soldadoFarmacia:
-        return 'lib/temp/pedidos_farmacia.json';
-      default:
-        return 'lib/temp/pedido.json';
-    }
-  }
 
   @override
   Future<PaginatedResponse> performFetch(
     int page,
     SortParams sortParams,
     String? searchQuery,
-  ) {
-    return fetchItemsFromAsset(
-      assetPath: _assetPathForRole,
-      page: page,
-      allColumns: tableColumns,
-      sortParams: sortParams,
-      searchQuery: searchQuery,
-      searchFields: ['item_nome', 'num_ped', 'qnt_ped', 'data_ret', 'estado_pedido'],
-    );
+  ) async {
+    try {
+      return await _pedidoService.fetchPedidos(
+        page: page,
+        sortParams: sortParams,
+        searchQuery: searchQuery,
+        userRole: widget.userRole,
+      );
+    } catch (e) {
+      print('Erro ao carregar pedidos: $e');
+      return PaginatedResponse(items: [], totalCount: 0);
+    }
   }
 
   @override
@@ -91,15 +86,58 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     }
   }
 
+  Future<void> _cancelarPedido(int pedidoId, String motivo) async {
+    try {
+      await _pedidoService.cancelPedido(
+        pedidoId: pedidoId,
+        motivoCancelamento: motivo,
+      );
+      
+      if (mounted) {
+        showCustomSnackbar(context, 'Pedido cancelado com sucesso!');
+        onSearchQueryChanged(widget.searchQuery ?? ''); // Força recarregamento
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackbar(context, e.toString(), isError: true);
+      }
+    }
+  }
+
+  Future<void> _finalizarPedido(int pedidoId) async {
+    try {
+      final hoje = DateTime.now();
+      final dataFormatada = hoje.toIso8601String().split('T')[0]; // yyyy-mm-dd
+      
+      await _pedidoService.finalizePedido(
+        pedidoId: pedidoId,
+        dataRetirada: dataFormatada,
+      );
+      
+      if (mounted) {
+        showCustomSnackbar(context, 'Pedido finalizado com sucesso!');
+        onSearchQueryChanged(widget.searchQuery ?? ''); // Força recarregamento
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackbar(context, e.toString(), isError: true);
+      }
+    }
+  }
+
   void _handleRowTap(Map<String, dynamic> pedidoData) {
     showCustomBottomSheet(
       context: context,
       title: "Detalhes do Pedido",
       child: DetalhesPedidoModal(
+        pedidoId: pedidoData['id_pedido'],
         itemNome: pedidoData['item_nome']?.toString() ?? 'N/A',
-        idPedido: pedidoData['num_ped']?.toString() ?? 'N/A',
+        idPedido: pedidoData['id_pedido']?.toString() ?? 'N/A', // ✅ Corrigido
         dataRet: pedidoData['data_ret']?.toString() ?? 'Em aberto',
-        qtdSolicitada: pedidoData['qnt_ped']?.toString() ?? '0',
+        qtdSolicitada: pedidoData['qtd_solicitada']?.toString() ?? '0', // ✅ Corrigido
+        status: pedidoData['status'] ?? 1,
+        onCancelar: _cancelarPedido,
+        onFinalizar: _finalizarPedido,
       ),
     );
   }
@@ -111,19 +149,28 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     final List<Map<String, dynamic>> displayData = showSkeleton
         ? List.generate(8, (_) => <String, dynamic>{})
         : loadedItems.map((item) {
-            final dataString = item['data_ret']?.toString();
-            DateTime? data = DateTime.tryParse(dataString ?? '');
-            String estado;
-
-            if (data == null) {
-              estado = 'Pendente';
-            } else {
-              estado = data.isBefore(DateTime.now()) ? 'Finalizado' : 'Pendente';
+            final status = item['status'] ?? 1;
+            String statusDescricao;
+            
+            switch (status) {
+              case PedidoConstants.statusPendente:
+                statusDescricao = 'Pendente';
+                break;
+              case PedidoConstants.statusConcluido:
+                statusDescricao = 'Concluído';
+                break;
+              case PedidoConstants.statusCancelado:
+                statusDescricao = 'Cancelado';
+                break;
+              default:
+                statusDescricao = 'Desconhecido';
             }
 
             return {
-              ...item,
-              'estado_pedido': estado,
+              ...item, // ✅ Mantém todos os campos originais
+              'item_nome': item['item']?['nome'] ?? 'N/A',
+              'usuario_nome': item['usuario']?['nome'] ?? 'N/A', 
+              'status_descricao': statusDescricao,
             };
           }).toList();
 

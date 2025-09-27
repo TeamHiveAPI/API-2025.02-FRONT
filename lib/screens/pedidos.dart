@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/pedidos_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
@@ -21,7 +22,7 @@ class _OrderScreenState extends State<OrderScreen> {
     });
   }
 
-  final UserRole _currentUserRole = UserRole.coronel;
+  UserRole get _currentUserRole => UserService.instance.currentUser?.role ?? UserRole.soldadoComum;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +48,9 @@ class _OrderScreenState extends State<OrderScreen> {
               icon: Icons.history,
               widthPercent: 1.0,
               secondary: true,
-              onPressed: () {},
+              onPressed: () {
+                // Sem funcionalidade por enquanto
+              },
             ),
             const SizedBox(height: 24),
 
