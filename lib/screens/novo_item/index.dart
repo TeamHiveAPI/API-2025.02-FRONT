@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
 import 'package:sistema_almox/screens/novo_item/form_handler.dart';
 import 'package:sistema_almox/services/group_service.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
+import 'package:sistema_almox/widgets/shimmer_card.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 class NewItemScreen extends StatefulWidget {
@@ -44,6 +47,12 @@ class _NewItemScreenState extends State<NewItemScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _formHandler.dispose();
+    super.dispose();
+  }
+
   void _populateFormForEdit() {
     final item = widget.itemToEdit!;
     _formHandler.nameController.text = item['nome']?.toString() ?? '';
@@ -65,8 +74,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
     _formHandler.selectedGroupId = item['id_grupo'];
 
     if (item['data_validade'] != null) {
-      _formHandler.expirationDateController.text = item['data_validade']
-          .toString();
+      _formHandler.expirationDateController.text =
+          item['data_validade'].toString();
       _formHandler.isControlled = item['controlado'] ?? false;
     }
   }
@@ -188,12 +197,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _formHandler.dispose();
-    super.dispose();
-  }
-
   Map<String, dynamic> _buildItemPayload() {
     final viewingSectorId = UserService.instance.viewingSectorId;
     final isPharmacyView = viewingSectorId == 2;
@@ -227,7 +230,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Future<void> _registerItem() async {
-    print(widget.itemToEdit);
     FocusScope.of(context).unfocus();
     setState(() => _formHandler.hasSubmitted = true);
 
@@ -262,6 +264,17 @@ class _NewItemScreenState extends State<NewItemScreen> {
       String formattedDate =
           "${pickedDate.year.toString().padLeft(4, '0')}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
       _formHandler.expirationDateController.text = formattedDate;
+    }
+  }
+
+  Future<void> _handleNewGroup() async {
+    final bool? success = await showNewGroupModal(context);
+    if (success == true) {
+      await _loadGroups();
+
+      if (mounted) {
+        showCustomSnackbar(context, 'Lista de grupos atualizada.');
+      }
     }
   }
 
@@ -317,9 +330,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                               upperLabel: isPharmacyView
                                   ? 'UNID. POR LOTE'
                                   : 'UNIDADE DE MEDIDA',
-                              hintText: isPharmacyView
-                                  ? 'Número'
-                                  : 'Digite aqui',
+                              hintText: isPharmacyView ? 'Número' : 'Digite aqui',
                               controller: _formHandler.unitOfMeasureController,
                               keyboardType: isPharmacyView
                                   ? TextInputType.number
@@ -371,29 +382,43 @@ class _NewItemScreenState extends State<NewItemScreen> {
                       const SizedBox(height: 24),
 
                       if (_isLoadingGroups)
-                        const Center(child: CircularProgressIndicator())
+                        const ShimmerPlaceholder(height: 64)
                       else if (_loadingError != null)
                         Text(
                           _loadingError!,
                           style: const TextStyle(color: deleteRed),
                         )
                       else
-                        CustomDropdownInput<int>(
-                          upperLabel: 'GRUPO',
-                          hintText: 'Opcional',
-                          value: _formHandler.selectedGroupId,
-                          items: _formHandler.groupOptions.map((group) {
-                            return DropdownOption(
-                              value: group.id,
-                              label: group.nome,
-                            );
-                          }).toList(),
-                          onChanged: (newValue) {
-                            setState(() {
-                              _formHandler.selectedGroupId = newValue;
-                            });
-                          },
-                          validator: _formHandler.validateGroup,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: CustomDropdownInput<int>(
+                                upperLabel: 'GRUPO',
+                                hintText: 'Opcional',
+                                value: _formHandler.selectedGroupId,
+                                items: _formHandler.groupOptions.map((group) {
+                                  return DropdownOption(
+                                    value: group.id,
+                                    label: group.nome,
+                                  );
+                                }).toList(),
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _formHandler.selectedGroupId = newValue;
+                                  });
+                                },
+                                validator: _formHandler.validateGroup,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            CustomButton(
+                              customIcon:
+                                  "assets/icons/addicon.svg",
+                              squareMode: true,
+                              onPressed: _handleNewGroup,
+                            ),
+                          ],
                         ),
                       const SizedBox(height: 24),
 
@@ -406,7 +431,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           onTap: _selectDate,
                           validator: (value) => _formHandler
                               .validateExpirationDate(value, viewingSectorId),
-
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(12.0),
                             child: SvgPicture.asset(
