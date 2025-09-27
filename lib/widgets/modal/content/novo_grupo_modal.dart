@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/group_service.dart';
 import 'package:sistema_almox/services/sector_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
-import 'package:sistema_almox/widgets/internal_page_bottom.dart';
-import 'package:sistema_almox/widgets/modal/base_modal.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/shimmer_card.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 Future<bool?> showNewGroupModal(BuildContext context) async {
@@ -25,10 +27,12 @@ class NewGroupModal extends StatefulWidget {
 class _NewGroupModalState extends State<NewGroupModal> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _sectorController = TextEditingController();
   final _groupService = GroupService();
   final _sectorService = SectorService();
+
+  String _sectorName = '';
   bool _isSaving = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -39,7 +43,6 @@ class _NewGroupModalState extends State<NewGroupModal> {
   @override
   void dispose() {
     _nameController.dispose();
-    _sectorController.dispose();
     super.dispose();
   }
 
@@ -47,16 +50,36 @@ class _NewGroupModalState extends State<NewGroupModal> {
     final int? viewingSectorId = UserService.instance.viewingSectorId;
 
     if (viewingSectorId == null) {
-      _sectorController.text = 'Setor não encontrado';
+      if (mounted) {
+        setState(() {
+          _sectorName = 'Setor não encontrado';
+          _isLoading = false;
+        });
+      }
       return;
     }
 
     try {
-      final String? sectorName =
-          await _sectorService.getSectorNameById(viewingSectorId);
-      _sectorController.text = sectorName ?? 'Setor Desconhecido';
+      final String? sectorName = await _sectorService.getSectorNameById(
+        viewingSectorId,
+      );
+      if (mounted) {
+        setState(() {
+          _sectorName = sectorName ?? 'Setor Desconhecido';
+        });
+      }
     } catch (e) {
-      _sectorController.text = 'Erro ao carregar setor';
+      if (mounted) {
+        setState(() {
+          _sectorName = 'Erro ao carregar setor';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -64,20 +87,16 @@ class _NewGroupModalState extends State<NewGroupModal> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
-
     setState(() => _isSaving = true);
-
     try {
       final int? viewingSectorId = UserService.instance.viewingSectorId;
       if (viewingSectorId == null) {
         throw 'ID do setor de visualização não encontrado.';
       }
-
       final payload = {
         'nome': _nameController.text,
         'id_setor': viewingSectorId,
       };
-
       await _groupService.createGroup(payload);
       if (mounted) {
         showCustomSnackbar(context, 'Grupo cadastrado com sucesso!');
@@ -97,24 +116,50 @@ class _NewGroupModalState extends State<NewGroupModal> {
       children: [
         Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CustomTextFormField(
-                upperLabel: 'SETOR',
-                hintText: 'Nome do Setor',
-                controller: _sectorController,
-                readOnly: true,
-                validator: (_) => null,
-              ),
-              const SizedBox(height: 24),
+              if (_isLoading)
+                const ShimmerPlaceholder(height: 48)
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 14.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: brightGray,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      style: DefaultTextStyle.of(
+                        context,
+                      ).style.copyWith(fontSize: 15),
+                      children: <TextSpan>[
+                        const TextSpan(
+                          text: 'Setor: ',
+                          style: TextStyle(color: text60),
+                        ),
+                        TextSpan(
+                          text: _sectorName,
+                          style: const TextStyle(color: text60),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 16),
+
               CustomTextFormField(
                 upperLabel: 'NOME DO GRUPO',
-                hintText: 'Ex: EPIs, Medicamentos de Alto Custo, etc.',
+                hintText: 'Digite aqui',
                 controller: _nameController,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'O nome do grupo é obrigatório.';
+                    return 'Campo Obrigatório';
                   }
                   return null;
                 },
@@ -123,10 +168,11 @@ class _NewGroupModalState extends State<NewGroupModal> {
           ),
         ),
         const SizedBox(height: 32),
-        InternalPageBottom(
-          buttonText: 'Cadastrar Grupo',
-          onButtonPressed: _isSaving ? null : _registerGroup,
-          isEditMode: false,
+        CustomButton(
+          text: 'Cadastrar Grupo',
+          icon: Icons.add,
+          widthPercent: 1.0,
+          onPressed: _isSaving ? null : _registerGroup,
           isLoading: _isSaving,
         ),
       ],
