@@ -20,8 +20,12 @@ Future<bool?> showCustomDialog({
       return Dialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 20.0,
+        ),
+
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -48,7 +52,7 @@ Future<bool?> showCustomDialog({
                       onPressed: () => Navigator.of(context).pop(true),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: CustomButton(
                       text: 'Cancelar',

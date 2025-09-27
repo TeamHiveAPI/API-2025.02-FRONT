@@ -16,6 +16,7 @@ class CustomTextFormField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final bool obscureText;
   final AutovalidateMode? autovalidateMode;
+  final bool textarea;
 
   const CustomTextFormField({
     super.key,
@@ -32,10 +33,11 @@ class CustomTextFormField extends StatelessWidget {
     this.inputFormatters,
     this.obscureText = false,
     this.autovalidateMode,
+    this.textarea = false,
   }) : assert(
-         label != null || upperLabel != null,
-         'Você deve fornecer um Label ou UpperLabel.',
-       );
+          label != null || upperLabel != null,
+          'Você deve fornecer um Label ou UpperLabel.',
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -49,18 +51,25 @@ class CustomTextFormField extends StatelessWidget {
       inputFormatters: inputFormatters,
       obscureText: obscureText,
       autovalidateMode: autovalidateMode,
+      minLines: textarea ? 3 : 1,
+      maxLines: textarea ? null : 1,
       decoration: InputDecoration(
         labelText: upperLabel == null ? label : null,
+        labelStyle: const TextStyle(
+          color: text80,
+          fontSize: 14,
+        ),
         hintText: hintText,
         hintStyle: const TextStyle(
           color: text80,
           fontSize: 14,
         ),
         prefixIcon: prefixIcon,
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 8.0,
+        contentPadding: EdgeInsets.symmetric(
+          vertical: textarea ? 12.0 : 8.0,
           horizontal: 10.0,
         ),
+        alignLabelWithHint: textarea,
         errorStyle: const TextStyle(fontWeight: FontWeight.w600, height: 2.0),
       ),
     );

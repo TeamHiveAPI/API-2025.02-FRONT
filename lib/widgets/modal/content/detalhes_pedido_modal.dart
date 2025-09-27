@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
-import 'package:http/http.dart' as http;
+import 'package:sistema_almox/widgets/modal/content/finalizar_pedido_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/cancelar_pedido_modal.dart';
+
 
 class DetalhesPedidoModal extends StatelessWidget {
-  final String Item_nome;
-  final String Num_ped;
-  final DateTime Data_ret; 
-  final String Qnt_ped;
+  final String itemNome;
+  final String idPedido;
+  final String dataRet;
+  final String qtdSolicitada;
 
   const DetalhesPedidoModal({
     super.key,
-    required this.Item_nome,
-    required this.Num_ped,
-    required this.Data_ret,
-    required this.Qnt_ped,
+    required this.itemNome,
+    required this.idPedido,
+    required this.dataRet,
+    required this.qtdSolicitada,
   });
 
   @override
@@ -23,134 +26,81 @@ class DetalhesPedidoModal extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ITEM REQUISITADO
-        _buildDetailItem("ITEM REQUISITADO", Item_nome),
+        _buildDetailItem("ITEM REQUISITADO", itemNome),
         const SizedBox(height: 12),
 
-        // Nº DO PEDIDO + DATA DE RETIRADA
         Row(
           children: [
-            Expanded(child: _buildDetailItem("Nº DO PEDIDO", Num_ped)),
+            Expanded(child: _buildDetailItem("Nº DO PEDIDO", idPedido)),
             const SizedBox(width: 12),
-            Expanded(child: _buildDetailItem("DATA DE RETIRADA", Data_ret.toString().split(' ')[0])), // Formata a data para exibir apenas a parte da data
+            Expanded(
+              child: _buildDetailItem("DATA DE RETIRADA", formatDate(dataRet)),
+            ),
           ],
         ),
         const SizedBox(height: 12),
 
-        // QTD SOLICITADA
-        _buildDetailItem("QTD. SOLICITADA", Qnt_ped),
+        _buildDetailItem("QTD. SOLICITADA", qtdSolicitada),
         const SizedBox(height: 24),
 
-        // BOTÕES
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: CustomButton(
-                text: "finalizar Pedido",
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        title: const Text('finalizar Pedido'),
-                        content: const Text('Deseja realmente finalizar este pedido?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(ctx).pop(); 
-                            },
-                            child: const Text('Voltar'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                await finalizarPedido(Num_ped); 
-                                Navigator.of(ctx).pop();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text(
-                                    'Pedido finalizado com sucesso!',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                              } catch (e) {
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Erro ao finalizar pedido: $e',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  backgroundColor: Colors.red, // fundo vermelho
-                                ),
-                              );
-                              }
-                            },
-                            child: const Text('Confirmar'),
-                          ),
-                        ],
-                      );
-                    },
+                text: "Finalizar",
+                onPressed: () async {
+                  final DateTime dataAtual = DateTime.now();
+                  final bool? confirmed = await showFinalizarPedidoModal(
+                    context,
+                    dataAtual,
                   );
-                },
-                secondary: true,
-                isFullWidth: true,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: CustomButton(
-                text: "Cancelar Pedido",
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+
+                  if (confirmed == true) {
+                    try {
+                      await finalizarPedido(idPedido);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Pedido finalizado com sucesso!',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.green,
                         ),
-                        title: const Text('Cancelar Pedido'),
-                        content: const Text('Deseja realmente cancelar este pedido?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(ctx).pop(); 
-                            },
-                            child: const Text('Voltar'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              // Aqui é onde você chama seu backend
-                              try {
-                                await cancelarPedido(Num_ped); 
-                                Navigator.of(ctx).pop();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: const Text('Pedido cancelado com sucesso!'), backgroundColor: Colors.green),
-                                );
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erro ao cancelar pedido: $e'), backgroundColor: Colors.red),
-                                );
-                              }
-                            },
-                            child: const Text('Confirmar'),
-                          ),
-                        ],
                       );
-                    },
-                  );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Erro ao finalizar pedido: $e',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
-                secondary: true,
-                isFullWidth: true,
               ),
             ),
 
+            const SizedBox(width: 16),
+
+            Expanded(
+              child: CustomButton(
+                text: "Cancelar",
+                secondary: true,
+                danger: true,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showCancelarPedidoModal(
+                    context,
+                    idPedido: idPedido,
+                    cancelarPedido: cancelarPedido,
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ],
@@ -190,18 +140,6 @@ class DetalhesPedidoModal extends StatelessWidget {
   }
 }
 
+Future<void> cancelarPedido(String numPed, String motivo) async {}
 
-Future<void> cancelarPedido(String numPed) async {
-  final response = await http.delete(
-    Uri.parse('https://jlykzxqlscmbduraczcy.supabase.co/pedidos/$numPed'),
-  );
-
-  if (response.statusCode != 200) {
-    throw Exception('Erro ao cancelar pedido');
-  }
-}
-
-
-Future<void> finalizarPedido(String numPed) async {
-  print('Finalizando pedido: $numPed');
-}
+Future<void> finalizarPedido(String numPed) async {}
