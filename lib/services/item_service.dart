@@ -2,9 +2,9 @@ import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
+import 'package:sistema_almox/core/constants/pedido_constants.dart';
 
 final supabase = Supabase.instance.client;
-const int _itemsPerPage = 8;
 
 class StockItemService {
   Future<PaginatedResponse> fetchItems({
@@ -44,8 +44,8 @@ class StockItemService {
         );
       }
 
-      final int startIndex = (page - 1) * _itemsPerPage;
-      dataQuery = dataQuery.range(startIndex, startIndex + _itemsPerPage - 1);
+      final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
+      dataQuery = dataQuery.range(startIndex, startIndex + SystemConstants.itemsPorPagina - 1);
 
       final itemsResponse = await dataQuery;
       final items = itemsResponse;
