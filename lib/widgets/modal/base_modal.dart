@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
-Future<void> showCustomBottomSheet({
+Future<T?> showCustomBottomSheet<T>({
   required BuildContext context,
   required Widget child,
   required String title,
 }) {
-  return showModalBottomSheet(
+  return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -25,9 +25,7 @@ Future<void> showCustomBottomSheet({
             20,
             20,
             MediaQuery.of(context).viewInsets.bottom +
-                MediaQuery.of(
-                  context,
-                ).padding.bottom +
+                MediaQuery.of(context).padding.bottom +
                 20,
           ),
           child: Column(
@@ -42,7 +40,6 @@ Future<void> showCustomBottomSheet({
                 ),
               ),
               const SizedBox(height: 16),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -60,7 +57,6 @@ Future<void> showCustomBottomSheet({
                 ],
               ),
               const SizedBox(height: 16),
-
               Flexible(child: SingleChildScrollView(child: child)),
             ],
           ),
