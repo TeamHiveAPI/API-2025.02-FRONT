@@ -161,13 +161,18 @@ class _CustomDropdownInputState<T> extends State<CustomDropdownInput<T>> {
                 focusNode: _focusNode,
                 readOnly: true,
                 decoration: InputDecoration(
+                  prefix: const SizedBox(width: 10.0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 0.0,
+                  ),
                   hintText: widget.hintText,
                   hintStyle: const TextStyle(color: text80, fontSize: 14),
                   errorText: field.errorText,
                   suffixIcon: Icon(
                     _focusNode.hasFocus
-                        ? Icons.arrow_drop_up
-                        : Icons.arrow_drop_down,
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                   ),
                   errorStyle: const TextStyle(
                     fontWeight: FontWeight.w600,
