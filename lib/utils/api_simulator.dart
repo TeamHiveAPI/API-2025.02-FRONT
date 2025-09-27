@@ -6,8 +6,6 @@ import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'package:sistema_almox/core/constants/pedido_constants.dart';
 import 'table_handler_mixin.dart';
 
-const int _itemsPerPage = 8;
-
 Future<PaginatedResponse> fetchItemsFromAsset({
   required String assetPath,
   required int page,

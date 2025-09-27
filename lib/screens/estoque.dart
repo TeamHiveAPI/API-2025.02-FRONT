@@ -16,6 +16,8 @@ class StockScreen extends StatefulWidget {
 
 class _StockScreenState extends State<StockScreen> {
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +27,7 @@ class _StockScreenState extends State<StockScreen> {
   @override
   void dispose() {
     UserService.instance.removeListener(_onUserChanged);
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -82,23 +85,28 @@ class _StockScreenState extends State<StockScreen> {
               children: [
                 Expanded(
                   child: GenericSearchInput(
+                    controller: _searchController,
                     onSearchChanged: _handleSearch,
                   ),
                 ),
 
-              CustomButton(
-                customIcon: "assets/icons/qr-code.svg",
-                squareMode: true,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const QrPage(), 
-                    ),
-                  );
-                },
-              ),
+                SizedBox(width: 20),
 
+                CustomButton(
+                  customIcon: "assets/icons/qr-code.svg",
+                  squareMode: true,
+                  onPressed: () async {
+                    final String? scannedCode = await Navigator.push<String>(
+                      context,
+                      MaterialPageRoute(builder: (context) => const QrPage()),
+                    );
+                    if (scannedCode != null && mounted) {
+                      final String cleanCode = scannedCode.trim();
+                      _searchController.text = cleanCode;
+                      _handleSearch(cleanCode);
+                    }
+                  },
+                ),
               ],
             ),
 
