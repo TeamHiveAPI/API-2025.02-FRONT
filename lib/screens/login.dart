@@ -7,7 +7,7 @@ import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/core/theme/global_styles.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
-import 'package:sistema_almox/widgets/modal/base_modal.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/debug_login_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
@@ -26,7 +26,7 @@ class _LoginState extends State<Login> {
   final bool _showDebugLoginButton = true;
 
   final Map<String, Map<String, String>> _debugLogins = {
-    'Coronel': {'email': 'coronel@eb.mil.br', 'password': '123456'},
+    'Coronel': {'email': 'fabiane@gmail.com', 'password': '123'},
     'Tenente Estoque': {'email': 'ten.estoque@eb.mil.br', 'password': '123456'},
     'Tenente Farmácia': {
       'email': 'ten.farmacia@eb.mil.br',

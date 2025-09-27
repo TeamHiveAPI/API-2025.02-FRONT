@@ -68,15 +68,13 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
   InputDecoration _buildInputDecoration() {
     return InputDecoration(
       hintText: widget.hintText,
+      hintStyle: const TextStyle(color: text80, fontSize: 14),
       prefixIcon: const Icon(Icons.search, color: text80),
       contentPadding: const EdgeInsets.symmetric(
         vertical: 10.0,
         horizontal: 12.0,
       ),
-      errorStyle: const TextStyle(
-        fontWeight: FontWeight.w600,
-        height: 2.0,
-      ),
+      errorStyle: const TextStyle(fontWeight: FontWeight.w600, height: 2.0),
     );
   }
 
@@ -139,7 +137,7 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 250),
+                          constraints: const BoxConstraints(maxHeight: 200),
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             itemCount: options.length,
@@ -174,6 +172,7 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
         controller: _controller,
         decoration: _buildInputDecoration(),
         validator: widget.validator,
+        onChanged: (_) => _onSearchTextChanged(),
       );
     }
 
@@ -184,7 +183,7 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
           Text(
             widget.upperLabel!,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: Color(0xFF606060),
             ),
