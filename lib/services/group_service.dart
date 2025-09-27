@@ -17,4 +17,15 @@ class GroupService {
       return [];
     }
   }
+
+  Future<void> createGroup(Map<String, dynamic> groupPayload) async {
+    try {
+      final payload = Map.of(groupPayload)
+        ..remove('id_grupo');
+      await supabase.from('grupo').insert(payload);
+    } catch (e) {
+      print('Erro ao criar grupo: $e');
+      throw Exception('Falha ao cadastrar o grupo.');
+    }
+  }
 }

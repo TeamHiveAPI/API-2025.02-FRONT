@@ -15,44 +15,40 @@ class StockItemService {
   }) async {
     try {
       final viewingSectorId = UserService.instance.viewingSectorId;
-
       if (viewingSectorId == null) {
         return PaginatedResponse(items: [], totalCount: 0);
       }
 
-      var baseQuery = supabase
-          .from('item')
-          .select('*, grupo(nome)')
-          .eq('ativo', true)
-          .eq('id_setor', viewingSectorId);
-
-      if (searchQuery != null && searchQuery.isNotEmpty) {
-        baseQuery = baseQuery.or(
-          'nome.ilike.%$searchQuery%,num_ficha.ilike.%$searchQuery%',
-        );
-      }
-
-      final countResponse = await baseQuery.count();
-      final totalCount = countResponse.count;
-
-      PostgrestTransformBuilder<PostgrestList> dataQuery = baseQuery;
+      PostgrestTransformBuilder databaseCall = supabase.rpc(
+        'buscar_itens_por_setor',
+        params: {
+          'id_setor_param': viewingSectorId,
+          'search_query_param': searchQuery ?? '',
+        },
+      );
 
       if (sortParams.activeSortColumnDataField != null) {
-        dataQuery = dataQuery.order(
+        databaseCall = databaseCall.order(
           sortParams.activeSortColumnDataField!,
           ascending: sortParams.isAscending,
         );
       }
 
       final int startIndex = (page - 1) * _itemsPerPage;
-      dataQuery = dataQuery.range(startIndex, startIndex + _itemsPerPage - 1);
+      databaseCall = databaseCall.range(startIndex, startIndex + _itemsPerPage - 1);
 
-      final itemsResponse = await dataQuery;
-      final items = itemsResponse;
+      final response = await databaseCall;
 
+      if (response.isEmpty) {
+        return PaginatedResponse(items: [], totalCount: 0);
+      }
+
+      final totalCount = response[0]['total_count'] as int;
+      final items = List<Map<String, dynamic>>.from(response);
       return PaginatedResponse(items: items, totalCount: totalCount);
+      
     } catch (e) {
-      print('Erro ao buscar itens do Supabase: $e');
+      print('Erro ao buscar itens do Supabase via RPC: $e');
       return PaginatedResponse(items: [], totalCount: 0);
     }
   }
