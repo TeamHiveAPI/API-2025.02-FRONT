@@ -29,7 +29,6 @@ class NewItemScreen extends StatefulWidget {
 class _NewItemScreenState extends State<NewItemScreen> {
   final _formHandler = RegisterItemFormHandler();
   final _groupService = GroupService();
-  final _itemService = StockItemService();
 
   bool get isEditMode => widget.itemToEdit != null;
 
@@ -74,8 +73,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
     _formHandler.selectedGroupId = item['id_grupo'];
 
     if (item['data_validade'] != null) {
-      _formHandler.expirationDateController.text =
-          item['data_validade'].toString();
+      _formHandler.expirationDateController.text = item['data_validade']
+          .toString();
       _formHandler.isControlled = item['controlado'] ?? false;
     }
   }
@@ -93,20 +92,33 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
     try {
       final itemPayload = _buildItemPayload();
-      final itemId = widget.itemToEdit!['id_item'] as int;
 
-      await _itemService.updateItem(itemId, itemPayload);
+      final item = widget.itemToEdit;
+      if (item == null || item['id_item'] == null) {
+        throw Exception('ID do item para edição não foi encontrado.');
+      }
+      final itemId = item['id_item'] as int;
+
+      await ItemService.instance.updateItem(itemId, itemPayload);
+
       showCustomSnackbar(context, 'Item atualizado com sucesso!');
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      if (mounted) showCustomSnackbar(context, e.toString(), isError: true);
+      print('Erro detalhado ao atualizar item: $e');
+
+      if (mounted) {
+        showCustomSnackbar(
+          context,
+          'Ocorreu um erro ao atualizar o item. Tente novamente.',
+          isError: true,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
   Future<void> _deactivateItem() async {
-    // 1. Validar o ID primeiro, antes de abrir qualquer diálogo
     final itemId = widget.itemToEdit?['id_item'];
     if (itemId == null) {
       if (mounted) {
@@ -130,10 +142,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
           const Text(
             'Tem certeza que deseja desativar este item?',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: text60,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: text60, fontSize: 14),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -151,7 +160,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
     setState(() => _isSaving = true);
     try {
-      await _itemService.deactivateItem(itemId as int);
+      await ItemService.instance.deactivateItem(itemId as int);
 
       if (mounted) {
         showCustomSnackbar(context, 'Item desativado com sucesso!');
@@ -243,7 +252,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     try {
       final itemPayload = _buildItemPayload();
 
-      await _itemService.createItem(itemPayload);
+      await ItemService.instance.createItem(itemPayload);
       showCustomSnackbar(context, 'Item cadastrado com sucesso!');
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
@@ -330,7 +339,9 @@ class _NewItemScreenState extends State<NewItemScreen> {
                               upperLabel: isPharmacyView
                                   ? 'UNID. POR LOTE'
                                   : 'UNIDADE DE MEDIDA',
-                              hintText: isPharmacyView ? 'Número' : 'Digite aqui',
+                              hintText: isPharmacyView
+                                  ? 'Número'
+                                  : 'Digite aqui',
                               controller: _formHandler.unitOfMeasureController,
                               keyboardType: isPharmacyView
                                   ? TextInputType.number
@@ -413,8 +424,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                             ),
                             const SizedBox(width: 16),
                             CustomButton(
-                              customIcon:
-                                  "assets/icons/addicon.svg",
+                              customIcon: "assets/icons/addicon.svg",
                               squareMode: true,
                               onPressed: _handleNewGroup,
                             ),

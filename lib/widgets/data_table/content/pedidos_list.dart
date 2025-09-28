@@ -4,11 +4,14 @@ import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/cancelar_pedido_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
-import 'package:sistema_almox/widgets/modal/detalhes_usuario_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_usuario_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
 import 'package:sistema_almox/core/constants/pedido_constants.dart';
+import 'package:sistema_almox/services/item_service.dart';
 
 class PedidosTable extends StatefulWidget {
   final String? searchQuery;
@@ -21,8 +24,6 @@ class PedidosTable extends StatefulWidget {
 }
 
 class _PedidosTableState extends State<PedidosTable> with TableHandler {
-  final _pedidoService = PedidoService();
-
   @override
   String get apiEndpoint => 'pedidos';
 
@@ -55,7 +56,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     String? searchQuery,
   ) async {
     try {
-      return await _pedidoService.fetchPedidos(
+      return await PedidoService.instance.fetchPedidos(
         page: page,
         sortParams: sortParams,
         searchQuery: searchQuery,
@@ -83,7 +84,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
 
   Future<void> _cancelarPedido(int pedidoId, String motivo) async {
     try {
-      await _pedidoService.cancelPedido(
+      await PedidoService.instance.cancelPedido(
         pedidoId: pedidoId,
         motivoCancelamento: motivo,
       );
@@ -104,7 +105,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       final hoje = DateTime.now();
       final dataFormatada = hoje.toIso8601String().split('T')[0];
 
-      await _pedidoService.finalizePedido(
+      await PedidoService.instance.finalizePedido(
         pedidoId: pedidoId,
         dataRetirada: dataFormatada,
       );
@@ -127,29 +128,57 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         title: "Detalhes do Pedido",
         child: DetalhesPedidoModal(
           pedidoId: pedidoData['id_pedido'],
-          itemNome: pedidoData['item']?['nome']?.toString() ?? 'N/A',
-          idPedido: pedidoData['id_pedido']?.toString() ?? 'N/A',
-          idUsuario: pedidoData['id_usuario'],
-          nomeUsuario: pedidoData['usuario']?['nome'] ?? 'Desconhecido',
-          dataRet: pedidoData['data_ret']?.toString() ?? 'Em aberto',
-          qtdSolicitada: pedidoData['qtd_solicitada']?.toString() ?? '0',
-          status: pedidoData['status'] ?? 1,
-          onCancelar: _cancelarPedido,
           onFinalizar: _finalizarPedido,
+
+          onShowCancelModal: () async {
+            Navigator.of(context).pop();
+
+            final motivo = await showCancelarPedidoModal(
+              context,
+              idPedido: pedidoData['id_pedido'].toString(),
+            );
+
+            if (motivo != null && motivo.isNotEmpty) {
+              await _cancelarPedido(pedidoData['id_pedido'], motivo);
+              showCustomSnackbar(context, 'Pedido cancelado com sucesso!');
+            } else {
+              showPedidoModal();
+            }
+          },
 
           onViewUserDetails: (userId) async {
             Navigator.of(context).pop();
 
-            await showCustomBottomSheet(
+            final result = await showCustomBottomSheet(
               context: context,
               title: "Detalhes do Usuário",
               child: DetalhesUsuarioModal(idUsuario: userId),
             );
-            showPedidoModal();
+            if (result != true) {
+              showPedidoModal();
+            }
+          },
+          onViewItemDetails: (itemId) async {
+            Navigator.of(context).pop();
+            final itemData = await ItemService.instance.fetchItemById(itemId);
+
+            if (itemData != null) {
+              final result = await showCustomBottomSheet(
+                context: context,
+                title: "Detalhes do Item",
+                child: DetalhesItemModal(itemId: itemId),
+              );
+              if (result != true) {
+                showPedidoModal();
+              }
+            } else {
+              showPedidoModal();
+            }
           },
         ),
       );
     }
+
     showPedidoModal();
   }
 
