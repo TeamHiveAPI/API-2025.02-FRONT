@@ -19,7 +19,7 @@ class LastOrderSummary extends StatelessWidget {
         TableColumn(
           title: 'Nome do item',
           dataField: 'item_name',
-          widthFactor: 0.45,
+          widthFactor: 0.55,
         ),
         TableColumn(
           title: 'QTD',
@@ -29,7 +29,7 @@ class LastOrderSummary extends StatelessWidget {
         TableColumn(
           title: 'Status',
           dataField: 'status',
-          widthFactor: 0.3,
+          widthFactor: 0.25,
         ),
       ],
       totalResults: 1,

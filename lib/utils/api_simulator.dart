@@ -94,7 +94,7 @@ Future<PaginatedResponse> getRecentMovements({String? searchQuery}) async {
 
   final data = [
     {
-      'item_name': 'Kit Primeiros Socorros',
+      'item_name': 'Kit Primeiros Socorros Legal',
       'quantity': '+2',
       'responsible': 'Mauro'
     },
