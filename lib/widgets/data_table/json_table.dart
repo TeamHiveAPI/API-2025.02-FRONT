@@ -61,6 +61,14 @@ class DynamicJsonTable extends StatelessWidget {
     return currentValue;
   }
 
+  static const List<Color> _debugColors = [
+    Color(0x4D2196F3),
+    Color(0x4D4CAF50),
+    Color(0x4DFF9800),
+  ];
+
+  static bool debugShowColumnArea = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -96,14 +104,27 @@ class DynamicJsonTable extends StatelessWidget {
   }
 
   Widget _buildHeaderRow() {
+    final Color rowBackgroundColor = debugShowColumnArea
+        ? Colors.transparent
+        : coolGray;
+
     return Container(
-      color: coolGray,
+      color: rowBackgroundColor,
       child: Row(
-        children: columns.map((column) {
+        children: columns.asMap().entries.map((entry) {
+          final int index = entry.key;
+          final TableColumn column = entry.value;
+          final Color columnColor = debugShowColumnArea
+              ? _debugColors[index % _debugColors.length]
+              : Colors.transparent;
+
+          final EdgeInsets headerPadding = index == 0
+              ? const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0)
+              : const EdgeInsets.fromLTRB(0, 12.0, 12.0, 12.0);
+
           bool isSortable = column.sortType != null;
           bool isActiveSortColumn =
               activeSortColumnDataField == column.dataField;
-
           IconData iconData = Icons.unfold_more;
 
           if (isActiveSortColumn) {
@@ -123,36 +144,36 @@ class DynamicJsonTable extends StatelessWidget {
 
           return Expanded(
             flex: (column.widthFactor * 100).toInt(),
-            child: InkWell(
-              onTap: isSortable ? () => onSort(column) : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0,
-                  vertical: 12.0,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        column.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: text60,
+            child: Container(
+              color: columnColor,
+              child: InkWell(
+                onTap: isSortable ? () => onSort(column) : null,
+                child: Padding(
+                  padding: headerPadding,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          column.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: text60,
+                          ),
                         ),
                       ),
-                    ),
-                    if (isSortable) const SizedBox(width: 4),
-                    if (isSortable)
-                      Icon(
-                        iconData,
-                        size: 14,
-                        color: isActiveSortColumn
-                            ? text60
-                            : text60.withAlpha(128),
-                      ),
-                  ],
+                      if (isSortable) const SizedBox(width: 4),
+                      if (isSortable)
+                        Icon(
+                          iconData,
+                          size: 14,
+                          color: isActiveSortColumn
+                              ? text60
+                              : text60.withAlpha(128),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -174,19 +195,25 @@ class DynamicJsonTable extends StatelessWidget {
           baseColor: Colors.grey.shade300,
           highlightColor: Colors.grey.shade100,
           child: Row(
-            children: columns.map((column) {
+            children: columns.asMap().entries.map((columnEntry) {
+              final int columnIndex = columnEntry.key;
+              final TableColumn column = columnEntry.value;
+
+              final EdgeInsets skeletonPadding = columnIndex == 0
+                  ? const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 16.975,
+                    )
+                  : const EdgeInsets.fromLTRB(0, 16.975, 12.0, 16.975);
+
               return Expanded(
                 flex: (column.widthFactor * 100).toInt(),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 16.975,
-                  ),
+                  padding: skeletonPadding,
                   child: Container(
                     height: 14.0,
                     decoration: BoxDecoration(
-                      color: Colors
-                          .white,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(4.0),
                     ),
                   ),
@@ -201,7 +228,14 @@ class DynamicJsonTable extends StatelessWidget {
           highlightColor: _rowHighlightColor,
           splashColor: _rowSplashColor,
           child: Row(
-            children: columns.map((column) {
+            children: columns.asMap().entries.map((columnEntry) {
+              final int columnIndex = columnEntry.key;
+              final TableColumn column = columnEntry.value;
+
+              final EdgeInsets cellPadding = columnIndex == 0
+                  ? const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0)
+                  : const EdgeInsets.fromLTRB(0, 12.0, 12.0, 12.0);
+
               final rawValue = _getValueFromPath(rowData, column.dataField);
               final Widget cellContent;
               if (column.cellBuilder != null) {
@@ -222,10 +256,8 @@ class DynamicJsonTable extends StatelessWidget {
               return Expanded(
                 flex: (column.widthFactor * 100).toInt(),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 12.0,
-                  ),
+                  // Aplica o padding definido
+                  padding: cellPadding,
                   child: cellContent,
                 ),
               );

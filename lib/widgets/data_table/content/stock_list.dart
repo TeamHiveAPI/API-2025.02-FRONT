@@ -28,13 +28,13 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
         TableColumn(
           title: 'Nome do item',
           dataField: 'nome',
-          widthFactor: 0.78,
+          widthFactor: 0.82,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
           title: 'QTD',
           dataField: 'qtd_atual',
-          widthFactor: 0.22,
+          widthFactor: 0.18,
           sortType: SortType.numeric,
         ),
       ];
