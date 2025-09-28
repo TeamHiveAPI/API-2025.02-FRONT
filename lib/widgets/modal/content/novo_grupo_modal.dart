@@ -6,7 +6,7 @@ import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
-import 'package:sistema_almox/widgets/shimmer_card.dart';
+import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 Future<bool?> showNewGroupModal(BuildContext context) async {
