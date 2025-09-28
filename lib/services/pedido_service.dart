@@ -76,7 +76,9 @@ class PedidoService {
     try {
       final response = await supabase
           .from('pedido')
-          .select('*, item:id_item(nome), usuario:id_usuario(nome)')
+          .select(
+            '*, item:id_item(nome), usuario:id_usuario(nome), responsavel_cancelamento:id_responsavel_cancelamento(nome)',
+          )
           .eq('id_pedido', pedidoId)
           .single();
       return response;
