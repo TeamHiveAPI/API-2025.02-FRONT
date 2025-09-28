@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
-import 'package:sistema_almox/widgets/modal/detail_item_card.dart';
+import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 
 class DetalhesUsuarioModal extends StatefulWidget {

@@ -24,7 +24,6 @@ class NewOrderScreen extends StatefulWidget {
 
 class NewOrderScreenState extends State<NewOrderScreen> {
   late final NewOrderFormHandler _formHandler;
-  final _pedidoService = PedidoService();
 
   final Key _searchKey = UniqueKey();
   List<Map<String, dynamic>> inventory = [];
@@ -60,7 +59,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
     setState(() => _isLoading = true);
     
     try {
-      final items = await _pedidoService.getAvailableItems();
+      final items = await PedidoService.instance.getAvailableItems();
       
       setState(() {
         inventory = items.map((item) => {
@@ -104,7 +103,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
         dataRetirada = DateFormat('yyyy-MM-dd').format(selectedDate);
       }
 
-      await _pedidoService.createPedido(
+      await PedidoService.instance.createPedido(
         itemId: selectedItem['id'],
         quantidade: requestedQuantity,
         dataRetirada: dataRetirada,

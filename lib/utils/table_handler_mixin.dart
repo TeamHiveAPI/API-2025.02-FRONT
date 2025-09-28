@@ -118,8 +118,6 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
 
     _printApiRoute(_currentPage, sortParams, _currentSearchQuery);
 
-    await Future.delayed(const Duration(milliseconds: 700));
-
     final response = await performFetch(
       _currentPage,
       sortParams,

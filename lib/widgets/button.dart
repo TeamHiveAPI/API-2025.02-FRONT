@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/icon_config.dart';
+import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 
 enum IconPosition { left, right }
 
@@ -18,6 +20,7 @@ class CustomButton extends StatelessWidget {
   final bool danger;
   final bool isLoading;
   final bool squareMode;
+   final bool isLoadingInitialContent;
 
   const CustomButton({
     super.key,
@@ -34,6 +37,7 @@ class CustomButton extends StatelessWidget {
     this.danger = false,
     this.isLoading = false,
     this.squareMode = false,
+    this.isLoadingInitialContent = false,
   })  : assert(
           widthPercent == null || (widthPercent > 0 && widthPercent <= 1),
           'widthPercent deve estar entre 0.0 e 1.0',
@@ -69,6 +73,11 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+     if (isLoadingInitialContent) {
+      return _buildShimmerPlaceholder();
+    }
+
     final EdgeInsetsGeometry padding = squareMode
         ? const EdgeInsets.all(12.0)
         : const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
@@ -182,4 +191,36 @@ class CustomButton extends StatelessWidget {
       children: children,
     );
   }
+
+  Widget _buildShimmerPlaceholder() {
+    final placeholder = ShimmerPlaceholder(
+      height: SystemConstants.alturaBotao.toDouble(),
+    );
+    
+    if (isFullWidth) {
+      return SizedBox(width: double.infinity, child: placeholder);
+    }
+    
+    if (widthPercent != null) {
+       return LayoutBuilder(
+        builder: (context, constraints) {
+          return SizedBox(
+            width: constraints.maxWidth * widthPercent!,
+            child: placeholder,
+          );
+        },
+      );
+    }
+    
+    if (squareMode) {
+      return const SizedBox(
+        width: 48,
+        height: 48,
+        child: ShimmerPlaceholder(height: 48),
+      );
+    }
+
+    return placeholder;
+  }
 }
+

@@ -1,12 +1,15 @@
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
-import 'package:sistema_almox/core/constants/pedido_constants.dart';
 
-final supabase = Supabase.instance.client;
+class ItemService {
 
-class StockItemService {
+  final supabase = Supabase.instance.client;
+  ItemService._privateConstructor();
+  static final ItemService instance = ItemService._privateConstructor();
+
   Future<PaginatedResponse> fetchItems({
     required int page,
     required SortParams sortParams,
@@ -52,6 +55,24 @@ class StockItemService {
       return PaginatedResponse(items: [], totalCount: 0);
     }
   }
+
+  Future<Map<String, dynamic>?> fetchItemById(int itemId) async {
+  try {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('item')
+        .select('''
+          *,
+          grupo:id_grupo(nome)
+        ''')
+        .eq('id_item', itemId)
+        .single();
+    return response;
+  } catch (e) {
+    print('Erro ao buscar detalhes do item: $e');
+    return null;
+  }
+}
 
   Future<void> createItem(Map<String, dynamic> itemData) async {
     try {

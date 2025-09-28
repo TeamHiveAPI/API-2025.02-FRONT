@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:collection/collection.dart';
+import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
-import 'package:sistema_almox/core/constants/pedido_constants.dart';
 import 'table_handler_mixin.dart';
 
 Future<PaginatedResponse> fetchItemsFromAsset({
@@ -18,7 +18,6 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   final List<dynamic> allJsonData = json.decode(jsonString);
   List<Map<String, dynamic>> allItems = allJsonData.cast<Map<String, dynamic>>();
 
-  // Pesquisa genérica em todos os campos definidos em searchFields
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
     allItems = allItems.where((item) {

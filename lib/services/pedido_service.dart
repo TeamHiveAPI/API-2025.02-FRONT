@@ -1,12 +1,15 @@
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/constants/pedido_constants.dart';
+import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 
-final supabase = Supabase.instance.client;
-
 class PedidoService {
+  final supabase = Supabase.instance.client;
+  PedidoService._privateConstructor();
+  static final PedidoService instance = PedidoService._privateConstructor();
+
   Future<PaginatedResponse> fetchPedidos({
     required int page,
     required SortParams sortParams,
@@ -57,16 +60,29 @@ class PedidoService {
 
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
       dataQuery = dataQuery.range(
-        startIndex, 
-        startIndex + SystemConstants.itemsPorPagina - 1
+        startIndex,
+        startIndex + SystemConstants.itemsPorPagina - 1,
       );
 
       final pedidosResponse = await dataQuery;
       return PaginatedResponse(items: pedidosResponse, totalCount: totalCount);
-
     } catch (e) {
       print('Erro ao buscar pedidos: $e');
       return PaginatedResponse(items: [], totalCount: 0);
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
+    try {
+      final response = await supabase
+          .from('pedido')
+          .select('*, item:id_item(nome), usuario:id_usuario(nome)')
+          .eq('id_pedido', pedidoId)
+          .single();
+      return response;
+    } catch (e) {
+      print('Erro ao buscar detalhes do pedido: $e');
+      return null;
     }
   }
 
@@ -82,7 +98,6 @@ class PedidoService {
       if (currentUser == null || viewingSectorId == null) {
         throw 'Usuário não identificado';
       }
-      
 
       final itemResponse = await supabase
           .from('item')
@@ -104,26 +119,31 @@ class PedidoService {
         throw PedidoConstants.erroQuantidadeInsuficiente;
       }
 
-      final bool temDataRetirada = dataRetirada != null && dataRetirada.isNotEmpty;
-      final status = temDataRetirada 
-          ? PedidoConstants.statusConcluido 
+      final bool temDataRetirada =
+          dataRetirada != null && dataRetirada.isNotEmpty;
+      final status = temDataRetirada
+          ? PedidoConstants.statusConcluido
           : PedidoConstants.statusPendente;
 
-      await supabase.rpc('create_pedido_transaction', params: {
-        'p_id_item': itemId,
-        'p_id_usuario': currentUser.idUsuario,
-        'p_id_setor': viewingSectorId,
-        'p_qtd_solicitada': quantidade,
-        'p_data_ret': temDataRetirada ? dataRetirada : null,
-        'p_status': status,
-      });
-
+      await supabase.rpc(
+        'create_pedido_transaction',
+        params: {
+          'p_id_item': itemId,
+          'p_id_usuario': currentUser.idUsuario,
+          'p_id_setor': viewingSectorId,
+          'p_qtd_solicitada': quantidade,
+          'p_data_ret': temDataRetirada ? dataRetirada : null,
+          'p_status': status,
+        },
+      );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao criar pedido: ${e.message}');
       throw 'Falha ao criar pedido: ${e.message}';
     } catch (e) {
       print('Erro desconhecido ao criar pedido: $e');
-      throw e.toString().contains('Falha') ? e.toString() : 'Ocorreu um erro inesperado. Tente novamente.';
+      throw e.toString().contains('Falha')
+          ? e.toString()
+          : 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
 
@@ -156,28 +176,33 @@ class PedidoService {
       }
 
       final bool isOwner = idUsuarioPedido == currentUser.idUsuario;
-      final bool isTenente = currentUser.role == UserRole.tenenteEstoque || 
-                            currentUser.role == UserRole.tenenteFarmacia;
+      final bool isTenente =
+          currentUser.role == UserRole.tenenteEstoque ||
+          currentUser.role == UserRole.tenenteFarmacia;
       final bool isCoronel = currentUser.role == UserRole.coronel;
 
       if (!isOwner && !isTenente && !isCoronel) {
         throw PedidoConstants.erroPermissaoCancelamento;
       }
 
-      await supabase.rpc('cancel_pedido_transaction', params: {
-        'p_id_pedido': pedidoId,
-        'p_motivo_cancelamento': motivoCancelamento,
-        'p_id_responsavel_cancelamento': currentUser.idUsuario,
-      });
-
+      await supabase.rpc(
+        'cancel_pedido_transaction',
+        params: {
+          'p_id_pedido': pedidoId,
+          'p_motivo_cancelamento': motivoCancelamento,
+          'p_id_responsavel_cancelamento': currentUser.idUsuario,
+        },
+      );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao cancelar pedido: ${e.message}');
       throw 'Falha ao cancelar pedido: ${e.message}';
     } catch (e) {
       print('Erro desconhecido ao cancelar pedido: $e');
-      throw e.toString().contains('Falha') || e.toString().contains('permissão') || 
-             e.toString().contains('cancelado') || e.toString().contains('concluído')
-          ? e.toString() 
+      throw e.toString().contains('Falha') ||
+              e.toString().contains('permissão') ||
+              e.toString().contains('cancelado') ||
+              e.toString().contains('concluído')
+          ? e.toString()
           : 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
@@ -213,19 +238,20 @@ class PedidoService {
         throw 'Este pedido já foi finalizado';
       }
 
-      await supabase.rpc('finalize_pedido_transaction', params: {
-        'p_id_pedido': pedidoId,
-        'p_data_ret': dataRetirada,
-      });
-
+      await supabase.rpc(
+        'finalize_pedido_transaction',
+        params: {'p_id_pedido': pedidoId, 'p_data_ret': dataRetirada},
+      );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao finalizar pedido: ${e.message}');
       throw 'Falha ao finalizar pedido: ${e.message}';
     } catch (e) {
       print('Erro desconhecido ao finalizar pedido: $e');
-      throw e.toString().contains('Falha') || e.toString().contains('possível') ||
-             e.toString().contains('finalizado') || e.toString().contains('cancelado')
-          ? e.toString() 
+      throw e.toString().contains('Falha') ||
+              e.toString().contains('possível') ||
+              e.toString().contains('finalizado') ||
+              e.toString().contains('cancelado')
+          ? e.toString()
           : 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
