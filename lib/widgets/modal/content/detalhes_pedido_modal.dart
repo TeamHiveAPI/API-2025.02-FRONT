@@ -12,6 +12,7 @@ class DetalhesPedidoModal extends StatefulWidget {
   final void Function(int idItem)? onViewItemDetails;
   final void Function(int userId)? onViewUserDetails;
   final VoidCallback? onShowCancelModal;
+  final void Function(Map<String, dynamic> pedidoData)? onViewCancelDetails;
 
   const DetalhesPedidoModal({
     super.key,
@@ -20,6 +21,7 @@ class DetalhesPedidoModal extends StatefulWidget {
     this.onViewItemDetails,
     this.onViewUserDetails,
     this.onShowCancelModal,
+    this.onViewCancelDetails,
   });
 
   @override
@@ -61,8 +63,10 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
     final idUsuario = _pedidoData?['id_usuario'] ?? 0;
     final dataRet = _pedidoData?['data_ret']?.toString() ?? 'Em aberto';
     final qtdSolicitada = _pedidoData?['qtd_solicitada']?.toString() ?? '';
-    final status = _pedidoData?['status'] ?? 1;
+    final status = _pedidoData?['status'] ?? 0;
+
     final isPendente = status == PedidoConstants.statusPendente;
+    final isCancelado = status == PedidoConstants.statusCancelado;
 
     String getStatusDescricao() {
       switch (status) {
@@ -120,6 +124,13 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
                 isLoading: _isLoadingInitialContent,
                 label: "STATUS",
                 value: getStatusDescricao(),
+                onPressed: (!isCancelado)
+                    ? null
+                    : () {
+                        if (widget.onViewCancelDetails != null) {
+                          widget.onViewCancelDetails!(_pedidoData!);
+                        }
+                      },
               ),
             ),
           ],
