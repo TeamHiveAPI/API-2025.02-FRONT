@@ -5,9 +5,10 @@ import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
+import 'package:sistema_almox/widgets/modal/detalhes_usuario_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
-import 'package:sistema_almox/core/constants/pedido_constants.dart'; 
+import 'package:sistema_almox/core/constants/pedido_constants.dart';
 
 class PedidosTable extends StatefulWidget {
   final String? searchQuery;
@@ -27,25 +28,25 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
 
   @override
   List<TableColumn> get tableColumns => [
-        TableColumn(
-          title: 'Item',
-          dataField: 'item_nome',
-          widthFactor: 0.45,
-          sortType: SortType.alphabetic,
-        ),
-        TableColumn(
-          title: 'QTD',
-          dataField: 'qtd_solicitada',
-          widthFactor: 0.25,
-          sortType: SortType.numeric,
-        ),
-        TableColumn(
-          title: 'Status',
-          dataField: 'status_descricao',
-          widthFactor: 0.3,
-          sortType: SortType.alphabetic,
-        ),
-      ];
+    TableColumn(
+      title: 'Nome do item',
+      dataField: 'item_nome',
+      widthFactor: 0.55,
+      sortType: SortType.alphabetic,
+    ),
+    TableColumn(
+      title: 'QTD',
+      dataField: 'qtd_solicitada',
+      widthFactor: 0.2,
+      sortType: SortType.numeric,
+    ),
+    TableColumn(
+      title: 'Status',
+      dataField: 'status_descricao',
+      widthFactor: 0.25,
+      sortType: SortType.alphabetic,
+    ),
+  ];
 
   @override
   Future<PaginatedResponse> performFetch(
@@ -86,7 +87,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         pedidoId: pedidoId,
         motivoCancelamento: motivo,
       );
-      
+
       if (mounted) {
         showCustomSnackbar(context, 'Pedido cancelado com sucesso!');
         onSearchQueryChanged(widget.searchQuery ?? '');
@@ -102,12 +103,12 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     try {
       final hoje = DateTime.now();
       final dataFormatada = hoje.toIso8601String().split('T')[0];
-      
+
       await _pedidoService.finalizePedido(
         pedidoId: pedidoId,
         dataRetirada: dataFormatada,
       );
-      
+
       if (mounted) {
         showCustomSnackbar(context, 'Pedido finalizado com sucesso!');
         onSearchQueryChanged(widget.searchQuery ?? '');
@@ -120,20 +121,36 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   }
 
   void _handleRowTap(Map<String, dynamic> pedidoData) {
-    showCustomBottomSheet(
-      context: context,
-      title: "Detalhes do Pedido",
-      child: DetalhesPedidoModal(
-        pedidoId: pedidoData['id_pedido'],
-        itemNome: pedidoData['item_nome']?.toString() ?? 'N/A',
-        idPedido: pedidoData['id_pedido']?.toString() ?? 'N/A',
-        dataRet: pedidoData['data_ret']?.toString() ?? 'Em aberto',
-        qtdSolicitada: pedidoData['qtd_solicitada']?.toString() ?? '0',
-        status: pedidoData['status'] ?? 1,
-        onCancelar: _cancelarPedido,
-        onFinalizar: _finalizarPedido,
-      ),
-    );
+    void showPedidoModal() {
+      showCustomBottomSheet(
+        context: context,
+        title: "Detalhes do Pedido",
+        child: DetalhesPedidoModal(
+          pedidoId: pedidoData['id_pedido'],
+          itemNome: pedidoData['item']?['nome']?.toString() ?? 'N/A',
+          idPedido: pedidoData['id_pedido']?.toString() ?? 'N/A',
+          idUsuario: pedidoData['id_usuario'],
+          nomeUsuario: pedidoData['usuario']?['nome'] ?? 'Desconhecido',
+          dataRet: pedidoData['data_ret']?.toString() ?? 'Em aberto',
+          qtdSolicitada: pedidoData['qtd_solicitada']?.toString() ?? '0',
+          status: pedidoData['status'] ?? 1,
+          onCancelar: _cancelarPedido,
+          onFinalizar: _finalizarPedido,
+
+          onViewUserDetails: (userId) async {
+            Navigator.of(context).pop();
+
+            await showCustomBottomSheet(
+              context: context,
+              title: "Detalhes do Usuário",
+              child: DetalhesUsuarioModal(idUsuario: userId),
+            );
+            showPedidoModal();
+          },
+        ),
+      );
+    }
+    showPedidoModal();
   }
 
   @override
@@ -145,7 +162,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         : loadedItems.map((item) {
             final status = item['status'] ?? 1;
             String statusDescricao;
-            
+
             switch (status) {
               case PedidoConstants.statusPendente:
                 statusDescricao = 'Pendente';
@@ -163,7 +180,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
             return {
               ...item,
               'item_nome': item['item']?['nome'] ?? 'N/A',
-              'usuario_nome': item['usuario']?['nome'] ?? 'N/A', 
+              'usuario_nome': item['usuario']?['nome'] ?? 'N/A',
               'status_descricao': statusDescricao,
             };
           }).toList();

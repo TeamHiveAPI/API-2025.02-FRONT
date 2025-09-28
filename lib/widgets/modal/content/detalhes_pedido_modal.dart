@@ -1,39 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/content/finalizar_pedido_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/cancelar_pedido_modal.dart';
 import 'package:sistema_almox/core/constants/pedido_constants.dart';
-
+import 'package:sistema_almox/widgets/modal/detail_item_card.dart';
 
 class DetalhesPedidoModal extends StatelessWidget {
   final int pedidoId;
   final String itemNome;
   final String idPedido;
+  final int idUsuario;
+  final String nomeUsuario;
   final String dataRet;
   final String qtdSolicitada;
   final int status;
   final Future<void> Function(int pedidoId, String motivo) onCancelar;
   final Future<void> Function(int pedidoId) onFinalizar;
+  final void Function(int userId)? onViewUserDetails;
 
   const DetalhesPedidoModal({
     super.key,
     required this.pedidoId,
     required this.itemNome,
+    required this.idUsuario,
+    required this.nomeUsuario,
     required this.idPedido,
     required this.dataRet,
     required this.qtdSolicitada,
     required this.status,
     required this.onCancelar,
     required this.onFinalizar,
+    this.onViewUserDetails,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isPendente = status == PedidoConstants.statusPendente;
-    
-    // ✅ ADICIONA FUNÇÃO PARA OBTER DESCRIÇÃO DO STATUS
+
     String getStatusDescricao() {
       switch (status) {
         case PedidoConstants.statusPendente:
@@ -46,19 +50,37 @@ class DetalhesPedidoModal extends StatelessWidget {
           return 'Desconhecido';
       }
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildDetailItem("ITEM REQUISITADO", itemNome),
+        DetailItemCard(label: "ITEM REQUISITADO", value: itemNome),
+        const SizedBox(height: 12),
+        DetailItemCard(
+          label: "PEDIDO POR",
+          value: nomeUsuario,
+          onPressed: () {
+            if (onViewUserDetails != null) {
+              onViewUserDetails!(idUsuario);
+            }
+          },
+        ),
+
         const SizedBox(height: 12),
 
         Row(
           children: [
-            Expanded(child: _buildDetailItem("Nº DO PEDIDO", idPedido)),
+            Expanded(
+              child: DetailItemCard(label: "Nº DO PEDIDO", value: idPedido),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildDetailItem("STATUS", getStatusDescricao())), // ✅ NOVO
+            Expanded(
+              child: DetailItemCard(
+                label: "STATUS",
+                value: getStatusDescricao(),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -66,16 +88,21 @@ class DetalhesPedidoModal extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _buildDetailItem(
-                "DATA DE RETIRADA", 
-                dataRet == 'Em aberto' ? dataRet : formatDate(dataRet)
+              child: DetailItemCard(
+                label: "DATA DE RETIRADA",
+                value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(child: _buildDetailItem("QTD. SOLICITADA", qtdSolicitada)),
+            Expanded(
+              child: DetailItemCard(
+                label: "QTD. SOLICITADA",
+                value: qtdSolicitada,
+              ),
+            ),
           ],
         ),
-        
+
         if (isPendente) ...[
           const SizedBox(height: 24),
           Row(
@@ -92,8 +119,8 @@ class DetalhesPedidoModal extends StatelessWidget {
                     );
 
                     if (confirmed == true) {
-                      Navigator.of(context).pop(); // Fecha modal antes
-                      await onFinalizar(pedidoId); // ✅ USA FUNÇÃO REAL
+                      Navigator.of(context).pop();
+                      await onFinalizar(pedidoId);
                     }
                   },
                 ),
@@ -105,12 +132,11 @@ class DetalhesPedidoModal extends StatelessWidget {
                   secondary: true,
                   danger: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
                     showCancelarPedidoModal(
                       context,
                       idPedido: pedidoId.toString(),
                       cancelarPedido: (idPedido, motivo) async {
-                        await onCancelar(pedidoId, motivo); // ✅ USA FUNÇÃO REAL
+                        await onCancelar(pedidoId, motivo);
                       },
                     );
                   },
@@ -120,38 +146,6 @@ class DetalhesPedidoModal extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildDetailItem(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: text80,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: text40,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

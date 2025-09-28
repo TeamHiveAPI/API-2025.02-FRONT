@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/widgets/modal/detail_item_card.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
 
@@ -42,29 +42,36 @@ class DetalhesItemModal extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildDetailItem("NOME", nome),
+        DetailItemCard(label: "NOME", value: nome),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildDetailItem("Nº DA FICHA", numFicha)),
+            Expanded(
+              child: DetailItemCard(label: "Nº DA FICHA", value: numFicha),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildDetailItem("UNIDADE DE MEDIDA", unidMedida)),
+            Expanded(
+              child: DetailItemCard(
+                label: "UNIDADE DE MEDIDA",
+                value: unidMedida,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: _buildDetailItem(
-                "QTD. DISPONÍVEL",
-                qtdDisponivel.toString(),
+              child: DetailItemCard(
+                label: "QTD. DISPONÍVEL",
+                value: qtdDisponivel.toString(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildDetailItem(
-                "QTD. RESERVADA",
-                qtdReservada.toString(),
+              child: DetailItemCard(
+                label: "QTD. RESERVADA",
+                value: qtdReservada.toString(),
               ),
             ),
           ],
@@ -74,22 +81,22 @@ class DetalhesItemModal extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem(
-                  "DATA DE VALIDADE",
-                  formatDate(dataValidade),
+                child: DetailItemCard(
+                  label: "DATA DE VALIDADE",
+                  value: formatDate(dataValidade),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildDetailItem(
-                  "CONTROLADO",
-                  (controlado ?? false) ? 'Sim' : 'Não',
+                child: DetailItemCard(
+                  label: "CONTROLADO",
+                  value: (controlado ?? false) ? 'Sim' : 'Não',
                 ),
               ),
             ],
           ),
-        const SizedBox(height: 12),
-        _buildDetailItem("GRUPO", grupo),
+        if (isPharmacyItem) const SizedBox(height: 12),
+        DetailItemCard(label: "GRUPO", value: grupo),
         const SizedBox(height: 12),
         CustomButton(
           text: "Ver Histórico de Movimentação",
@@ -132,38 +139,6 @@ class DetalhesItemModal extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildDetailItem(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: text80,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: text40,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
