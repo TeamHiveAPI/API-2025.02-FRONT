@@ -1,99 +1,147 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
-import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
+import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 
-class DetalhesItemModal extends StatelessWidget {
-  final String nome;
-  final String numFicha;
-  final String unidMedida;
-  final int qtdDisponivel;
-  final int qtdReservada;
-  final String grupo;
+class DetalhesItemModal extends StatefulWidget {
+  final int itemId;
 
-  final UserRole userRole;
-  final String? dataValidade;
-  final bool? controlado;
+  const DetalhesItemModal({super.key, required this.itemId});
 
-  final Map<String, dynamic> itemData;
+  @override
+  State<DetalhesItemModal> createState() => _DetalhesItemModalState();
+}
 
-  const DetalhesItemModal({
-    super.key,
-    required this.nome,
-    required this.numFicha,
-    required this.unidMedida,
-    required this.qtdDisponivel,
-    required this.qtdReservada,
-    required this.grupo,
-    required this.userRole,
-    required this.itemData,
-    this.dataValidade,
-    this.controlado,
-  });
+class _DetalhesItemModalState extends State<DetalhesItemModal> {
+  Map<String, dynamic>? _itemData;
+  bool _isLoadingInitialContent = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final data = await ItemService.instance.fetchItemById(widget.itemId);
+    if (mounted) {
+      setState(() {
+        _itemData = data;
+        _isLoadingInitialContent = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final int itemSectorId = itemData['id_setor'] ?? 0;
-    final bool isPharmacyItem = itemSectorId == 2;
+    if (!_isLoadingInitialContent && _itemData == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('Item não encontrado ou erro ao carregar.'),
+        ),
+      );
+    }
+
+    final itemDataForButtons = _itemData ?? {};
+    final nome = _itemData?['nome'] ?? '';
+    final numFicha = _itemData?['num_ficha']?.toString() ?? '';
+    final unidMedida = _itemData?['unidade'] ?? '';
+    final qtdDisponivel = _itemData?['qtd_atual'] ?? 0;
+    final qtdReservada = _itemData?['qtd_reservada'] ?? 0;
+    final grupo = _itemData?['grupo']?['nome'] ?? '';
+    final dataValidade = _itemData?['data_validade'];
+    final controlado = _itemData?['controlado'];
+    final itemSectorId = _itemData?['id_setor'] ?? 0;
+    final isPharmacyItem = itemSectorId == 2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildDetailItem("NOME", nome),
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "NOME",
+          value: nome,
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildDetailItem("Nº DA FICHA", numFicha)),
+            Expanded(
+              child: DetailItemCard(
+                isLoading: _isLoadingInitialContent,
+                label: "Nº DA FICHA",
+                value: numFicha,
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildDetailItem("UNIDADE DE MEDIDA", unidMedida)),
+            Expanded(
+              child: DetailItemCard(
+                isLoading: _isLoadingInitialContent,
+                label: "UNIDADE DE MEDIDA",
+                value: unidMedida,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: _buildDetailItem(
-                "QTD. DISPONÍVEL",
-                qtdDisponivel.toString(),
+              child: DetailItemCard(
+                isLoading: _isLoadingInitialContent,
+                label: "QTD. DISPONÍVEL",
+                value: qtdDisponivel.toString(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildDetailItem(
-                "QTD. RESERVADA",
-                qtdReservada.toString(),
+              child: DetailItemCard(
+                isLoading: _isLoadingInitialContent,
+                label: "QTD. RESERVADA",
+                value: qtdReservada.toString(),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
         if (isPharmacyItem)
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: _buildDetailItem(
-                  "DATA DE VALIDADE",
-                  formatDate(dataValidade),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: DetailItemCard(
+                      isLoading: _isLoadingInitialContent,
+                      label: "DATA DE VALIDADE",
+                      value: formatDate(dataValidade),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DetailItemCard(
+                      isLoading: _isLoadingInitialContent,
+                      label: "CONTROLADO",
+                      value: (controlado ?? false) ? 'Sim' : 'Não',
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDetailItem(
-                  "CONTROLADO",
-                  (controlado ?? false) ? 'Sim' : 'Não',
-                ),
-              ),
+              const SizedBox(height: 12),
             ],
           ),
-        const SizedBox(height: 12),
-        _buildDetailItem("GRUPO", grupo),
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "GRUPO",
+          value: grupo,
+        ),
         const SizedBox(height: 12),
         CustomButton(
+          isLoadingInitialContent: _isLoadingInitialContent,
           text: "Ver Histórico de Movimentação",
-          onPressed: () {},
+          onPressed: _isLoadingInitialContent ? null : () {},
           isFullWidth: true,
           customIcon: 'assets/icons/list.svg',
           iconPosition: IconPosition.right,
@@ -103,15 +151,18 @@ class DetalhesItemModal extends StatelessWidget {
           children: [
             Expanded(
               child: CustomButton(
+                isLoadingInitialContent: _isLoadingInitialContent,
                 text: "Editar",
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.newItem,
-                    arguments: itemData,
-                  );
-                },
+                onPressed: _isLoadingInitialContent
+                    ? null
+                    : () {
+                        Navigator.of(context).pop(true);
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.newItem,
+                          arguments: itemDataForButtons,
+                        );
+                      },
                 secondary: true,
                 isFullWidth: true,
                 customIcon: 'assets/icons/edit.svg',
@@ -121,6 +172,7 @@ class DetalhesItemModal extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: CustomButton(
+                isLoadingInitialContent: _isLoadingInitialContent,
                 text: "QR Code",
                 onPressed: () {},
                 secondary: true,
@@ -132,38 +184,6 @@ class DetalhesItemModal extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildDetailItem(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: text80,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: text40,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

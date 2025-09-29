@@ -1,23 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/config/supabase_config.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sistema_almox/screens/splash_screen.dart';
 import 'app_routes.dart';
 
+
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    await SupabaseConfig.initialize();
-    print('Supabase inicializado com sucesso');
-
-    await UserService.instance.loadUserFromStorage();
-  } catch (e) {
-    print('Erro ao inicializar Supabase: $e');
-  }
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   runApp(
     MultiProvider(
@@ -31,13 +25,11 @@ Future<void> main() async {
 
 final supabase = Supabase.instance.client;
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     final baseTextTheme = GoogleFonts.ubuntuSansTextTheme(
       Theme.of(context).textTheme,
     );
@@ -64,7 +56,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Sistema Almox',
+      title: 'Almox',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         textTheme: boldedTextTheme,
@@ -99,7 +91,7 @@ class MyApp extends StatelessWidget {
           selectionHandleColor: text80,
         ),
       ),
-      initialRoute: AppRoutes.login,
+      home: const SplashScreen(),
       onGenerateRoute: AppRoutes.generateRoute,
     );
   }

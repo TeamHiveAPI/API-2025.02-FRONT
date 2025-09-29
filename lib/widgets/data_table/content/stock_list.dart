@@ -18,31 +18,32 @@ class StockItemsTable extends StatefulWidget {
 }
 
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
-  final StockItemService _itemService = StockItemService();
-
   @override
   String get apiEndpoint => 'item';
 
   @override
   List<TableColumn> get tableColumns => [
-        TableColumn(
-          title: 'Nome do item',
-          dataField: 'nome',
-          widthFactor: 0.78,
-          sortType: SortType.alphabetic,
-        ),
-        TableColumn(
-          title: 'QTD',
-          dataField: 'qtd_atual',
-          widthFactor: 0.22,
-          sortType: SortType.numeric,
-        ),
-      ];
+    TableColumn(
+      title: 'Nome do item',
+      dataField: 'nome',
+      widthFactor: 0.82,
+      sortType: SortType.alphabetic,
+    ),
+    TableColumn(
+      title: 'QTD',
+      dataField: 'qtd_atual',
+      widthFactor: 0.18,
+      sortType: SortType.numeric,
+    ),
+  ];
 
   @override
   Future<PaginatedResponse> performFetch(
-      int page, SortParams sortParams, String? searchQuery) {
-    return _itemService.fetchItems(
+    int page,
+    SortParams sortParams,
+    String? searchQuery,
+  ) {
+    return ItemService.instance.fetchItems(
       page: page,
       sortParams: sortParams,
       searchQuery: searchQuery,
@@ -65,34 +66,26 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
-    final grupoMap = itemData['grupo'];
-    final nomeDoGrupo = (grupoMap != null)
-        ? grupoMap['nome']?.toString() ?? 'Sem Grupo'
-        : 'Sem Grupo';
+    final int? itemId = itemData['id_item'];
+
+    if (itemId == null) {
+      print("Erro: O ID do item não pôde ser encontrado para abrir os detalhes.");
+      return;
+    }
 
     showCustomBottomSheet(
       context: context,
       title: "Detalhes do item",
-      child: DetalhesItemModal(
-        itemData: itemData,
-        nome: itemData['nome']?.toString() ?? 'N/A',
-        numFicha: itemData['num_ficha']?.toString() ?? 'N/A',
-        unidMedida: itemData['unidade']?.toString() ?? 'N/A',
-        qtdDisponivel: itemData['qtd_atual'] ?? 0,
-        qtdReservada: itemData['qtd_reservada'] ?? 0,
-        grupo: nomeDoGrupo,
-        dataValidade: itemData['data_validade'],
-        controlado: itemData['controlado'],
-        userRole: widget.userRole!,
-      ),
+      child: DetalhesItemModal(itemId: itemId),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final bool showSkeleton = isLoading && loadedItems.isEmpty;
-    final List<Map<String, dynamic>> displayData =
-        showSkeleton ? List.generate(8, (_) => {}) : loadedItems;
+    final List<Map<String, dynamic>> displayData = showSkeleton
+        ? List.generate(8, (_) => {})
+        : loadedItems;
 
     return DynamicJsonTable(
       jsonData: displayData,

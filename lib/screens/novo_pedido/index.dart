@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
+import 'package:intl/intl.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/config/permissions.dart';
@@ -12,28 +12,31 @@ import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/cards/order_preview.dart';
 import 'package:sistema_almox/widgets/main_scaffold/index.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:sistema_almox/services/pedido_service.dart';
 
 class NewOrderScreen extends StatefulWidget {
   final UserRole userRole;
   const NewOrderScreen({super.key, required this.userRole});
 
   @override
-  _NewOrderScreenState createState() => _NewOrderScreenState();
+  NewOrderScreenState createState() => NewOrderScreenState();
 }
 
-class _NewOrderScreenState extends State<NewOrderScreen> {
+class NewOrderScreenState extends State<NewOrderScreen> {
   late final NewOrderFormHandler _formHandler;
 
   final Key _searchKey = UniqueKey();
   List<Map<String, dynamic>> inventory = [];
   List<String> itemNamesForSuggestions = [];
+  bool _isLoading = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
     _formHandler = NewOrderFormHandler();
     _formHandler.searchController.addListener(_onSearchTextChanged);
-    loadInventory();
+    _loadAvailableItems();
   }
 
   void _onSearchTextChanged() {
@@ -52,78 +55,87 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
     super.dispose();
   }
 
-  String get _assetPathForRole {
-    switch (widget.userRole) {
-      case UserRole.tenenteFarmacia:
-      case UserRole.soldadoFarmacia:
-        return 'lib/temp/farmacia.json';
-      case UserRole.coronel:
-      case UserRole.tenenteEstoque:
-      case UserRole.soldadoEstoque:
-        return 'lib/temp/almoxarifado.json';
-      case UserRole.soldadoComum:
-        return 'lib/temp/almoxarifado.json';
-    }
-  }
-
-  Future<void> loadInventory() async {
+  Future<void> _loadAvailableItems() async {
+    setState(() => _isLoading = true);
+    
     try {
-      final String response = await rootBundle.loadString(_assetPathForRole);
-      final List<dynamic> data = jsonDecode(response);
-
+      final items = await PedidoService.instance.getAvailableItems();
+      
       setState(() {
-        inventory = data.cast<Map<String, dynamic>>();
+        inventory = items.map((item) => {
+          'id': item['id_item'],
+          'itemName': item['nome'],
+          'unidMedida': item['unidade'],
+          'quantity': item['qtd_atual'],
+          'qtdReservada': item['qtd_reservada'] ?? 0,
+        }).toList();
+        
         itemNamesForSuggestions = inventory
             .map((item) => item['itemName'].toString())
             .toList();
       });
     } catch (e) {
-      print('Erro ao carregar inventário: $e');
+      if (mounted) {
+        showCustomSnackbar(context, 'Erro ao carregar itens: $e', isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _submitOrder() {
-    setState(() {
-      _formHandler.hasSubmitted = true;
-    });
+  Future<void> _submitOrder() async {
+    setState(() => _formHandler.hasSubmitted = true);
 
-    if (_formHandler.formKey.currentState?.validate() ?? false) {
+    if (!(_formHandler.formKey.currentState?.validate() ?? false)) {
+      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
       final selectedItem = _formHandler.selectedItem!;
       final requestedQuantity = int.parse(_formHandler.quantityController.text);
       final selectedDate = _formHandler.selectedDate;
 
-      final Map<String, dynamic> orderPayload = {
-        'itemId': selectedItem['id'],
-        'itemName': selectedItem['itemName'],
-        'quantity': requestedQuantity,
-        'pickupDate': selectedDate?.toIso8601String(),
-      };
-
-      final jsonPayload = const JsonEncoder.withIndent(
-        '  ',
-      ).convert(orderPayload);
-
-      print(jsonPayload);
-
-      showCustomSnackbar(context, 'Pedido registrado com sucesso!');
-
-      final mainScaffoldState = context
-          .findAncestorStateOfType<MainScaffoldState>();
-      if (mainScaffoldState != null) {
-        final ordersPageIndex = mainScaffoldState.findPageIndexByName(
-          'Pedidos',
-        );
-        mainScaffoldState.onItemTapped(ordersPageIndex);
+      String? dataRetirada;
+      if (selectedDate != null) {
+        dataRetirada = DateFormat('yyyy-MM-dd').format(selectedDate);
       }
 
-      Navigator.of(context).pop();
-    } else {
-      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
+      await PedidoService.instance.createPedido(
+        itemId: selectedItem['id'],
+        quantidade: requestedQuantity,
+        dataRetirada: dataRetirada,
+      );
+
+      if (mounted) {
+        showCustomSnackbar(context, 'Pedido registrado com sucesso!');
+        final mainScaffoldState = context.findAncestorStateOfType<MainScaffoldState>();
+        if (mainScaffoldState != null) {
+          final ordersPageIndex = mainScaffoldState.findPageIndexByName('Pedidos');
+          mainScaffoldState.onItemTapped(ordersPageIndex);
+        }
+        Navigator.of(context).pop();
+      }
+
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackbar(context, e.toString(), isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+   if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -209,8 +221,8 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
               ),
             ),
             InternalPageBottom(
-              buttonText: 'Registrar Pedido',
-              onButtonPressed: _submitOrder,
+              buttonText: _isSubmitting ? 'Registrando...' : 'Registrar Pedido',
+              onButtonPressed: _isSubmitting ? null : _submitOrder,
             ),
           ],
         ),

@@ -1,55 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:sistema_almox/widgets/internal_page_header.dart';
 
-class QrPage extends StatelessWidget {
+class QrPage extends StatefulWidget {
   const QrPage({super.key});
 
   @override
+  State<QrPage> createState() => _QrPageState();
+}
+
+class _QrPageState extends State<QrPage> {
+  bool _isScanCompleted = false;
+
+  void _closeScreen(String value) {
+    if (!_isScanCompleted) {
+      setState(() {
+        _isScanCompleted = true;
+      });
+      Navigator.pop(context, value);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Escanear QR Code',
-          style: TextStyle(color: Colors.white),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light, 
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          MobileScanner(
-            onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                debugPrint('Código: ${barcode.rawValue}');
-              }
-            },
-          ),
-          // Quadrado apenas com cantos arredondados
-          Center(
-            child: CustomPaint(
-              size: const Size(250, 250),
-              painter: RoundedCornerPainter(),
+      child: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            MobileScanner(
+              onDetect: (capture) {
+                final List<Barcode> barcodes = capture.barcodes;
+                if (barcodes.isNotEmpty) {
+                  final String? code = barcodes.first.rawValue;
+                  if (code != null) {
+                    _closeScreen(code);
+                  }
+                }
+              },
             ),
-          ),
-          // Botão na parte inferior
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  debugPrint('Botão pressionado');
-                },
-                child: const Text('Confirmar'),
+            Center(
+              child: CustomPaint(
+                size: const Size(250, 250),
+                painter: RoundedCornerPainter(),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: InternalPageHeader(
+                title: 'Escanear QR Code',
+                isTransparent: true,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -64,23 +74,43 @@ class RoundedCornerPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    double cornerLength = 50; // Aumentei o arredondamento
+    double cornerLength = 50;
 
-    // Canto superior esquerdo
     canvas.drawLine(Offset(0, cornerLength), Offset(0, 0), paint);
     canvas.drawLine(Offset(0, 0), Offset(cornerLength, 0), paint);
 
-    // Canto superior direito
-    canvas.drawLine(Offset(size.width - cornerLength, 0), Offset(size.width, 0), paint);
-    canvas.drawLine(Offset(size.width, 0), Offset(size.width, cornerLength), paint);
+    canvas.drawLine(
+      Offset(size.width - cornerLength, 0),
+      Offset(size.width, 0),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width, 0),
+      Offset(size.width, cornerLength),
+      paint,
+    );
 
-    // Canto inferior esquerdo
-    canvas.drawLine(Offset(0, size.height - cornerLength), Offset(0, size.height), paint);
-    canvas.drawLine(Offset(0, size.height), Offset(cornerLength, size.height), paint);
+    canvas.drawLine(
+      Offset(0, size.height - cornerLength),
+      Offset(0, size.height),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height),
+      Offset(cornerLength, size.height),
+      paint,
+    );
 
-    // Canto inferior direito
-    canvas.drawLine(Offset(size.width - cornerLength, size.height), Offset(size.width, size.height), paint);
-    canvas.drawLine(Offset(size.width, size.height - cornerLength), Offset(size.width, size.height), paint);
+    canvas.drawLine(
+      Offset(size.width - cornerLength, size.height),
+      Offset(size.width, size.height),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width, size.height - cornerLength),
+      Offset(size.width, size.height),
+      paint,
+    );
   }
 
   @override

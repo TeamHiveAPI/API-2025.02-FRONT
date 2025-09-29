@@ -17,13 +17,20 @@ dependencies:
   supabase_flutter: ^2.10.1
   flutter_dotenv: ^6.0.0
   provider: ^6.1.5+1
+  mobile_scanner: ^5.1.1
   flutter_secure_storage: ^9.2.2
+  flutter_native_splash: ^2.4.0
+  cached_network_image: ^3.3.1
+
 
 dev_dependencies:
+
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   lint: ^2.0.0
+  flutter_launcher_icons: "^0.13.1"
+
 flutter:
   uses-material-design: true
   assets:
@@ -32,3 +39,22 @@ flutter:
     - assets/icons/navbar/
     - lib/temp/
     - .env
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app-icon-solid.png"
+
+  adaptive_icon_background: "#1D234F" 
+  adaptive_icon_foreground: "assets/app-icon-transparent.png"
+
+flutter_native_splash:
+  color: "#1D234F"
+  image: "assets/app-icon-transparent.png"
+
+  android: true
+  ios: true
+
+  android_12:
+    color: "#1D234F"
+    image: "assets/app-icon-transparent.png"

@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:collection/collection.dart';
+import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'table_handler_mixin.dart';
-
-const int _itemsPerPage = 8;
 
 Future<PaginatedResponse> fetchItemsFromAsset({
   required String assetPath,
@@ -19,7 +18,6 @@ Future<PaginatedResponse> fetchItemsFromAsset({
   final List<dynamic> allJsonData = json.decode(jsonString);
   List<Map<String, dynamic>> allItems = allJsonData.cast<Map<String, dynamic>>();
 
-  // Pesquisa genérica em todos os campos definidos em searchFields
   if (searchQuery != null && searchQuery.isNotEmpty) {
     final lowerCaseQuery = searchQuery.toLowerCase();
     allItems = allItems.where((item) {
@@ -35,8 +33,8 @@ Future<PaginatedResponse> fetchItemsFromAsset({
 
   // Paginação
   final int total = allItems.length;
-  final int startIndex = (page - 1) * _itemsPerPage;
-  final int endIndex = startIndex + _itemsPerPage;
+  final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
+  final int endIndex = startIndex + SystemConstants.itemsPorPagina;
   final paginatedItems = allItems.sublist(
     startIndex,
     endIndex > total ? total : endIndex,
@@ -95,7 +93,7 @@ Future<PaginatedResponse> getRecentMovements({String? searchQuery}) async {
 
   final data = [
     {
-      'item_name': 'Kit Primeiros Socorros',
+      'item_name': 'Kit Primeiros Socorros Legal',
       'quantity': '+2',
       'responsible': 'Mauro'
     },

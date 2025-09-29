@@ -1,8 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   final Function(int) onProfileTap;
@@ -26,37 +27,31 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 child: FutureBuilder<String>(
                   future: UserService.instance.getSignedAvatarUrl(),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (snapshot.connectionState != ConnectionState.waiting &&
+                        (!snapshot.hasData || snapshot.data!.isEmpty)) {
                       return CircleAvatar(
                         radius: 18,
                         backgroundColor: Colors.grey[200],
-                        child: const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                        child: Icon(Icons.person, size: 20, color: Colors.grey[600]),
                       );
                     }
 
-                    if (snapshot.hasError ||
-                        !snapshot.hasData ||
-                        snapshot.data!.isEmpty) {
-                      return CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.grey[200],
-                        child: Icon(
-                          Icons.person,
-                          size: 20,
-                          color: Colors.grey[600],
-                        ),
-                      );
-                    }
+                    final imageUrl = snapshot.data ?? '';
 
-                    final imageUrl = snapshot.data!;
-                    return CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage(imageUrl),
-                      backgroundColor: Colors.grey[200],
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(18.0),
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const ShimmerPlaceholder.circle(radius: 18),
+                        errorWidget: (context, url, error) => CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.grey[200],
+                          child: Icon(Icons.person, size: 20, color: Colors.grey[600]),
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -70,13 +65,6 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 child: InkWell(
                   onTap: () async {
                     await AuthService.instance.logout();
-                    if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.login,
-                        (route) => false,
-                      );
-                    }
                   },
                   hoverColor: brandBlue.withAlpha(128),
                   splashColor: brandBlue.withAlpha(128),

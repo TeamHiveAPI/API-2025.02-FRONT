@@ -23,7 +23,7 @@ class _RecentMovementsTableState extends State<RecentMovementsTable>
         TableColumn(
           title: 'Nome do item',
           dataField: 'item_name',
-          widthFactor: 0.5,
+          widthFactor: 0.55,
         ),
         TableColumn(
           title: 'QTD',
@@ -43,7 +43,7 @@ class _RecentMovementsTableState extends State<RecentMovementsTable>
         TableColumn(
           title: 'Responsável',
           dataField: 'responsible',
-          widthFactor: 0.35,
+          widthFactor: 0.3,
         ),
       ];
 

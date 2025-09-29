@@ -72,6 +72,20 @@ class UserService with ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>?> fetchUserById(int userId) async {
+    try {
+      final userData = await supabase
+          .from('usuario')
+          .select()
+          .eq('id_usuario', userId)
+          .single();
+      return userData;
+    } catch (e) {
+      print('Erro ao buscar usuário pelo ID $userId: $e');
+      return null;
+    }
+  }
+
   Future<bool> loadUserFromStorage() async {
     try {
       final userJson = await _storage.read(key: _userKey);
@@ -194,19 +208,20 @@ class UserService with ChangeNotifier {
       return _cachedAvatarUrlFuture!;
     }
 
-    _cachedAvatarUrlFuture = _fetchAndCacheUrl();
+    _cachedAvatarUrlFuture = createSignedUrlForAvatar(currentUser!.fotoUrl!);
     return _cachedAvatarUrlFuture!;
   }
 
-  Future<String> _fetchAndCacheUrl() async {
+  Future<String> createSignedUrlForAvatar(String filePath) async {
+    if (filePath.isEmpty) return '';
+
     try {
       final url = await supabase.storage
           .from('user-avatars')
-          .createSignedUrl(_currentUser!.fotoUrl!, 3600);
+          .createSignedUrl(filePath, 3600);
       return url;
     } catch (e) {
-      print("Erro ao gerar URL assinada no service: $e");
-      _cachedAvatarUrlFuture = null;
+      print("Erro ao gerar URL assinada para o caminho $filePath: $e");
       return '';
     }
   }
@@ -234,9 +249,35 @@ class UserService with ChangeNotifier {
             return UserRole.soldadoComum;
         }
       case 3:
-          return UserRole.coronel;
+        return UserRole.coronel;
       default:
         return UserRole.soldadoComum;
     }
+  }
+
+  String getCargoNome(UserRole role) {
+    switch (role) {
+      case UserRole.soldadoComum:
+        return 'Soldado Comum';
+      case UserRole.soldadoEstoque:
+        return 'Soldado do Estoque';
+      case UserRole.soldadoFarmacia:
+        return 'Soldado da Farmácia';
+      case UserRole.tenenteEstoque:
+        return 'Tenente do Estoque';
+      case UserRole.tenenteFarmacia:
+        return 'Tenente da Farmácia';
+      case UserRole.coronel:
+        return 'Coronel';
+    }
+  }
+
+  String getCargoNomeFromData({
+    required int nivelAcesso,
+    required int idSetor,
+  }) {
+    final UserRole role = _mapRoleFromDatabase(nivelAcesso, idSetor);
+    final String cargoNome = getCargoNome(role);
+    return cargoNome;
   }
 }
