@@ -1,0 +1,182 @@
+[
+  {
+    "itemName": "Broca Carbide 330",
+    "quantity": 150,
+    "status": "Disponível",
+    "numFicha": "ODO-001",
+    "unidMedida": "Unidade",
+    "grupo": "Instrumentos Cirúrgicos",
+    "qtdReservada": 25
+  },
+  {
+    "itemName": "Anestésico Lidocaína 2%",
+    "quantity": 80,
+    "status": "Disponível",
+    "numFicha": "ODO-002",
+    "unidMedida": "Ampola",
+    "grupo": "Anestésicos",
+    "qtdReservada": 15
+  },
+  {
+    "itemName": "Resina Composta A2",
+    "quantity": 45,
+    "status": "Disponível",
+    "numFicha": "ODO-003",
+    "unidMedida": "Cartucho",
+    "grupo": "Materiais Restauradores",
+    "qtdReservada": 8
+  },
+  {
+    "itemName": "Cimento de Ionômero de Vidro",
+    "quantity": 30,
+    "status": "Pendente",
+    "numFicha": "ODO-004",
+    "unidMedida": "Cartucho",
+    "grupo": "Materiais Restauradores",
+    "qtdReservada": 30
+  },
+  {
+    "itemName": "Seringa Carpule 1.8ml",
+    "quantity": 200,
+    "status": "Disponível",
+    "numFicha": "ODO-005",
+    "unidMedida": "Unidade",
+    "grupo": "Instrumentos Cirúrgicos",
+    "qtdReservada": 40
+  },
+  {
+    "itemName": "Agulha 30G",
+    "quantity": 500,
+    "status": "Disponível",
+    "numFicha": "ODO-006",
+    "unidMedida": "Unidade",
+    "grupo": "Instrumentos Cirúrgicos",
+    "qtdReservada": 100
+  },
+  {
+    "itemName": "Flúor Gel 1.23%",
+    "quantity": 25,
+    "status": "Disponível",
+    "numFicha": "ODO-007",
+    "unidMedida": "Tubo",
+    "grupo": "Preventivos",
+    "qtdReservada": 5
+  },
+  {
+    "itemName": "Máscara Cirúrgica N95",
+    "quantity": 300,
+    "status": "Disponível",
+    "numFicha": "ODO-008",
+    "unidMedida": "Unidade",
+    "grupo": "EPI",
+    "qtdReservada": 50
+  },
+  {
+    "itemName": "Luvas de Procedimento",
+    "quantity": 1000,
+    "status": "Disponível",
+    "numFicha": "ODO-009",
+    "unidMedida": "Par",
+    "grupo": "EPI",
+    "qtdReservada": 200
+  },
+  {
+    "itemName": "Álcool 70% 500ml",
+    "quantity": 60,
+    "status": "Disponível",
+    "numFicha": "ODO-010",
+    "unidMedida": "Frasco",
+    "grupo": "Antissépticos",
+    "qtdReservada": 12
+  },
+  {
+    "itemName": "Peróxido de Hidrogênio 3%",
+    "quantity": 40,
+    "status": "Disponível",
+    "numFicha": "ODO-011",
+    "unidMedida": "Frasco",
+    "grupo": "Antissépticos",
+    "qtdReservada": 8
+  },
+  {
+    "itemName": "Gaze Estéril 5x5cm",
+    "quantity": 200,
+    "status": "Disponível",
+    "numFicha": "ODO-012",
+    "unidMedida": "Pacote",
+    "grupo": "Curativos",
+    "qtdReservada": 30
+  },
+  {
+    "itemName": "Algodão Hidrófilo",
+    "quantity": 80,
+    "status": "Disponível",
+    "numFicha": "ODO-013",
+    "unidMedida": "Pacote",
+    "grupo": "Curativos",
+    "qtdReservada": 15
+  },
+  {
+    "itemName": "Escova de Dentes Macia",
+    "quantity": 150,
+    "status": "Disponível",
+    "numFicha": "ODO-014",
+    "unidMedida": "Unidade",
+    "grupo": "Higiene Bucal",
+    "qtdReservada": 25
+  },
+  {
+    "itemName": "Fio Dental",
+    "quantity": 120,
+    "status": "Disponível",
+    "numFicha": "ODO-015",
+    "unidMedida": "Unidade",
+    "grupo": "Higiene Bucal",
+    "qtdReservada": 20
+  },
+  {
+    "itemName": "Enxaguante Bucal Antisséptico",
+    "quantity": 35,
+    "status": "Disponível",
+    "numFicha": "ODO-016",
+    "unidMedida": "Frasco",
+    "grupo": "Higiene Bucal",
+    "qtdReservada": 7
+  },
+  {
+    "itemName": "Radiografia Periapical",
+    "quantity": 200,
+    "status": "Disponível",
+    "numFicha": "ODO-017",
+    "unidMedida": "Filme",
+    "grupo": "Radiologia",
+    "qtdReservada": 40
+  },
+  {
+    "itemName": "Radiografia Panorâmica",
+    "quantity": 100,
+    "status": "Disponível",
+    "numFicha": "ODO-018",
+    "unidMedida": "Filme",
+    "grupo": "Radiologia",
+    "qtdReservada": 20
+  },
+  {
+    "itemName": "Protetor Bucal",
+    "quantity": 50,
+    "status": "Disponível",
+    "numFicha": "ODO-019",
+    "unidMedida": "Unidade",
+    "grupo": "Proteção",
+    "qtdReservada": 10
+  },
+  {
+    "itemName": "Cera de Modelagem",
+    "quantity": 25,
+    "status": "Disponível",
+    "numFicha": "ODO-020",
+    "unidMedida": "Barra",
+    "grupo": "Materiais de Moldagem",
+    "qtdReservada": 5
+  }
+]

@@ -114,6 +114,8 @@ class UserService with ChangeNotifier {
     if (_currentUser?.nivelAcesso == 3) {
       if (_viewingSectorId == 1) {
         _viewingSectorId = 2;
+      } else if (_viewingSectorId == 2) {
+        _viewingSectorId = 3;
       } else {
         _viewingSectorId = 1;
       }
@@ -221,6 +223,8 @@ class UserService with ChangeNotifier {
             return UserRole.soldadoEstoque;
           case 2:
             return UserRole.soldadoFarmacia;
+          case 3:
+            return UserRole.soldadoOdonto;
           default:
             return UserRole.soldadoComum;
         }
@@ -230,11 +234,13 @@ class UserService with ChangeNotifier {
             return UserRole.tenenteEstoque;
           case 2:
             return UserRole.tenenteFarmacia;
+          case 3:
+            return UserRole.tenenteOdonto;
           default:
             return UserRole.soldadoComum;
         }
       case 3:
-          return UserRole.coronel;
+        return UserRole.coronel;
       default:
         return UserRole.soldadoComum;
     }

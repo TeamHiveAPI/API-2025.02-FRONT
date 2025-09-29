@@ -46,6 +46,7 @@ class _StockScreenState extends State<StockScreen> {
 
     final currentUserRole = userService.currentUser!.role;
     final bool isViewingPharmacy = userService.viewingSectorId == 2;
+    final bool isViewingOdonto = userService.viewingSectorId == 3;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -67,6 +68,8 @@ class _StockScreenState extends State<StockScreen> {
             Text(
               isViewingPharmacy
                   ? 'Listagem de Medicamentos'
+                  : isViewingOdonto
+                  ? 'Listagem de Materiais Odontológicos'
                   : 'Listagem do Inventário',
               style: TextStyle(
                 fontSize: 20,
@@ -81,24 +84,19 @@ class _StockScreenState extends State<StockScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: GenericSearchInput(
-                    onSearchChanged: _handleSearch,
-                  ),
+                  child: GenericSearchInput(onSearchChanged: _handleSearch),
                 ),
 
-              CustomButton(
-                customIcon: "assets/icons/qr-code.svg",
-                squareMode: true,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const QrPage(), 
-                    ),
-                  );
-                },
-              ),
-
+                CustomButton(
+                  customIcon: "assets/icons/qr-code.svg",
+                  squareMode: true,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const QrPage()),
+                    );
+                  },
+                ),
               ],
             ),
 

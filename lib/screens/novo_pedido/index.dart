@@ -57,6 +57,9 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
       case UserRole.tenenteFarmacia:
       case UserRole.soldadoFarmacia:
         return 'lib/temp/farmacia.json';
+      case UserRole.tenenteOdonto:
+      case UserRole.soldadoOdonto:
+        return 'lib/temp/odonto.json';
       case UserRole.coronel:
       case UserRole.tenenteEstoque:
       case UserRole.soldadoEstoque:

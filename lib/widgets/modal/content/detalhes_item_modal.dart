@@ -37,6 +37,7 @@ class DetalhesItemModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final int itemSectorId = itemData['id_setor'] ?? 0;
     final bool isPharmacyItem = itemSectorId == 2;
+    final bool isOdontoItem = itemSectorId == 3;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -83,6 +84,24 @@ class DetalhesItemModal extends StatelessWidget {
               Expanded(
                 child: _buildDetailItem(
                   "CONTROLADO",
+                  (controlado ?? false) ? 'Sim' : 'Não',
+                ),
+              ),
+            ],
+          ),
+        if (isOdontoItem)
+          Row(
+            children: [
+              Expanded(
+                child: _buildDetailItem(
+                  "DATA DE VALIDADE",
+                  formatDate(dataValidade),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDetailItem(
+                  "ESTERILIZÁVEL",
                   (controlado ?? false) ? 'Sim' : 'Não',
                 ),
               ),

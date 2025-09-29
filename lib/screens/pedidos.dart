@@ -67,13 +67,13 @@ class _OrderScreenState extends State<OrderScreen> {
               children: [
                 Expanded(
                   child: GenericSearchInput(
-                    onSearchChanged: _handleSearch, 
+                    onSearchChanged: _handleSearch,
                     hintText: 'Pesquisar',
                   ),
                 ),
               ],
-            ), 
-            
+            ),
+
             const SizedBox(height: 20),
 
             PedidosTable(searchQuery: _searchQuery, userRole: _currentUserRole),

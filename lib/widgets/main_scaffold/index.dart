@@ -45,7 +45,8 @@ class MainScaffoldState extends State<MainScaffold> {
     );
 
     if (UserService.instance.can(AppPermission.viewStockItems) ||
-        UserService.instance.can(AppPermission.viewPharmacyItems)) {
+        UserService.instance.can(AppPermission.viewPharmacyItems) ||
+        UserService.instance.can(AppPermission.viewOdontoItems)) {
       pages.add(const StockScreen());
       navBarItemsInfo.add(
         NavBarItemInfo(

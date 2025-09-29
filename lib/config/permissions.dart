@@ -2,8 +2,10 @@ enum UserRole {
   coronel,
   tenenteEstoque,
   tenenteFarmacia,
+  tenenteOdonto,
   soldadoEstoque,
   soldadoFarmacia,
+  soldadoOdonto,
   soldadoComum,
 }
 
@@ -11,6 +13,7 @@ enum AppPermission {
   accessAdminScreen,
   viewStockItems,
   viewPharmacyItems,
+  viewOdontoItems,
   createOrders,
   viewAllOrders,
   editItems,
@@ -22,6 +25,7 @@ const Map<UserRole, Set<AppPermission>> permissionsByRole = {
     AppPermission.accessAdminScreen,
     AppPermission.viewStockItems,
     AppPermission.viewPharmacyItems,
+    AppPermission.viewOdontoItems,
     AppPermission.createOrders,
     AppPermission.viewAllOrders,
     AppPermission.editItems,
@@ -46,6 +50,15 @@ const Map<UserRole, Set<AppPermission>> permissionsByRole = {
     AppPermission.viewReports,
   },
 
+  UserRole.tenenteOdonto: {
+    AppPermission.accessAdminScreen,
+    AppPermission.viewOdontoItems,
+    AppPermission.createOrders,
+    AppPermission.viewAllOrders,
+    AppPermission.editItems,
+    AppPermission.viewReports,
+  },
+
   UserRole.soldadoEstoque: {
     AppPermission.viewStockItems,
     AppPermission.createOrders,
@@ -53,6 +66,11 @@ const Map<UserRole, Set<AppPermission>> permissionsByRole = {
 
   UserRole.soldadoFarmacia: {
     AppPermission.viewPharmacyItems,
+    AppPermission.createOrders,
+  },
+
+  UserRole.soldadoOdonto: {
+    AppPermission.viewOdontoItems,
     AppPermission.createOrders,
   },
 
