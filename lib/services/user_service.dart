@@ -107,6 +107,9 @@ class UserService with ChangeNotifier {
           fotoUrl: userData['fotoUrl'],
           role: role,
         );
+
+        _viewingSectorId = _currentUser!.idSetor;
+        
         notifyListeners();
         return true;
       }
@@ -170,9 +173,7 @@ class UserService with ChangeNotifier {
     );
 
     _viewingSectorId = _currentUser!.idSetor;
-
     _cachedAvatarUrlFuture = null;
-    print('Usuário ${_currentUser?.nome} configurado no UserService.');
 
     _saveUserToStorage();
     notifyListeners();
