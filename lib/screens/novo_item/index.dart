@@ -221,7 +221,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
     final payload = {
       'nome': _formHandler.nameController.text,
-      'num_ficha': int.tryParse(_formHandler.recordNumberController.text),
+      'num_ficha': _formHandler.recordNumberController.text,
       'unidade': unidadeDeMedida,
       'qtd_atual':
           int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
@@ -326,8 +326,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           Expanded(
                             child: CustomTextFormField(
                               upperLabel: 'Nº DE FICHA',
-                              hintText: 'Número',
-                              keyboardType: TextInputType.number,
+                              hintText: 'Digite aqui',
                               controller: _formHandler.recordNumberController,
                               validator: (value) => _formHandler
                                   .validateRequired(value, 'Nº de Ficha'),
@@ -419,7 +418,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
                                     _formHandler.selectedGroupId = newValue;
                                   });
                                 },
-                                validator: _formHandler.validateGroup,
                               ),
                             ),
                             const SizedBox(width: 16),

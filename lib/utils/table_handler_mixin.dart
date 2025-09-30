@@ -25,7 +25,6 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
   int _currentPage = 1;
   bool isLoading = false;
   bool hasMore = true;
-  String get apiEndpoint; 
 
   String _currentSearchQuery = '';
 
@@ -116,8 +115,6 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
       thisOrThatState: thisOrThatState,
     );
 
-    _printApiRoute(_currentPage, sortParams, _currentSearchQuery);
-
     final response = await performFetch(
       _currentPage,
       sortParams,
@@ -133,33 +130,5 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
         isLoading = false;
       });
     }
-  }
-
-  void _printApiRoute(int page, SortParams sortParams, String searchQuery) {
-    String baseUrl = "/estoque/$apiEndpoint?page=$page&limit=10";
-    String searchParam = searchQuery.isNotEmpty ? "&search=$searchQuery" : "";
-    String sortParam = "";
-    if (sortParams.activeSortColumnDataField != null) {
-      final column = tableColumns.firstWhere(
-        (c) => c.dataField == sortParams.activeSortColumnDataField,
-      );
-      if (column.sortType == SortType.thisOrThat) {
-        if (sortParams.thisOrThatState == ThisOrThatSortState.primaryFirst) {
-          sortParam = "&sortBy=${column.primarySortValue}First";
-        } else if (sortParams.thisOrThatState ==
-            ThisOrThatSortState.secondaryFirst) {
-          sortParam = "&sortBy=${column.secondarySortValue}First";
-        }
-      } else if (column.sortType == SortType.numeric) {
-        sortParam = sortParams.isAscending
-            ? "&sortBy=numberAscending"
-            : "&sortBy=numberDescending";
-      } else {
-        sortParam = sortParams.isAscending
-            ? "&sortBy=ascending"
-            : "&sortBy=descending";
-      }
-    }
-    print("Chamada de API simulada: $baseUrl$searchParam$sortParam");
   }
 }

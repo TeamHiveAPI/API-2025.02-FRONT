@@ -16,7 +16,6 @@ class _RecentMovementsTableState extends State<RecentMovementsTable>
     with TableHandler {
       
   @override
-  String get apiEndpoint => 'movimentacoes/recentes';
 
   @override
   List<TableColumn> get tableColumns => [

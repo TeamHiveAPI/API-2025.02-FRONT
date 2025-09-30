@@ -29,13 +29,6 @@ class RegisterItemFormHandler {
     return null;
   }
 
-  String? validateGroup(int? value) {
-    if (value == null) {
-      return 'Campo obrigatório';
-    }
-    return null;
-  }
-
 String? validateExpirationDate(String? value, int? viewingSectorId) {
     final bool isPharmacyView = viewingSectorId == 2;
 
