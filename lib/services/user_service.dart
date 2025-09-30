@@ -86,6 +86,13 @@ class UserService with ChangeNotifier {
     }
   }
 
+  Future<void> tryAutoLogin() async {
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      await fetchAndSetCurrentUser(session.user.id);
+    }
+  }
+
   Future<bool> loadUserFromStorage() async {
     try {
       final userJson = await _storage.read(key: _userKey);
@@ -109,7 +116,7 @@ class UserService with ChangeNotifier {
         );
 
         _viewingSectorId = _currentUser!.idSetor;
-        
+
         notifyListeners();
         return true;
       }

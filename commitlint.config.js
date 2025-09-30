@@ -14,6 +14,7 @@ export default {
                 "security",
                 "deprecated",
                 "remove",
+                "hotfix",
             ],
         ],
         "subject-case": [0, "always"],

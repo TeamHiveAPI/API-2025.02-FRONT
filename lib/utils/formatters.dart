@@ -31,3 +31,8 @@ String formatDate(dynamic date) {
   final DateFormat formatter = DateFormat('dd/MM/yyyy');
   return formatter.format(dateObject);
 }
+
+String formatCPF(String cpf) {
+  final digits = cpf.toString().padLeft(11, '0');
+  return '${digits.substring(0,3)}.${digits.substring(3,6)}.${digits.substring(6,9)}-${digits.substring(9,11)}';
+}

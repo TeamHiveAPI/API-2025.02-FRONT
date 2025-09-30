@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/auth_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/widgets/auth_gate.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -32,7 +33,11 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                       return CircleAvatar(
                         radius: 18,
                         backgroundColor: Colors.grey[200],
-                        child: Icon(Icons.person, size: 20, color: Colors.grey[600]),
+                        child: Icon(
+                          Icons.person,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
                       );
                     }
 
@@ -45,11 +50,16 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                         width: 36,
                         height: 36,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => const ShimmerPlaceholder.circle(radius: 18),
+                        placeholder: (context, url) =>
+                            const ShimmerPlaceholder.circle(radius: 18),
                         errorWidget: (context, url, error) => CircleAvatar(
                           radius: 18,
                           backgroundColor: Colors.grey[200],
-                          child: Icon(Icons.person, size: 20, color: Colors.grey[600]),
+                          child: Icon(
+                            Icons.person,
+                            size: 20,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
                     );
@@ -58,13 +68,23 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
               ),
               const Text(
                 'SISTEMA ALMOX',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: brandBlue),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: brandBlue,
+                ),
               ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: InkWell(
                   onTap: () async {
                     await AuthService.instance.logout();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const AuthGate()),
+                      (Route<dynamic> route) =>
+                          false,
+                    );
                   },
                   hoverColor: brandBlue.withAlpha(128),
                   splashColor: brandBlue.withAlpha(128),

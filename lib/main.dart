@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
+import 'package:sistema_almox/config/supabase_config.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/widgets/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sistema_almox/screens/splash_screen.dart';
 import 'app_routes.dart';
-
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  
+  await dotenv.load(fileName: ".env");
+  final url = dotenv.env['SUPABASE_URL'] ?? '';
+  final anonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+
+  await Supabase.initialize(url: url, anonKey: anonKey);
 
   runApp(
     MultiProvider(
@@ -23,7 +30,7 @@ Future<void> main() async {
   );
 }
 
-final supabase = Supabase.instance.client;
+final supabase = SupabaseConfig.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -91,7 +98,7 @@ class MyApp extends StatelessWidget {
           selectionHandleColor: text80,
         ),
       ),
-      home: const SplashScreen(),
+      home: const AuthGate(),
       onGenerateRoute: AppRoutes.generateRoute,
     );
   }
