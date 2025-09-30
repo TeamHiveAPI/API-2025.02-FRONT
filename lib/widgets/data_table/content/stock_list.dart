@@ -19,7 +19,6 @@ class StockItemsTable extends StatefulWidget {
 
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   @override
-  String get apiEndpoint => 'item';
 
   @override
   List<TableColumn> get tableColumns => [

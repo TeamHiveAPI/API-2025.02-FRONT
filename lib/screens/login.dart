@@ -26,18 +26,23 @@ class _LoginState extends State<Login> {
   final bool _showDebugLoginButton = true;
 
   final Map<String, Map<String, String>> _debugLogins = {
-    'Coronel': {'email': 'fabiane@gmail.com', 'password': '123'},
-    'Tenente Estoque': {'email': 'ten.estoque@eb.mil.br', 'password': '123456'},
+    'Coronel': {'email': 'coronel@eb.mil.br', 'password': '123456'},
+    'Tenente Estoque': {
+      'email': 'tenenteestoque@eb.mil.br',
+      'password': '123456',
+    },
     'Tenente Farmácia': {
-      'email': 'ten.farmacia@eb.mil.br',
+      'email': 'tenentefarmacia@eb.mil.br',
       'password': '123456',
     },
-    'Soldado Estoque': {'email': 'sd.estoque@eb.mil.br', 'password': '123456'},
+    'Soldado Estoque': {
+      'email': 'soldadoestoque@eb.mil.br',
+      'password': '123456',
+    },
     'Soldado Farmácia': {
-      'email': 'sd.farmacia@eb.mil.br',
+      'email': 'soldadofarmacia@eb.mil.br',
       'password': '123456',
     },
-    'Soldado Comum': {'email': 'sd.comum@eb.mil.br', 'password': '123456'},
   };
 
   void _showDebugLoginModal() {

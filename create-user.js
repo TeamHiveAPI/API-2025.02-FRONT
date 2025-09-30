@@ -24,12 +24,12 @@ async function criarUsuarioComFoto() {
   console.log('Iniciando processo de criação de usuário com upload de foto...');
 
   const dadosIniciaisUsuario = {
-    email: 'fabiane@gmail.com',
-    password: '123',
+    email: 'coronel@eb.mil.br',
+    password: '123456',
     email_confirm: true,
     user_metadata: {
-      display_name: 'Fabiane',
-      cpf: '12345678',
+      display_name: 'Coronel',
+      cpf: '777777777',
       nivel_acesso: 3,
       id_setor: 1,
     }

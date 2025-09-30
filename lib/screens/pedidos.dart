@@ -16,13 +16,34 @@ class OrderScreen extends StatefulWidget {
 class _OrderScreenState extends State<OrderScreen> {
   String _searchQuery = '';
 
+  @override
+  void initState() {
+    super.initState();
+    UserService.instance.addListener(_onUserChanged);
+  }
+
+  @override
+  void dispose() {
+    UserService.instance.removeListener(_onUserChanged);
+    super.dispose();
+  }
+
+  void _onUserChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   void _handleSearch(String query) {
     setState(() {
       _searchQuery = query;
     });
   }
 
-  UserRole get _currentUserRole => UserService.instance.currentUser?.role ?? UserRole.soldadoComum;
+  final userService = UserService.instance;
+
+  UserRole get _currentUserRole =>
+      UserService.instance.currentUser?.role ?? UserRole.soldadoComum;
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +69,7 @@ class _OrderScreenState extends State<OrderScreen> {
               icon: Icons.history,
               widthPercent: 1.0,
               secondary: true,
-              onPressed: () {
-                // Sem funcionalidade por enquanto
-              },
+              onPressed: () {},
             ),
             const SizedBox(height: 24),
 
@@ -70,16 +89,16 @@ class _OrderScreenState extends State<OrderScreen> {
               children: [
                 Expanded(
                   child: GenericSearchInput(
-                    onSearchChanged: _handleSearch, 
+                    onSearchChanged: _handleSearch,
                     hintText: 'Pesquisar',
                   ),
                 ),
               ],
-            ), 
-            
+            ),
+
             const SizedBox(height: 20),
 
-            PedidosTable(searchQuery: _searchQuery, userRole: _currentUserRole),
+            PedidosTable(key: ValueKey(userService.viewingSectorId), searchQuery: _searchQuery, userRole: _currentUserRole),
           ],
         ),
       ),

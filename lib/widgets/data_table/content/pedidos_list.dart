@@ -39,7 +39,6 @@ Color _getStatusColor(String statusDescricao) {
 
 class _PedidosTableState extends State<PedidosTable> with TableHandler {
   @override
-  String get apiEndpoint => 'pedidos';
 
   @override
   List<TableColumn> get tableColumns => [
