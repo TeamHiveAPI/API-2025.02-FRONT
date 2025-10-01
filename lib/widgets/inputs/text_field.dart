@@ -35,12 +35,17 @@ class CustomTextFormField extends StatelessWidget {
     this.autovalidateMode,
     this.textarea = false,
   }) : assert(
-         label != null || upperLabel != null,
-         'Você deve fornecer um Label ou UpperLabel.',
-       );
+          label != null || upperLabel != null,
+          'Você deve fornecer um Label ou UpperLabel.',
+        );
 
   @override
   Widget build(BuildContext context) {
+    final readOnlyBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: BorderSide.none,
+    );
+
     final textField = TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -53,11 +58,22 @@ class CustomTextFormField extends StatelessWidget {
       autovalidateMode: autovalidateMode,
       minLines: textarea ? 3 : 1,
       maxLines: textarea ? null : 1,
+      style: TextStyle(
+        color: text80,
+        fontSize: readOnly ? 16.0 : 14.0,
+      ),
       decoration: InputDecoration(
         labelText: upperLabel == null ? label : null,
         labelStyle: const TextStyle(color: text80, fontSize: 14),
         hintText: hintText,
         hintStyle: const TextStyle(color: text80, fontSize: 14),
+
+        filled: readOnly,
+        fillColor: brightGray,
+        border: readOnly ? readOnlyBorder : null,
+        enabledBorder: readOnly ? readOnlyBorder : null,
+        focusedBorder: readOnly ? readOnlyBorder : null,
+
         prefixIcon: prefixIcon,
         prefix: SizedBox(
           width: prefixIcon != null || label != null ? 0.0 : 10.0,

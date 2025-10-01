@@ -74,14 +74,19 @@ class ItemService {
   }
 }
 
-  Future<void> createItem(Map<String, dynamic> itemData) async {
+Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
-      await supabase.from('item').insert(itemData);
+      await supabase.rpc(
+        'criar_item_com_lotes',
+        params: {
+          'payload': itemPayload,
+        },
+      );
     } on PostgrestException catch (e) {
-      print('Erro do Supabase ao criar item: ${e.message}');
+      print('Erro do Supabase ao criar item com lotes: ${e.message}');
       throw 'Falha ao cadastrar item: ${e.message}';
     } catch (e) {
-      print('Erro desconhecido ao criar item: $e');
+      print('Erro desconhecido ao criar item com lotes: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
