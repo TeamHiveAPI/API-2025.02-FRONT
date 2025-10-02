@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/services/item_service.dart';
-import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/lotes_item_modal.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 
 class DetalhesItemModal extends StatefulWidget {
@@ -34,6 +35,22 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     }
   }
 
+  void _showLotesModal() {
+    Navigator.of(context).pop();
+
+    showCustomBottomSheet(
+      context: context,
+      title: "Lotes do item",
+      child: LotesItemModal(itemId: widget.itemId),
+    ).then((_) {
+      showCustomBottomSheet(
+        context: context,
+        title: "Detalhes do item",
+        child: DetalhesItemModal(itemId: widget.itemId),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isLoadingInitialContent && _itemData == null) {
@@ -49,13 +66,13 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     final nome = _itemData?['nome'] ?? '';
     final numFicha = _itemData?['num_ficha']?.toString() ?? '';
     final unidMedida = _itemData?['unidade'] ?? '';
-    final qtdDisponivel = _itemData?['qtd_atual'] ?? 0;
+    final qtdDisponivel = _itemData?['qtd_total'] ?? 0;
     final qtdReservada = _itemData?['qtd_reservada'] ?? 0;
     final grupo = _itemData?['grupo']?['nome'] ?? '';
-    final dataValidade = _itemData?['data_validade'];
     final controlado = _itemData?['controlado'];
-    final itemSectorId = _itemData?['id_setor'] ?? 0;
+    final itemSectorId = _itemData?['grupo']?['id_setor'] ?? 0;
     final isPharmacyItem = itemSectorId == 2;
+    final isPerecivel = _itemData?['perecivel'] ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,6 +111,9 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
                 isLoading: _isLoadingInitialContent,
                 label: "QTD. DISPONÍVEL",
                 value: qtdDisponivel.toString(),
+                onPressed: _isLoadingInitialContent || !isPerecivel
+                    ? null
+                    : _showLotesModal,
               ),
             ),
             const SizedBox(width: 12),
@@ -112,14 +132,6 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
             children: [
               Row(
                 children: [
-                  Expanded(
-                    child: DetailItemCard(
-                      isLoading: _isLoadingInitialContent,
-                      label: "DATA DE VALIDADE",
-                      value: formatDate(dataValidade),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: DetailItemCard(
                       isLoading: _isLoadingInitialContent,
