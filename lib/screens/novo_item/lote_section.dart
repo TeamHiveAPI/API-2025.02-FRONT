@@ -4,16 +4,21 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
-import 'package:sistema_almox/widgets/radio_button.dart'; // Importe seu radio button
+import 'package:sistema_almox/widgets/radio_button.dart';
 
-// Classe auxiliar para agrupar os controllers de cada lote
 class LotFieldControllers {
+  final int? id;
+  final String? codigoLote;
   final TextEditingController quantityController;
   final TextEditingController dateController;
 
-  LotFieldControllers()
-    : quantityController = TextEditingController(),
-      dateController = TextEditingController();
+  LotFieldControllers({
+    this.id,
+    this.codigoLote,
+    String? initialQuantity,
+    String? initialDate,
+  }) : quantityController = TextEditingController(text: initialQuantity),
+       dateController = TextEditingController(text: initialDate);
 
   void dispose() {
     quantityController.dispose();
@@ -25,7 +30,15 @@ class LotManagementSection extends StatefulWidget {
   final void Function(bool isPerishable, List<LotFieldControllers> lots)
   onChanged;
 
-  const LotManagementSection({super.key, required this.onChanged});
+  final bool initialIsPerishable;
+  final List<LotFieldControllers>? initialLotes;
+
+  const LotManagementSection({
+    super.key,
+    required this.onChanged,
+    this.initialIsPerishable = false,
+    this.initialLotes,
+  });
 
   @override
   State<LotManagementSection> createState() => _LotManagementSectionState();
@@ -38,9 +51,10 @@ class _LotManagementSectionState extends State<LotManagementSection> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onChanged(_isPerishable, _lotControllers);
-    });
+    _isPerishable = widget.initialIsPerishable;
+    if (widget.initialLotes != null) {
+      _lotControllers.addAll(widget.initialLotes!);
+    }
   }
 
   @override
@@ -51,16 +65,14 @@ class _LotManagementSectionState extends State<LotManagementSection> {
     super.dispose();
   }
 
-  // NOVO MÉTODO: Centraliza a lógica de mudança do estado "perecível"
   void _handlePerishableChange(bool? value) {
     if (value == null || value == _isPerishable) return;
 
     setState(() {
       _isPerishable = value;
       if (_isPerishable && _lotControllers.isEmpty) {
-        _addLot(); // Adiciona o primeiro lote automaticamente
+        _addLot();
       } else if (!_isPerishable) {
-        // Limpa os lotes se marcar como não perecível
         for (var c in _lotControllers) {
           c.dispose();
         }
@@ -77,14 +89,10 @@ class _LotManagementSectionState extends State<LotManagementSection> {
     widget.onChanged(_isPerishable, _lotControllers);
   }
 
-void _removeLot(int index) {
+  void _removeLot(int index) {
     setState(() {
       _lotControllers[index].dispose();
       _lotControllers.removeAt(index);
-
-      if (_lotControllers.isEmpty) {
-        _isPerishable = false;
-      }
     });
     widget.onChanged(_isPerishable, _lotControllers);
   }
@@ -141,14 +149,14 @@ void _removeLot(int index) {
             children: [
               const Divider(color: coolGray, thickness: 1, height: 48),
               const Text(
-                'LOTES INICIAIS',
+                'LISTA DE LOTES',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: text80,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -178,49 +186,67 @@ void _removeLot(int index) {
     final lot = _lotControllers[index];
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Expanded(
-            flex: 2,
-            child: CustomTextFormField(
-              upperLabel: 'LOTE ${index + 1}',
-              hintText: 'QTD',
-              controller: lot.quantityController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) =>
-                  (value == null || value.isEmpty) ? 'Obrigatório' : null,
+          Padding(
+            padding: const EdgeInsets.only(top: 18.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: CustomTextFormField(
+                    upperLabel: 'LOTE ${index + 1}',
+                    hintText: 'QTD',
+                    controller: lot.quantityController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (value) =>
+                        (value == null || value.isEmpty) ? 'Obrigatório' : null,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 3,
+                  child: CustomTextFormField(
+                    upperLabel: '',
+                    hintText: 'Validade',
+                    controller: lot.dateController,
+                    onTap: () => _selectDate(lot.dateController),
+                    validator: (value) =>
+                        (value == null || value.isEmpty) ? 'Obrigatório' : null,
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset('assets/icons/calendar.svg'),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Padding(
+                  padding: const EdgeInsets.only(top: 30.0),
+                  child: CustomButton(
+                    icon: Icons.remove_circle_outline,
+                    squareMode: true,
+                    danger: true,
+                    secondary: true,
+                    onPressed: () => _removeLot(index),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: CustomTextFormField(
-              upperLabel: '',
-              hintText: 'Validade',
-              controller: lot.dateController,
-              onTap: () => _selectDate(lot.dateController),
-              validator: (value) =>
-                  (value == null || value.isEmpty) ? 'Obrigatório' : null,
-              prefixIcon: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: SvgPicture.asset('assets/icons/calendar.svg'),
+
+          Positioned(
+            top: 24,
+            right: 0,
+            child: Text(
+              lot.codigoLote ?? 'NOVO LOTE',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: lot.codigoLote != null ? text60 : successGreen,
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            children: [
-              const SizedBox(height: 30.0),
-              CustomButton(
-                icon: Icons.remove_circle_outline,
-                squareMode: true,
-                danger: true,
-                secondary: true,
-                onPressed: () => _removeLot(index),
-              ),
-            ],
           ),
         ],
       ),

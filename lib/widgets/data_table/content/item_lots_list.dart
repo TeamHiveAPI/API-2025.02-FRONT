@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
@@ -14,8 +15,22 @@ class ItemLotesTable extends StatefulWidget {
   State<ItemLotesTable> createState() => _ItemLotesTableState();
 }
 
+bool _hasExpired(String? dateStr) {
+  if (dateStr == null || dateStr.isEmpty) {
+    return false;
+  }
+  try {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final expirationDate = DateTime.parse(dateStr);
+
+    return !expirationDate.isAfter(today);
+  } catch (e) {
+    return false;
+  }
+}
+
 Color _getColorForDate(String? dateStr) {
-  // Retorna cinza se a data for nula ou vazia.
   if (dateStr == null || dateStr.isEmpty) {
     return Colors.grey;
   }
@@ -23,28 +38,47 @@ Color _getColorForDate(String? dateStr) {
   try {
     final now = DateTime.now();
     final expirationDate = DateTime.parse(dateStr);
-    final difference = expirationDate.difference(now);
-    final daysUntilExpiration = difference.inDays;
+    final daysUntilExpiration = expirationDate.difference(now).inDays;
 
-    // Se a data já passou, usa a cor mais urgente.
-    if (daysUntilExpiration < 0) {
-      return const Color(0xFF6a040f);
+    const int urgentThreshold = 60;
+    const int midPoint = 120;
+    const int safeThreshold = 300;
+    const int verySafeThreshold = 730;
+
+    const Color redColor = Color(0xFFd00000);
+    const Color orangeColor = Colors.orange;
+    const Color yellowColor = Color(0xFFffba08);
+    const Color lightGreenColor = Color.fromARGB(255, 24, 175, 62);
+    const Color darkGreenColor = Color(0xFF004b23);
+
+    if (daysUntilExpiration >= verySafeThreshold) {
+      return darkGreenColor;
     }
 
-    if (daysUntilExpiration < 60) {
-      return const Color(0xFF6a040f); // Menos de 2 meses
-    } else if (daysUntilExpiration < 122) { // Entre 2 e 4 meses
-      return const Color(0xFFd00000);
-    } else if (daysUntilExpiration < 244) { // Entre 4 e 8 meses
-      return const Color(0xFFe85d04);
-    } else if (daysUntilExpiration < 365) { // Entre 8 e 12 meses
-      return const Color(0xFFffba08);
-    } else if (daysUntilExpiration < 548) { // Entre 12 e 18 meses
-      return const Color(0xFF7cb518);
-    } else if (daysUntilExpiration < 730) { // Entre 18 e 24 meses
-      return const Color(0xFF55a630);
+    if (daysUntilExpiration < urgentThreshold) {
+      // Segmento 1: Vermelho -> Laranja (0 a 2 meses)
+      final double range = urgentThreshold.toDouble(); // <-- CORRIGIDO AQUI
+      final double current = daysUntilExpiration.toDouble().clamp(0.0, range);
+      final double t = current / range;
+      return Color.lerp(redColor, orangeColor, t)!;
+    } else if (daysUntilExpiration < midPoint) {
+      // Segmento 2: Laranja -> Amarelo (2 a 4 meses)
+      final double range = (midPoint - urgentThreshold).toDouble();
+      final double current = (daysUntilExpiration - urgentThreshold).toDouble();
+      final double t = (current / range).clamp(0.0, 1.0);
+      return Color.lerp(orangeColor, yellowColor, t)!;
+    } else if (daysUntilExpiration < safeThreshold) {
+      // Segmento 3: Amarelo -> Verde Claro (4 a 10 meses)
+      final double range = (safeThreshold - midPoint).toDouble();
+      final double current = (daysUntilExpiration - midPoint).toDouble();
+      final double t = (current / range).clamp(0.0, 1.0);
+      return Color.lerp(yellowColor, lightGreenColor, t)!;
     } else {
-      return const Color(0xFF004b23); // Mais de 24 meses
+      // Segmento 4: Verde Claro -> Verde Escuro (10 a 24 meses)
+      final double range = (verySafeThreshold - safeThreshold).toDouble();
+      final double current = (daysUntilExpiration - safeThreshold).toDouble();
+      final double t = (current / range).clamp(0.0, 1.0);
+      return Color.lerp(lightGreenColor, darkGreenColor, t)!;
     }
   } catch (e) {
     return Colors.purple;
@@ -61,21 +95,40 @@ class _ItemLotesTableState extends State<ItemLotesTable> with TableHandler {
       sortType: SortType.alphabetic,
     ),
     TableColumn(
-      title: 'Validade',
-      dataField: 'data_validade',
-      widthFactor: 0.3,
-      sortType: SortType.alphabetic,
-      cellBuilder: (value) {
-        final dateStr = value as String?;
-        return Text(
-          formatDate(dateStr),
-          style: TextStyle(
-            color: _getColorForDate(dateStr),
-            fontWeight: FontWeight.bold,
-          ),
-        );
-      },
-    ),
+          title: 'Validade',
+          dataField: 'data_validade',
+          widthFactor: 0.35,
+          sortType: SortType.alphabetic,
+          cellBuilder: (value) {
+            final dateStr = value as String?;
+            final bool hasExpired = _hasExpired(dateStr); // <-- Nova função
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  formatDate(dateStr),
+                  style: TextStyle(
+                    color: _getColorForDate(dateStr),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (hasExpired) ...[
+                  const SizedBox(width: 8),
+                  SvgPicture.asset(
+                    'assets/icons/expired-warning.svg',
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFFd00000),
+                      BlendMode.srcIn,
+                    ),
+                    width: 20,
+                    height: 20,
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
     TableColumn(
       title: 'QTD',
       dataField: 'qtd_atual',

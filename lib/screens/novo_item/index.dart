@@ -65,6 +65,27 @@ class _NewItemScreenState extends State<NewItemScreen> {
     _formHandler.initialQuantityController.text = total.toString();
   }
 
+  Future<int> _getOrCreateSemGrupoId() async {
+    if (viewingSectorId == null) {
+      throw Exception('ID do setor não encontrado.');
+    }
+
+    final existingGroup = await _groupService.fetchGroupByName(
+      'Sem Grupo',
+      viewingSectorId!,
+    );
+
+    if (existingGroup != null && existingGroup['id_grupo'] != null) {
+      return existingGroup['id_grupo'] as int;
+    } else {
+      final newGroupId = await _groupService.createGroup(
+        name: 'Sem Grupo',
+        sectorId: viewingSectorId!,
+      );
+      return newGroupId;
+    }
+  }
+
   void _populateFormForEdit() {
     final item = widget.itemToEdit!;
     _formHandler.nameController.text = item['nome']?.toString() ?? '';
@@ -75,12 +96,29 @@ class _NewItemScreenState extends State<NewItemScreen> {
     _formHandler.minStockController.text =
         item['min_estoque']?.toString() ?? '0';
     _formHandler.selectedGroupId = item['id_grupo'];
-
     _formHandler.isPerishable = item['perecivel'] ?? false;
-    if (_formHandler.isPerishable && item['lotes'] is List) {
-    } else {
+
+    final lotesData = item['lotes'];
+    if (_formHandler.isPerishable &&
+        lotesData is List &&
+        lotesData.isNotEmpty) {
+      _formHandler.lotControllers.clear();
+
+      for (final lote in lotesData) {
+        final lotController = LotFieldControllers(
+          id: lote['id_lote'],
+          codigoLote: lote['codigo_lote'],
+          initialQuantity: lote['qtd_atual']?.toString() ?? '0',
+          initialDate: lote['data_validade']?.toString() ?? '',
+        );
+        _formHandler.lotControllers.add(lotController);
+      }
+      _updateTotalQuantity();
+    } else if (!(_formHandler.isPerishable) &&
+        lotesData is List &&
+        lotesData.isNotEmpty) {
       _formHandler.initialQuantityController.text =
-          item['lotes']?[0]?['qtd_atual']?.toString() ?? '0';
+          lotesData[0]?['qtd_atual']?.toString() ?? '0';
     }
   }
 
@@ -102,6 +140,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     if (_formHandler.isPerishable) {
       payload['lotes'] = _formHandler.lotControllers.map((loteCtrl) {
         return {
+          'id_lote': loteCtrl.id,
           'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
           'data_validade': loteCtrl.dateController.text,
           'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
@@ -132,6 +171,16 @@ class _NewItemScreenState extends State<NewItemScreen> {
     setState(() => _isSaving = true);
 
     try {
+      // NOVA LÓGICA: Verifica se um grupo foi selecionado
+      if (_formHandler.selectedGroupId == null) {
+        // Se nenhum grupo foi selecionado, busca ou cria o grupo "Sem Grupo"
+        final defaultGroupId = await _getOrCreateSemGrupoId();
+        // Atribui o ID do grupo padrão ao handler do formulário
+        _formHandler.selectedGroupId = defaultGroupId;
+      }
+
+      // A partir daqui, o código continua como antes, mas agora temos certeza
+      // que _formHandler.selectedGroupId tem um valor.
       final itemPayload = _buildItemPayload();
 
       await ItemService.instance.createItemWithLots(itemPayload);
@@ -318,6 +367,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
                               upperLabel: 'Nº DE FICHA',
                               hintText: 'Digite aqui',
                               controller: _formHandler.recordNumberController,
+                              validator: (value) => _formHandler
+                                  .validateRequired(value, 'Nº de Ficha'),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -453,6 +504,12 @@ class _NewItemScreenState extends State<NewItemScreen> {
                         ),
                       const SizedBox(height: 24),
                       LotManagementSection(
+                        initialIsPerishable: isEditMode
+                            ? _formHandler.isPerishable
+                            : false,
+                        initialLotes: isEditMode
+                            ? _formHandler.lotControllers
+                            : null,
                         onChanged: (isPerishable, lotControllers) {
                           setState(() {
                             _formHandler.isPerishable = isPerishable;

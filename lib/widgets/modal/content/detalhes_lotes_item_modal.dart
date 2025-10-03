@@ -12,10 +12,14 @@ class LotesItemModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.5,
+      constraints: const BoxConstraints(
+        maxHeight: 230,
       ),
-      child: ItemLotesTable(itemId: itemId),
+      child: Scrollbar(
+        child: SingleChildScrollView(
+          child: ItemLotesTable(itemId: itemId),
+        ),
+      ),
     );
   }
 }

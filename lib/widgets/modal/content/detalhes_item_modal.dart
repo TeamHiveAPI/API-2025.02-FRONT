@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
-import 'package:sistema_almox/widgets/modal/content/lotes_item_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_lotes_item_modal.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 
 class DetalhesItemModal extends StatefulWidget {
@@ -51,6 +52,28 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     });
   }
 
+  bool _hasExpiredLots() {
+    if (_itemData == null || _itemData!['lotes'] == null) {
+      return false;
+    }
+
+    final lotes = _itemData!['lotes'] as List;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return lotes.any((lote) {
+      final dateStr = lote['data_validade'] as String?;
+      if (dateStr == null || dateStr.isEmpty) return false;
+
+      try {
+        final expirationDate = DateTime.parse(dateStr);
+        return expirationDate.isBefore(today);
+      } catch (e) {
+        return false;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isLoadingInitialContent && _itemData == null) {
@@ -73,6 +96,8 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     final itemSectorId = _itemData?['grupo']?['id_setor'] ?? 0;
     final isPharmacyItem = itemSectorId == 2;
     final isPerecivel = _itemData?['perecivel'] ?? false;
+
+    final bool hasExpired = _hasExpiredLots();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -114,6 +139,18 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
                 onPressed: _isLoadingInitialContent || !isPerecivel
                     ? null
                     : _showLotesModal,
+                valueColor: hasExpired ? const Color(0xFFd00000) : null,
+                icon: hasExpired
+                    ? SvgPicture.asset(
+                        'assets/icons/expired-warning.svg',
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFFd00000),
+                          BlendMode.srcIn,
+                        ),
+                        width: 18,
+                        height: 18,
+                      )
+                    : null,
               ),
             ),
             const SizedBox(width: 12),

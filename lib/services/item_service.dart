@@ -126,7 +126,10 @@ class ItemService {
 
   Future<void> updateItem(int itemId, Map<String, dynamic> itemData) async {
     try {
-      await supabase.from('item').update(itemData).eq('id_item', itemId);
+      await supabase.rpc(
+        'atualizar_item_e_lotes',
+        params: {'item_id_param': itemId, 'payload': itemData},
+      );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao atualizar item: ${e.message}');
       throw 'Falha ao atualizar item: ${e.message}';
