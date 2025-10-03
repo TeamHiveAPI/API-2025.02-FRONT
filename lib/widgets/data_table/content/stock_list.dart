@@ -24,13 +24,13 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: 'nome',
+      dataField: 'it_nome',
       widthFactor: 0.82,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
-      dataField: 'qtd_atual',
+      dataField: 'qtd_total_lotes',
       widthFactor: 0.18,
       sortType: SortType.numeric,
     ),
@@ -65,7 +65,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
-    final int? itemId = itemData['id_item'];
+    final int? itemId = itemData['id'];
 
     if (itemId == null) {
       print("Erro: O ID do item não pôde ser encontrado para abrir os detalhes.");

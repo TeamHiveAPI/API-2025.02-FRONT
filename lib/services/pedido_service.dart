@@ -29,19 +29,18 @@ class PedidoService {
           .from('pedido')
           .select('''
             *,
-            item:id_item(nome, unidade, qtd_atual),
-            usuario:id_usuario(nome),
-            responsavel_cancelamento:id_responsavel_cancelamento(nome)
+            item_pedido!inner(iped_qtd_solicitada, item:iped_item_id(it_nome, it_unidade)),
+            usuario:ped_usuario_id(usr_nome)
           ''')
-          .eq('id_setor', viewingSectorId);
+          .eq('ped_setor_id', viewingSectorId);
 
       if (statusFilter != null) {
-        baseQuery = baseQuery.eq('status', statusFilter);
+        baseQuery = baseQuery.eq('ped_status', statusFilter);
       }
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery.or(
-          'item.nome.ilike.%$searchQuery%,usuario.nome.ilike.%$searchQuery%',
+          'item_pedido.item.it_nome.ilike.%$searchQuery%,usuario.usr_nome.ilike.%$searchQuery%',
         );
       }
 
@@ -55,7 +54,7 @@ class PedidoService {
           ascending: sortParams.isAscending,
         );
       } else {
-        dataQuery = dataQuery.order('data_ped', ascending: false);
+        dataQuery = dataQuery.order('ped_data_solicitada', ascending: false);
       }
 
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
@@ -77,9 +76,9 @@ class PedidoService {
       final response = await supabase
           .from('pedido')
           .select(
-            '*, item:id_item(nome), usuario:id_usuario(nome), responsavel_cancelamento:id_responsavel_cancelamento(nome)',
+            '*, item_pedido!inner(iped_qtd_solicitada, item:iped_item_id(it_nome)), usuario:ped_usuario_id(usr_nome)',
           )
-          .eq('id_pedido', pedidoId)
+          .eq('id', pedidoId)
           .single();
       return response;
     } catch (e) {
@@ -103,22 +102,12 @@ class PedidoService {
 
       final itemResponse = await supabase
           .from('item')
-          .select('id_setor, qtd_atual, qtd_reservada, nome')
-          .eq('id_item', itemId)
-          .eq('ativo', true)
+          .select('it_grupo_id, it_qtd_reservada, it_nome')
+          .eq('id', itemId)
+          .eq('it_ativo', true)
           .single();
-
-      if (itemResponse['id_setor'] != viewingSectorId) {
-        throw PedidoConstants.erroItemSetorDiferente;
-      }
-
       if (quantidade <= 0) {
         throw PedidoConstants.erroQuantidadeInvalida;
-      }
-
-      final qtdAtual = itemResponse['qtd_atual'] as int;
-      if (quantidade > qtdAtual) {
-        throw PedidoConstants.erroQuantidadeInsuficiente;
       }
 
       final bool temDataRetirada =
@@ -162,12 +151,12 @@ class PedidoService {
 
       final pedidoResponse = await supabase
           .from('pedido')
-          .select('id_usuario, status, qtd_solicitada, id_item')
-          .eq('id_pedido', pedidoId)
+          .select('ped_usuario_id, ped_status')
+          .eq('id', pedidoId)
           .single();
 
-      final status = pedidoResponse['status'] as int;
-      final idUsuarioPedido = pedidoResponse['id_usuario'] as int;
+      final status = pedidoResponse['ped_status'] as int;
+      final idUsuarioPedido = pedidoResponse['ped_usuario_id'] as int;
 
       if (status == PedidoConstants.statusCancelado) {
         throw PedidoConstants.erroPedidoJaCancelado;
@@ -222,15 +211,15 @@ class PedidoService {
 
       final pedidoResponse = await supabase
           .from('pedido')
-          .select('status, qtd_solicitada, id_item')
-          .eq('id_pedido', pedidoId)
+          .select('ped_status')
+          .eq('id', pedidoId)
           .single();
 
       if (pedidoResponse.isEmpty) {
         throw 'Pedido não encontrado';
       }
 
-      final status = pedidoResponse['status'] as int;
+      final status = pedidoResponse['ped_status'] as int;
 
       if (status == PedidoConstants.statusCancelado) {
         throw 'Não é possível finalizar um pedido cancelado';
@@ -264,11 +253,10 @@ class PedidoService {
           .from('pedido')
           .select('''
             *,
-            item:id_item(nome, unidade, qtd_atual, qtd_reservada),
-            usuario:id_usuario(nome, nivel_acesso),
-            responsavel_cancelamento:id_responsavel_cancelamento(nome)
+            item_pedido!inner(iped_qtd_solicitada, iped_lote_retirado_id, item:iped_item_id(it_nome, it_unidade, it_qtd_reservada)),
+            usuario:ped_usuario_id(usr_nome, usr_nivel_acesso)
           ''')
-          .eq('id_pedido', pedidoId)
+          .eq('id', pedidoId)
           .single();
       return response;
     } on PostgrestException catch (e) {
@@ -288,13 +276,13 @@ class PedidoService {
         return [];
       }
 
-      final response = await supabase
-          .from('item')
-          .select('id_item, nome, unidade, qtd_atual, min_estoque')
-          .eq('ativo', true)
-          .eq('id_setor', viewingSectorId)
-          .gt('qtd_atual', 0)
-          .order('nome', ascending: true);
+      final response = await supabase.rpc(
+        'buscar_itens_por_setor',
+        params: {
+          'setor_id_param': viewingSectorId,
+          'search_query_param': '',
+        },
+      );
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {

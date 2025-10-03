@@ -7,11 +7,11 @@ class SectorService {
     try {
       final response = await supabase
           .from('setor')
-          .select('nome')
-          .eq('id_setor', idSetor)
+          .select('set_nome')
+          .eq('id', idSetor)
           .single();
 
-      return response['nome'] as String?;
+      return response['set_nome'] as String?;
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return null;

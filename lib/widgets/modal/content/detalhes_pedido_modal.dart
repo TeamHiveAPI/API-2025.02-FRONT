@@ -56,14 +56,14 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       );
     }
 
-    final itemNome = _pedidoData?['item']?['nome'] ?? '';
-    final nomeUsuario = _pedidoData?['usuario']?['nome'] ?? '';
-    final idPedido = _pedidoData?['id_pedido']?.toString() ?? '';
-    final idItem = _pedidoData?['id_item'] ?? 0;
-    final idUsuario = _pedidoData?['id_usuario'] ?? 0;
-    final dataRet = _pedidoData?['data_ret']?.toString() ?? 'Em aberto';
-    final qtdSolicitada = _pedidoData?['qtd_solicitada']?.toString() ?? '';
-    final status = _pedidoData?['status'] ?? 0;
+    final itemNome = _pedidoData?['item_pedido']?[0]?['item']?['it_nome'] ?? '';
+    final nomeUsuario = _pedidoData?['usuario']?['usr_nome'] ?? '';
+    final idPedido = _pedidoData?['id']?.toString() ?? '';
+    final idItem = _pedidoData?['item_pedido']?[0]?['iped_item_id'] ?? 0;
+    final idUsuario = _pedidoData?['ped_usuario_id'] ?? 0;
+    final dataRet = _pedidoData?['ped_data_retirada']?.toString() ?? 'Em aberto';
+    final qtdSolicitada = _pedidoData?['item_pedido']?[0]?['iped_qtd_solicitada']?.toString() ?? '';
+    final status = _pedidoData?['ped_status'] ?? 1;
 
     final isPendente = status == PedidoConstants.statusPendente;
     final isCancelado = status == PedidoConstants.statusCancelado;

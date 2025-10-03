@@ -63,11 +63,11 @@ class NewOrderScreenState extends State<NewOrderScreen> {
       
       setState(() {
         inventory = items.map((item) => {
-          'id': item['id_item'],
-          'itemName': item['nome'],
-          'unidMedida': item['unidade'],
-          'quantity': item['qtd_atual'],
-          'qtdReservada': item['qtd_reservada'] ?? 0,
+          'id': item['id'],
+          'itemName': item['it_nome'],
+          'unidMedida': item['it_unidade'],
+          'quantty': 0, // Quantidade será calculada pelos lotes
+          'qtdReservada': item['it_qtd_reservada'] ?? 0,
         }).toList();
         
         itemNamesForSuggestions = inventory

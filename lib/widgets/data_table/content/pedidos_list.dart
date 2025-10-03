@@ -44,19 +44,19 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: 'item_nome',
+      dataField: 'item_pedido.0.item.it_nome',
       widthFactor: 0.55,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
-      dataField: 'qtd_solicitada',
+      dataField: 'item_pedido.0.iped_qtd_solicitada',
       widthFactor: 0.2,
       sortType: SortType.numeric,
     ),
     TableColumn(
       title: 'Status',
-      dataField: 'status_descricao',
+      dataField: 'ped_status',
       widthFactor: 0.25,
       sortType: SortType.alphabetic,
       cellBuilder: (value) {
@@ -150,17 +150,17 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         context: context,
         title: "Detalhes do Pedido",
         child: DetalhesPedidoModal(
-          pedidoId: pedidoData['id_pedido'],
+          pedidoId: pedidoData['id'],
           onFinalizar: _finalizarPedido,
 
           onShowCancelModal: () async {
             Navigator.of(context).pop();
             final motivo = await showCancelarPedidoModal(
               context,
-              idPedido: pedidoData['id_pedido'].toString(),
+              idPedido: pedidoData['id'].toString(),
             );
             if (motivo != null && motivo.isNotEmpty) {
-              await _cancelarPedido(pedidoData['id_pedido'], motivo);
+              await _cancelarPedido(pedidoData['id'], motivo);
             } else {
               showPedidoModal();
             }
@@ -209,10 +209,10 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         context: context,
         title: "Motivo do Cancelamento",
         child: MotivoCancelamentoModal(
-          motivo: pedidoData['motivo_cancelamento'] ?? 'Não especificado',
+          motivo: pedidoData['ped_motivo_cancelamento'] ?? 'Não especificado',
           responsavelNome:
-              pedidoData['responsavel_cancelamento']?['nome'] ?? 'Desconhecido',
-          responsavelId: pedidoData['id_responsavel_cancelamento'],
+              'Dados do responsável', // Campo responsável agora está em ped_responsavel_cancelamento_id
+          responsavelId: pedidoData['ped_responsavel_cancelamento_id'],
           onViewResponsavelDetails: (userId) {
             Navigator.of(context).pop(userId);
           },
@@ -236,7 +236,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     final List<Map<String, dynamic>> displayData = showSkeleton
         ? List.generate(8, (_) => <String, dynamic>{})
         : loadedItems.map((item) {
-            final status = item['status'] ?? 1;
+            final status = item['ped_status'] ?? 1;
             String statusDescricao;
 
             switch (status) {
@@ -255,8 +255,8 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
 
             return {
               ...item,
-              'item_nome': item['item']?['nome'] ?? 'N/A',
-              'usuario_nome': item['usuario']?['nome'] ?? 'N/A',
+              'item_nome': item['item_pedido']?[0]?['item']?['it_nome'] ?? 'N/A',
+              'usuario_nome': item['usuario']?['usr_nome'] ?? 'N/A',
               'status_descricao': statusDescricao,
             };
           }).toList();

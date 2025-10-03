@@ -46,15 +46,15 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     }
 
     final itemDataForButtons = _itemData ?? {};
-    final nome = _itemData?['nome'] ?? '';
-    final numFicha = _itemData?['num_ficha']?.toString() ?? '';
-    final unidMedida = _itemData?['unidade'] ?? '';
-    final qtdDisponivel = _itemData?['qtd_atual'] ?? 0;
-    final qtdReservada = _itemData?['qtd_reservada'] ?? 0;
-    final grupo = _itemData?['grupo']?['nome'] ?? '';
+    final nome = _itemData?['it_nome'] ?? '';
+    final numFicha = _itemData?['it_num_ficha']?.toString() ?? '';
+    final unidMedida = _itemData?['it_unidade'] ?? '';
+    final qtdDisponivel = 0; // Quantidade agora é calculada pelos lotes
+    final qtdReservada = _itemData?['it_qtd_reservada'] ?? 0;
+    final grupo = _itemData?['grupo']?['grp_nome'] ?? '';
     final dataValidade = _itemData?['data_validade'];
-    final controlado = _itemData?['controlado'];
-    final itemSectorId = _itemData?['id_setor'] ?? 0;
+    final controlado = _itemData?['it_controlado'];
+    final itemSectorId = _itemData?['it_setor_id'] ?? 0;
     final isPharmacyItem = itemSectorId == 2;
 
     return Column(

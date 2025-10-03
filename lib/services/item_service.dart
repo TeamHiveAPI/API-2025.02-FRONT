@@ -25,7 +25,7 @@ class ItemService {
       PostgrestTransformBuilder databaseCall = supabase.rpc(
         'buscar_itens_por_setor',
         params: {
-          'id_setor_param': viewingSectorId,
+          'setor_id_param': viewingSectorId,
           'search_query_param': searchQuery ?? '',
         },
       );
@@ -63,9 +63,9 @@ class ItemService {
         .from('item')
         .select('''
           *,
-          grupo:id_grupo(nome)
+          grupo:it_grupo_id(grp_nome)
         ''')
-        .eq('id_item', itemId)
+        .eq('id', itemId)
         .single();
     return response;
   } catch (e) {
@@ -93,7 +93,7 @@ Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
 
   Future<void> updateItem(int itemId, Map<String, dynamic> itemData) async {
     try {
-      await supabase.from('item').update(itemData).eq('id_item', itemId);
+      await supabase.from('item').update(itemData).eq('id', itemId);
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao atualizar item: ${e.message}');
       throw 'Falha ao atualizar item: ${e.message}';
@@ -107,8 +107,8 @@ Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
       await supabase
           .from('item')
-          .update({'ativo': false})
-          .eq('id_item', itemId);
+          .update({'it_ativo': false})
+          .eq('id', itemId);
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao inativar item: ${e.message}');
       throw 'Falha ao inativar item: ${e.message}';

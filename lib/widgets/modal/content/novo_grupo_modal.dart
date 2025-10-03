@@ -94,8 +94,8 @@ class _NewGroupModalState extends State<NewGroupModal> {
         throw 'ID do setor de visualização não encontrado.';
       }
       final payload = {
-        'nome': _nameController.text,
-        'id_setor': viewingSectorId,
+        'grp_nome': _nameController.text,
+        'grp_setor_id': viewingSectorId,
       };
       await _groupService.createGroup(payload);
       if (mounted) {

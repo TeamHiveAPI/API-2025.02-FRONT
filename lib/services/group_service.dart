@@ -7,9 +7,9 @@ class GroupService {
     try {
       final response = await supabase
           .from('grupo')
-          .select('id_grupo, nome')
-          .eq('id_setor', idSetor)
-          .order('nome', ascending: true);
+          .select('id, grp_nome')
+          .eq('grp_setor_id', idSetor)
+          .order('grp_nome', ascending: true);
 
       return response;
     } catch (e) {

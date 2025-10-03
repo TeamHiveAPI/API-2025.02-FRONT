@@ -66,11 +66,11 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
 
   Widget _buildLoadedState() {
     final String? fotoUrl = _userData!['foto_url'];
-    final String nome = _userData!['nome'] ?? 'N/A';
+    final String nome = _userData!['usr_nome'] ?? 'N/A';
     final String cpf = _userData!['cpf'] ?? 'N/A';
     final String email = _userData!['email'] ?? 'N/A';
     final int nivelAcesso = _userData!['nivel_acesso'] ?? 0;
-    final int idSetor = _userData!['id_setor'] ?? 0;
+    final int idSetor = _userData!['usr_setor_id'] ?? 0;
 
     final cargoNome = UserService.instance.getCargoNomeFromData(
       nivelAcesso: nivelAcesso,
