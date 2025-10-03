@@ -49,20 +49,20 @@ class UserService with ChangeNotifier {
       final userData = await supabase
           .from('usuario')
           .select(
-            'id_usuario, nome, email, cpf, nivel_acesso, id_setor, auth_uid, foto_url',
+            'id, usr_nome, usr_email, usr_cpf, usr_nivel_acesso, usr_setor_id, usr_auth_uid, usr_foto_url',
           )
-          .eq('auth_uid', userId)
+          .eq('usr_auth_uid', userId)
           .single();
 
       _setCurrentUser(
-        idUsuario: userData['id_usuario'],
-        nome: userData['nome'],
-        email: userData['email'],
-        cpf: userData['cpf'],
-        nivelAcesso: userData['nivel_acesso'],
-        idSetor: userData['id_setor'],
-        authUid: userData['auth_uid'],
-        fotoUrl: userData['foto_url'],
+        idUsuario: userData['id'],
+        nome: userData['usr_nome'],
+        email: userData['usr_email'],
+        cpf: userData['usr_cpf'],
+        nivelAcesso: userData['usr_nivel_acesso'],
+        idSetor: userData['usr_setor_id'],
+        authUid: userData['usr_auth_uid'],
+        fotoUrl: userData['usr_foto_url'],
       );
       return true;
     } catch (e) {
@@ -77,7 +77,7 @@ class UserService with ChangeNotifier {
       final userData = await supabase
           .from('usuario')
           .select()
-          .eq('id_usuario', userId)
+          .eq('id', userId)
           .single();
       return userData;
     } catch (e) {
