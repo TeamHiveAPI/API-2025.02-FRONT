@@ -1,4 +1,5 @@
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -109,7 +110,7 @@ class ItemService {
     }
   }
 
-  Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
+Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
       await supabase.rpc(
         'criar_item_com_lotes',
@@ -117,7 +118,7 @@ class ItemService {
       );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao criar item com lotes: ${e.message}');
-      throw 'Falha ao cadastrar item: ${e.message}';
+      rethrow; 
     } catch (e) {
       print('Erro desconhecido ao criar item com lotes: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
@@ -132,19 +133,19 @@ class ItemService {
       );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao atualizar item: ${e.message}');
-      throw 'Falha ao atualizar item: ${e.message}';
+      rethrow;
     } catch (e) {
       print('Erro desconhecido ao atualizar item: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
 
-  Future<void> deactivateItem(int itemId) async {
+Future<void> deactivateItem(int itemId) async {
     try {
       await supabase
-          .from('item')
-          .update({'ativo': false})
-          .eq('id_item', itemId);
+          .from(SupabaseTables.item)
+          .update({ItemFields.ativo: false})
+          .eq(ItemFields.id, itemId);
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao inativar item: ${e.message}');
       throw 'Falha ao inativar item: ${e.message}';

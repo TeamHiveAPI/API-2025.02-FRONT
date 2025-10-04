@@ -57,7 +57,7 @@ Color _getColorForDate(String? dateStr) {
 
     if (daysUntilExpiration < urgentThreshold) {
       // Segmento 1: Vermelho -> Laranja (0 a 2 meses)
-      final double range = urgentThreshold.toDouble(); // <-- CORRIGIDO AQUI
+      final double range = urgentThreshold.toDouble();
       final double current = daysUntilExpiration.toDouble().clamp(0.0, range);
       final double t = current / range;
       return Color.lerp(redColor, orangeColor, t)!;
@@ -95,40 +95,40 @@ class _ItemLotesTableState extends State<ItemLotesTable> with TableHandler {
       sortType: SortType.alphabetic,
     ),
     TableColumn(
-          title: 'Validade',
-          dataField: 'data_validade',
-          widthFactor: 0.35,
-          sortType: SortType.alphabetic,
-          cellBuilder: (value) {
-            final dateStr = value as String?;
-            final bool hasExpired = _hasExpired(dateStr); // <-- Nova função
+      title: 'Validade',
+      dataField: 'data_validade',
+      widthFactor: 0.35,
+      sortType: SortType.alphabetic,
+      cellBuilder: (value) {
+        final dateStr = value as String?;
+        final bool hasExpired = _hasExpired(dateStr);
 
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  formatDate(dateStr),
-                  style: TextStyle(
-                    color: _getColorForDate(dateStr),
-                    fontWeight: FontWeight.bold,
-                  ),
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              formatDate(dateStr),
+              style: TextStyle(
+                color: _getColorForDate(dateStr),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (hasExpired) ...[
+              const SizedBox(width: 8),
+              SvgPicture.asset(
+                'assets/icons/warning.svg',
+                colorFilter: const ColorFilter.mode(
+                  Color(0xFFd00000),
+                  BlendMode.srcIn,
                 ),
-                if (hasExpired) ...[
-                  const SizedBox(width: 8),
-                  SvgPicture.asset(
-                    'assets/icons/expired-warning.svg',
-                    colorFilter: const ColorFilter.mode(
-                      Color(0xFFd00000),
-                      BlendMode.srcIn,
-                    ),
-                    width: 20,
-                    height: 20,
-                  ),
-                ],
-              ],
-            );
-          },
-        ),
+                width: 20,
+                height: 20,
+              ),
+            ],
+          ],
+        );
+      },
+    ),
     TableColumn(
       title: 'QTD',
       dataField: 'qtd_atual',

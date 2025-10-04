@@ -1,3 +1,4 @@
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
@@ -6,12 +7,12 @@ class SectorService {
   Future<String?> getSectorNameById(int idSetor) async {
     try {
       final response = await supabase
-          .from('setor')
-          .select('nome')
-          .eq('id_setor', idSetor)
+          .from(SupabaseTables.setor)
+          .select(SetorFields.nome)
+          .eq(SetorFields.id, idSetor)
           .single();
 
-      return response['nome'] as String?;
+      return response[SetorFields.nome] as String?;
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return null;

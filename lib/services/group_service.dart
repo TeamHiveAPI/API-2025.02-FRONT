@@ -1,3 +1,4 @@
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupService {
@@ -6,10 +7,10 @@ class GroupService {
   Future<List<Map<String, dynamic>>> fetchGroupsBySector(int idSetor) async {
     try {
       final response = await supabase
-          .from('grupo')
-          .select('id_grupo, nome')
-          .eq('id_setor', idSetor)
-          .order('nome', ascending: true);
+          .from(SupabaseTables.grupo)
+          .select('${GrupoFields.id}, ${GrupoFields.nome}')
+          .eq(GrupoFields.setorId, idSetor)
+          .order(GrupoFields.nome, ascending: true);
 
       return response;
     } catch (e) {
@@ -21,10 +22,10 @@ class GroupService {
   Future<Map<String, dynamic>?> fetchGroupByName(String name, int sectorId) async {
     try {
       final response = await supabase
-          .from('grupo')
-          .select('id_grupo')
-          .eq('nome', name)
-          .eq('id_setor', sectorId)
+          .from(SupabaseTables.grupo)
+          .select(GrupoFields.id)
+          .eq(GrupoFields.nome, name)
+          .eq(GrupoFields.setorId, sectorId)
           .limit(1)
           .maybeSingle();
 
@@ -38,12 +39,15 @@ class GroupService {
   Future<int> createGroup({required String name, required int sectorId}) async {
     try {
       final response = await supabase
-          .from('grupo')
-          .insert({'nome': name, 'id_setor': sectorId})
-          .select('id_grupo')
+          .from(SupabaseTables.grupo)
+          .insert({
+            GrupoFields.nome: name,
+            GrupoFields.setorId: sectorId
+          })
+          .select(GrupoFields.id)
           .single();
 
-      return response['id_grupo'] as int;
+      return response[GrupoFields.id] as int;
     } catch (e) {
       print('Erro ao criar grupo: $e');
       throw Exception('Falha ao cadastrar o grupo.');

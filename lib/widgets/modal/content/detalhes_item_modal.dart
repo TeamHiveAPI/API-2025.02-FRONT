@@ -28,6 +28,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
 
   Future<void> _fetchData() async {
     final data = await ItemService.instance.fetchItemById(widget.itemId);
+    
     if (mounted) {
       setState(() {
         _itemData = data;
@@ -67,7 +68,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
 
       try {
         final expirationDate = DateTime.parse(dateStr);
-        return expirationDate.isBefore(today);
+        return !expirationDate.isAfter(today); 
       } catch (e) {
         return false;
       }
@@ -94,8 +95,8 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     final grupo = _itemData?['grupo']?['nome'] ?? '';
     final controlado = _itemData?['controlado'];
     final itemSectorId = _itemData?['grupo']?['id_setor'] ?? 0;
-    final isPharmacyItem = itemSectorId == 2;
     final isPerecivel = _itemData?['perecivel'] ?? false;
+    final isPharmacyItem = itemSectorId == 2;
 
     final bool hasExpired = _hasExpiredLots();
 
@@ -142,7 +143,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
                 valueColor: hasExpired ? const Color(0xFFd00000) : null,
                 icon: hasExpired
                     ? SvgPicture.asset(
-                        'assets/icons/expired-warning.svg',
+                        'assets/icons/warning.svg',
                         colorFilter: const ColorFilter.mode(
                           Color(0xFFd00000),
                           BlendMode.srcIn,

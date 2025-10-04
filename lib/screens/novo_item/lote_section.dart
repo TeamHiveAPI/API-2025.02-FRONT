@@ -237,14 +237,14 @@ class _LotManagementSectionState extends State<LotManagementSection> {
           ),
 
           Positioned(
-            top: 24,
+            top: 22,
             right: 0,
             child: Text(
               lot.codigoLote ?? 'NOVO LOTE',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: lot.codigoLote != null ? text60 : successGreen,
+                color: lot.codigoLote != null ? text80 : successGreen,
               ),
             ),
           ),

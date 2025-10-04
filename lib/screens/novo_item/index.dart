@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
 import 'package:sistema_almox/screens/novo_item/form_handler.dart';
@@ -17,6 +18,7 @@ import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NewItemScreen extends StatefulWidget {
   final Map<String, dynamic>? itemToEdit;
@@ -97,6 +99,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
         item['min_estoque']?.toString() ?? '0';
     _formHandler.selectedGroupId = item['id_grupo'];
     _formHandler.isPerishable = item['perecivel'] ?? false;
+    _formHandler.isControlled = item['controlado'] ?? false;
 
     final lotesData = item['lotes'];
     if (_formHandler.isPerishable &&
@@ -106,8 +109,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
       for (final lote in lotesData) {
         final lotController = LotFieldControllers(
-          id: lote['id_lote'],
-          codigoLote: lote['codigo_lote'],
+          id: lote['id'],
+          codigoLote: lote['codigo'],
           initialQuantity: lote['qtd_atual']?.toString() ?? '0',
           initialDate: lote['data_validade']?.toString() ?? '',
         );
@@ -140,7 +143,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     if (_formHandler.isPerishable) {
       payload['lotes'] = _formHandler.lotControllers.map((loteCtrl) {
         return {
-          'id_lote': loteCtrl.id,
+          'id': loteCtrl.id,
           'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
           'data_validade': loteCtrl.dateController.text,
           'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
@@ -159,7 +162,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     return payload;
   }
 
-  Future<void> _registerItem() async {
+ Future<void> _registerItem() async {
     FocusScope.of(context).unfocus();
     setState(() => _formHandler.hasSubmitted = true);
 
@@ -171,21 +174,22 @@ class _NewItemScreenState extends State<NewItemScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // NOVA LÓGICA: Verifica se um grupo foi selecionado
       if (_formHandler.selectedGroupId == null) {
-        // Se nenhum grupo foi selecionado, busca ou cria o grupo "Sem Grupo"
         final defaultGroupId = await _getOrCreateSemGrupoId();
-        // Atribui o ID do grupo padrão ao handler do formulário
         _formHandler.selectedGroupId = defaultGroupId;
       }
-
-      // A partir daqui, o código continua como antes, mas agora temos certeza
-      // que _formHandler.selectedGroupId tem um valor.
+      
       final itemPayload = _buildItemPayload();
 
       await ItemService.instance.createItemWithLots(itemPayload);
       showCustomSnackbar(context, 'Item cadastrado com sucesso!');
       if (mounted) Navigator.of(context).pop(true);
+    } on PostgrestException catch (e) {
+      if (e.message.contains('item_it_num_ficha_key')) {
+        showCustomSnackbar(context, 'O Nº de Ficha informado já está em uso.', isError: true);
+      } else {
+        showCustomSnackbar(context, 'Erro no banco de dados: ${e.message}', isError: true);
+      }
     } catch (e) {
       if (mounted) showCustomSnackbar(context, e.toString(), isError: true);
     } finally {
@@ -206,20 +210,24 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
     try {
       final itemPayload = _buildItemPayload();
-
       final item = widget.itemToEdit;
-      if (item == null || item['id_item'] == null) {
+      if (item == null || item[ItemFields.id] == null) {
         throw Exception('ID do item para edição não foi encontrado.');
       }
-      final itemId = item['id_item'] as int;
+      final itemId = item[ItemFields.id] as int;
 
       await ItemService.instance.updateItem(itemId, itemPayload);
 
       showCustomSnackbar(context, 'Item atualizado com sucesso!');
       if (mounted) Navigator.of(context).pop(true);
+    } on PostgrestException catch (e) {
+      if (e.message.contains('item_it_num_ficha_key')) {
+        showCustomSnackbar(context, 'O Nº de Ficha informado já está em uso.', isError: true);
+      } else {
+        showCustomSnackbar(context, 'Erro no banco de dados: ${e.message}', isError: true);
+      }
     } catch (e) {
       print('Erro detalhado ao atualizar item: $e');
-
       if (mounted) {
         showCustomSnackbar(
           context,
@@ -233,7 +241,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Future<void> _deactivateItem() async {
-    final itemId = widget.itemToEdit?['id_item'];
+    final itemId = widget.itemToEdit?[ItemFields.id];
     if (itemId == null) {
       if (mounted) {
         showCustomSnackbar(
@@ -307,7 +315,10 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
       setState(() {
         _formHandler.groupOptions = groupsData
-            .map((g) => ItemGroup(id: g['id_grupo'], nome: g['nome']))
+            .map(
+              (g) =>
+                  ItemGroup(id: g[GrupoFields.id], nome: g[GrupoFields.nome]),
+            )
             .toList();
         _isLoadingGroups = false;
       });
