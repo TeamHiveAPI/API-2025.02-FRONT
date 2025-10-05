@@ -13,6 +13,8 @@ import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/item_multi_cadastro.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
@@ -162,7 +164,23 @@ class _NewItemScreenState extends State<NewItemScreen> {
     return payload;
   }
 
- Future<void> _registerItem() async {
+  void _showMultiRegisterModal() async {
+    final result = await showCustomBottomSheet(
+      context: context,
+      title: "Multicadastramento",
+      child: MultiRegisterModal(
+        onSuccess: () {
+          Navigator.of(context).pop(true);
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  Future<void> _registerItem() async {
     FocusScope.of(context).unfocus();
     setState(() => _formHandler.hasSubmitted = true);
 
@@ -178,7 +196,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
         final defaultGroupId = await _getOrCreateSemGrupoId();
         _formHandler.selectedGroupId = defaultGroupId;
       }
-      
+
       final itemPayload = _buildItemPayload();
 
       await ItemService.instance.createItemWithLots(itemPayload);
@@ -186,9 +204,17 @@ class _NewItemScreenState extends State<NewItemScreen> {
       if (mounted) Navigator.of(context).pop(true);
     } on PostgrestException catch (e) {
       if (e.message.contains('item_it_num_ficha_key')) {
-        showCustomSnackbar(context, 'O Nº de Ficha informado já está em uso.', isError: true);
+        showCustomSnackbar(
+          context,
+          'O Nº de Ficha informado já está em uso.',
+          isError: true,
+        );
       } else {
-        showCustomSnackbar(context, 'Erro no banco de dados: ${e.message}', isError: true);
+        showCustomSnackbar(
+          context,
+          'Erro no banco de dados: ${e.message}',
+          isError: true,
+        );
       }
     } catch (e) {
       if (mounted) showCustomSnackbar(context, e.toString(), isError: true);
@@ -222,9 +248,17 @@ class _NewItemScreenState extends State<NewItemScreen> {
       if (mounted) Navigator.of(context).pop(true);
     } on PostgrestException catch (e) {
       if (e.message.contains('item_it_num_ficha_key')) {
-        showCustomSnackbar(context, 'O Nº de Ficha informado já está em uso.', isError: true);
+        showCustomSnackbar(
+          context,
+          'O Nº de Ficha informado já está em uso.',
+          isError: true,
+        );
       } else {
-        showCustomSnackbar(context, 'Erro no banco de dados: ${e.message}', isError: true);
+        showCustomSnackbar(
+          context,
+          'Erro no banco de dados: ${e.message}',
+          isError: true,
+        );
       }
     } catch (e) {
       print('Erro detalhado ao atualizar item: $e');
@@ -554,6 +588,9 @@ class _NewItemScreenState extends State<NewItemScreen> {
               onButtonPressed: _isSaving
                   ? null
                   : (isEditMode ? _updateItem : _registerItem),
+              showSecondaryButton: true,
+              secondaryButtonIcon: 'assets/icons/multi-register.svg',
+              onSecondaryButtonPressed: _showMultiRegisterModal,
               isEditMode: isEditMode,
               onDeletePressed: _isSaving ? null : _deactivateItem,
               isLoading: _isSaving,

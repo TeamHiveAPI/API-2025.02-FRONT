@@ -4,6 +4,8 @@ const Color brandBlue = Color(0xFF2847AE);
 const Color brandBlueLight = Color(0xFFF7F9FF);
 
 const Color successGreen = Color(0xFF107A15);
+const Color successGreenLight = Color(0xFFEBF8EC);
+
 
 const Color deleteRed = Color(0xFFD12755);
 const Color deleteRedLight = Color(0xFFFFF4F7);
