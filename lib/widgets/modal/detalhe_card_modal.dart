@@ -8,6 +8,8 @@ class DetailItemCard extends StatelessWidget {
   final String value;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final Color? valueColor;
+  final Widget? icon;
 
   const DetailItemCard({
     super.key,
@@ -15,6 +17,8 @@ class DetailItemCard extends StatelessWidget {
     required this.value,
     this.onPressed,
     this.isLoading = false,
+    this.valueColor,
+    this.icon,
   });
 
   @override
@@ -43,7 +47,6 @@ class DetailItemCard extends StatelessWidget {
         child: content,
       );
     }
-
     return content;
   }
 
@@ -63,13 +66,22 @@ class DetailItemCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: text40,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(
+                      color: valueColor ?? text40,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (icon != null) ...[
+                    const SizedBox(width: 2),
+                    icon!,
+                  ]
+                ],
               ),
             ],
           ),
