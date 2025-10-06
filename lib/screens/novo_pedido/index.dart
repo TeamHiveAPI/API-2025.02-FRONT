@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
@@ -63,11 +64,11 @@ class NewOrderScreenState extends State<NewOrderScreen> {
       
       setState(() {
         inventory = items.map((item) => {
-          'id': item['id'],
-          'itemName': item['it_nome'],
-          'unidMedida': item['it_unidade'],
-          'quantty': 0, // Quantidade será calculada pelos lotes
-          'qtdReservada': item['it_qtd_reservada'] ?? 0,
+          'id': item[ItemFields.id],
+          'itemName': item[ItemFields.nome],
+          'unidMedida': item[ItemFields.unidade],
+          'qtdDisponivel': item['qtd_disponivel'] ?? 0, // Quantidade calculada pelos lotes
+          'qtdReservada': item[ItemFields.qtdReservada] ?? 0,
         }).toList();
         
         itemNamesForSuggestions = inventory

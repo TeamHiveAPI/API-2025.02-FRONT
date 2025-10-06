@@ -113,7 +113,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
         final lotController = LotFieldControllers(
           id: lote['id'],
           codigoLote: lote['codigo'],
-          initialQuantity: lote['qtd_atual']?.toString() ?? '0',
+          initialQuantity: lote[LoteFields.qtdAtual]?.toString() ?? '0',
           initialDate: lote['data_validade']?.toString() ?? '',
         );
         _formHandler.lotControllers.add(lotController);
@@ -123,7 +123,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
         lotesData is List &&
         lotesData.isNotEmpty) {
       _formHandler.initialQuantityController.text =
-          lotesData[0]?['qtd_atual']?.toString() ?? '0';
+          lotesData[0]?[LoteFields.qtdAtual]?.toString() ?? '0';
     }
   }
 

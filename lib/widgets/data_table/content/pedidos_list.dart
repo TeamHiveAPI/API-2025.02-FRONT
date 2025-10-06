@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
@@ -44,19 +45,19 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: 'item_pedido.0.item.it_nome',
+      dataField: '${SupabaseTables.itemPedido}.0.${SupabaseTables.item}.${ItemFields.nome}',
       widthFactor: 0.55,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
-      dataField: 'item_pedido.0.iped_qtd_solicitada',
+      dataField: '${SupabaseTables.itemPedido}.0.${ItemPedidoFields.qtdSolicitada}',
       widthFactor: 0.2,
       sortType: SortType.numeric,
     ),
     TableColumn(
       title: 'Status',
-      dataField: 'ped_status',
+      dataField: PedidoFields.status,
       widthFactor: 0.25,
       sortType: SortType.alphabetic,
       cellBuilder: (value) {
@@ -209,10 +210,10 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         context: context,
         title: "Motivo do Cancelamento",
         child: MotivoCancelamentoModal(
-          motivo: pedidoData['ped_motivo_cancelamento'] ?? 'Não especificado',
+          motivo: pedidoData[PedidoFields.motivoCancelamento] ?? 'Não especificado',
           responsavelNome:
               'Dados do responsável', // Campo responsável agora está em ped_responsavel_cancelamento_id
-          responsavelId: pedidoData['ped_responsavel_cancelamento_id'],
+          responsavelId: pedidoData[PedidoFields.responsavelCancelamentoId],
           onViewResponsavelDetails: (userId) {
             Navigator.of(context).pop(userId);
           },
@@ -236,7 +237,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     final List<Map<String, dynamic>> displayData = showSkeleton
         ? List.generate(8, (_) => <String, dynamic>{})
         : loadedItems.map((item) {
-            final status = item['ped_status'] ?? 1;
+            final status = item[PedidoFields.status] ?? 1;
             String statusDescricao;
 
             switch (status) {
@@ -255,8 +256,8 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
 
             return {
               ...item,
-              'item_nome': item['item_pedido']?[0]?['item']?['it_nome'] ?? 'N/A',
-              'usuario_nome': item['usuario']?['usr_nome'] ?? 'N/A',
+              'item_nome': item[SupabaseTables.itemPedido]?[0]?[SupabaseTables.item]?[ItemFields.nome] ?? 'N/A',
+              'usuario_nome': item[SupabaseTables.usuario]?[UsuarioFields.nome] ?? 'N/A',
               'status_descricao': statusDescricao,
             };
           }).toList();

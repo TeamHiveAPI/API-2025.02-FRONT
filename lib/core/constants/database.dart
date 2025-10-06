@@ -35,7 +35,6 @@ abstract class ItemFields {
   static const String grupoId = 'it_grupo_id';
   static const String ativo = 'it_ativo';
   static const String perecivel = 'it_perecivel';
-  static const String qtdReservada = 'it_qtd_reservada';
 }
 
 abstract class ItemPedidoFields {
@@ -59,8 +58,9 @@ abstract class LoteFields {
   static const String dataValidade = 'lot_data_validade';
   static const String fornecedorId = 'lot_fornecedor_id';
   static const String qtdAtual = 'lot_qtd_atual';
+  static const String qtdReservada = 'lot_qtd_reservada';
 }
-
+  
 abstract class MovEstoqueFields {
   static const String id = 'id';
   static const String itemId = 'mve_item_id';

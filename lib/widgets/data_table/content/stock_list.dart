@@ -24,13 +24,13 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: 'it_nome',
+      dataField: ItemFields.nome,
       widthFactor: 0.82,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
-      dataField: 'qtd_total_lotes',
+      dataField: 'qtd_total_lotes', // Este campo vem da RPC, não é um campo direto
       widthFactor: 0.18,
       sortType: SortType.numeric,
     ),

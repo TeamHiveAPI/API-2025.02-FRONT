@@ -30,7 +30,10 @@ class PedidoService {
           .from(SupabaseTables.pedido)
           .select('''
             *,
-            ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade}),
+            ${SupabaseTables.itemPedido}!inner(
+              ${ItemPedidoFields.qtdSolicitada},
+              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})
+            ),
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
             responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})
           ''')
@@ -42,7 +45,7 @@ class PedidoService {
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery.or(
-          '${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
+          '${SupabaseTables.itemPedido}.${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
         );
       }
 
@@ -77,9 +80,15 @@ class PedidoService {
     try {
       final response = await supabase
           .from(SupabaseTables.pedido)
-          .select(
-            '*, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}), ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}), responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})',
-          )
+          .select('''
+            *,
+            ${SupabaseTables.itemPedido}!inner(
+              ${ItemPedidoFields.qtdSolicitada},
+              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome})
+            ),
+            ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
+            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})
+          ''')
           .eq(PedidoFields.id, pedidoId)
           .single();
       return response;
@@ -103,10 +112,10 @@ class PedidoService {
       }
 
       final itemResponse = await supabase
-          .from('item')
-          .select('it_grupo_id, it_qtd_reservada, it_nome')
-          .eq('id', itemId)
-          .eq('it_ativo', true)
+          .from(SupabaseTables.item)
+          .select('${ItemFields.grupoId}, ${ItemFields.qtdReservada}, ${ItemFields.nome}')
+          .eq(ItemFields.id, itemId)
+          .eq(ItemFields.ativo, true)
           .single();
       if (quantidade <= 0) {
         throw PedidoConstants.erroQuantidadeInvalida;
@@ -152,13 +161,13 @@ class PedidoService {
       }
 
       final pedidoResponse = await supabase
-          .from('pedido')
-          .select('ped_usuario_id, ped_status')
-          .eq('id', pedidoId)
+          .from(SupabaseTables.pedido)
+          .select('${PedidoFields.usuarioId}, ${PedidoFields.status}')
+          .eq(PedidoFields.id, pedidoId)
           .single();
 
-      final status = pedidoResponse['ped_status'] as int;
-      final idUsuarioPedido = pedidoResponse['ped_usuario_id'] as int;
+      final status = pedidoResponse[PedidoFields.status] as int;
+      final idUsuarioPedido = pedidoResponse[PedidoFields.usuarioId] as int;
 
       if (status == PedidoConstants.statusCancelado) {
         throw PedidoConstants.erroPedidoJaCancelado;
@@ -212,16 +221,16 @@ class PedidoService {
       }
 
       final pedidoResponse = await supabase
-          .from('pedido')
-          .select('ped_status')
-          .eq('id', pedidoId)
+          .from(SupabaseTables.pedido)
+          .select(PedidoFields.status)
+          .eq(PedidoFields.id, pedidoId)
           .single();
 
       if (pedidoResponse.isEmpty) {
         throw 'Pedido não encontrado';
       }
 
-      final status = pedidoResponse['ped_status'] as int;
+      final status = pedidoResponse[PedidoFields.status] as int;
 
       if (status == PedidoConstants.statusCancelado) {
         throw 'Não é possível finalizar um pedido cancelado';
@@ -252,13 +261,13 @@ class PedidoService {
   Future<Map<String, dynamic>> getPedidoDetails(int pedidoId) async {
     try {
       final response = await supabase
-          .from('pedido')
+          .from(SupabaseTables.pedido)
           .select('''
             *,
-            item_pedido!inner(iped_qtd_solicitada, iped_lote_retirado_id, item:iped_item_id(it_nome, it_unidade, it_qtd_reservada)),
-            usuario:ped_usuario_id(usr_nome, usr_nivel_acesso)
+            ${SupabaseTables.itemPedido}!inner(${ItemPedidoFields.qtdSolicitada}, ${ItemPedidoFields.loteRetiradoId}, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade}, ${ItemFields.qtdReservada})),
+            ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}, ${UsuarioFields.nivelAcesso})
           ''')
-          .eq('id', pedidoId)
+          .eq(PedidoFields.id, pedidoId)
           .single();
       return response;
     } on PostgrestException catch (e) {
@@ -281,7 +290,7 @@ class PedidoService {
       final response = await supabase.rpc(
         'buscar_itens_por_setor',
         params: {
-          'setor_id_param': viewingSectorId,
+          'id_setor_param': viewingSectorId,
           'search_query_param': '',
         },
       );

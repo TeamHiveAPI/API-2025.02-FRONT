@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/app_routes.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
@@ -87,15 +88,15 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     }
 
     final itemDataForButtons = _itemData ?? {};
-    final nome = _itemData?['it_nome'] ?? '';
-    final numFicha = _itemData?['it_num_ficha']?.toString() ?? '';
-    final unidMedida = _itemData?['it_unidade'] ?? '';
+    final nome = _itemData?[ItemFields.nome] ?? '';
+    final numFicha = _itemData?[ItemFields.numFicha]?.toString() ?? '';
+    final unidMedida = _itemData?[ItemFields.unidade] ?? '';
     final qtdDisponivel = 0; // Quantidade agora é calculada pelos lotes
-    final qtdReservada = _itemData?['it_qtd_reservada'] ?? 0;
-    final grupo = _itemData?['grupo']?['grp_nome'] ?? '';
-    final controlado = _itemData?['it_controlado'];
-    final itemSectorId = _itemData?['it_setor_id'] ?? 0;
-    final isPerecivel = _itemData?['it_perecivel'] ?? false;
+    final qtdReservada = _itemData?[ItemFields.qtdReservada] ?? 0;
+    final grupo = _itemData?[SupabaseTables.grupo]?[GrupoFields.nome] ?? '';
+    final controlado = _itemData?[ItemFields.controlado];
+    final itemSectorId = 0; // Setor agora é obtido via grupo
+    final isPerecivel = _itemData?[ItemFields.perecivel] ?? false;
     final isPharmacyItem = itemSectorId == 2;
 
     final bool hasExpired = _hasExpiredLots();

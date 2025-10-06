@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
@@ -65,12 +66,12 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
   }
 
   Widget _buildLoadedState() {
-    final String? fotoUrl = _userData!['foto_url'];
-    final String nome = _userData!['usr_nome'] ?? 'N/A';
-    final String cpf = _userData!['cpf'] ?? 'N/A';
-    final String email = _userData!['email'] ?? 'N/A';
-    final int nivelAcesso = _userData!['nivel_acesso'] ?? 0;
-    final int idSetor = _userData!['usr_setor_id'] ?? 0;
+    final String? fotoUrl = _userData![UsuarioFields.fotoUrl];
+    final String nome = _userData![UsuarioFields.nome] ?? 'N/A';
+    final String cpf = _userData![UsuarioFields.cpf] ?? 'N/A';
+    final String email = _userData![UsuarioFields.email] ?? 'N/A';
+    final int nivelAcesso = _userData![UsuarioFields.nivelAcesso] ?? 0;
+    final int idSetor = _userData![UsuarioFields.setorId] ?? 0;
 
     final cargoNome = UserService.instance.getCargoNomeFromData(
       nivelAcesso: nivelAcesso,
