@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/permissions.dart';
 
@@ -47,22 +48,31 @@ class UserService with ChangeNotifier {
   Future<bool> fetchAndSetCurrentUser(String userId) async {
     try {
       final userData = await supabase
-          .from('usuario')
+          .from(SupabaseTables.usuario)
           .select(
-            'id, usr_nome, usr_email, usr_cpf, usr_nivel_acesso, usr_setor_id, usr_auth_uid, usr_foto_url',
+            '''
+              ${UsuarioFields.id},
+              ${UsuarioFields.nome},
+              ${UsuarioFields.email},
+              ${UsuarioFields.cpf},
+              ${UsuarioFields.nivelAcesso},
+              ${UsuarioFields.setorId},
+              ${UsuarioFields.authUid},
+              ${UsuarioFields.fotoUrl}
+            ''',
           )
-          .eq('usr_auth_uid', userId)
+          .eq(UsuarioFields.authUid, userId)
           .single();
 
       _setCurrentUser(
-        idUsuario: userData['id'],
-        nome: userData['usr_nome'],
-        email: userData['usr_email'],
-        cpf: userData['usr_cpf'],
-        nivelAcesso: userData['usr_nivel_acesso'],
-        idSetor: userData['usr_setor_id'],
-        authUid: userData['usr_auth_uid'],
-        fotoUrl: userData['usr_foto_url'],
+        idUsuario: userData[UsuarioFields.id],
+        nome: userData[UsuarioFields.nome],
+        email: userData[UsuarioFields.email],
+        cpf: userData[UsuarioFields.cpf],
+        nivelAcesso: userData[UsuarioFields.nivelAcesso],
+        idSetor: userData[UsuarioFields.setorId],
+        authUid: userData[UsuarioFields.authUid],
+        fotoUrl: userData[UsuarioFields.fotoUrl],
       );
       return true;
     } catch (e) {
@@ -75,9 +85,9 @@ class UserService with ChangeNotifier {
   Future<Map<String, dynamic>?> fetchUserById(int userId) async {
     try {
       final userData = await supabase
-          .from('usuario')
+          .from(SupabaseTables.usuario)
           .select()
-          .eq('id', userId)
+          .eq(UsuarioFields.id, userId)
           .single();
       return userData;
     } catch (e) {

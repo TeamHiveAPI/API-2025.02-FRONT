@@ -1,4 +1,5 @@
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/constants/pedido_constants.dart';
 import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/services/user_service.dart';
@@ -26,21 +27,22 @@ class PedidoService {
       }
 
       var baseQuery = supabase
-          .from('pedido')
+          .from(SupabaseTables.pedido)
           .select('''
             *,
-            item_pedido!inner(iped_qtd_solicitada, item:iped_item_id(it_nome, it_unidade)),
-            usuario:ped_usuario_id(usr_nome)
+            ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade}),
+            ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
+            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})
           ''')
-          .eq('ped_setor_id', viewingSectorId);
+          .eq(PedidoFields.setorId, viewingSectorId);
 
       if (statusFilter != null) {
-        baseQuery = baseQuery.eq('ped_status', statusFilter);
+        baseQuery = baseQuery.eq(PedidoFields.status, statusFilter);
       }
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery.or(
-          'item_pedido.item.it_nome.ilike.%$searchQuery%,usuario.usr_nome.ilike.%$searchQuery%',
+          '${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
         );
       }
 
@@ -54,7 +56,7 @@ class PedidoService {
           ascending: sortParams.isAscending,
         );
       } else {
-        dataQuery = dataQuery.order('ped_data_solicitada', ascending: false);
+        dataQuery = dataQuery.order(PedidoFields.dataSolicitada, ascending: false);
       }
 
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
@@ -71,14 +73,14 @@ class PedidoService {
     }
   }
 
-  Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
+    Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
     try {
       final response = await supabase
-          .from('pedido')
+          .from(SupabaseTables.pedido)
           .select(
-            '*, item_pedido!inner(iped_qtd_solicitada, item:iped_item_id(it_nome)), usuario:ped_usuario_id(usr_nome)',
+            '*, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}), ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}), responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})',
           )
-          .eq('id', pedidoId)
+          .eq(PedidoFields.id, pedidoId)
           .single();
       return response;
     } catch (e) {

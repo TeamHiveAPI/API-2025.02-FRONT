@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
@@ -19,7 +20,6 @@ class StockItemsTable extends StatefulWidget {
 
 class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   @override
-
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
@@ -65,10 +65,12 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   }
 
   void _handleRowTap(Map<String, dynamic> itemData) {
-    final int? itemId = itemData['id'];
+    final int? itemId = itemData[ItemFields.id];
 
     if (itemId == null) {
-      print("Erro: O ID do item não pôde ser encontrado para abrir os detalhes.");
+      print(
+        "Erro: O ID do item não pôde ser encontrado para abrir os detalhes.",
+      );
       return;
     }
 

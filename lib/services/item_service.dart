@@ -1,11 +1,11 @@
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 
 class ItemService {
-
   final supabase = Supabase.instance.client;
   ItemService._privateConstructor();
   static final ItemService instance = ItemService._privateConstructor();
@@ -38,7 +38,10 @@ class ItemService {
       }
 
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
-      databaseCall = databaseCall.range(startIndex, startIndex + SystemConstants.itemsPorPagina - 1);
+      databaseCall = databaseCall.range(
+        startIndex,
+        startIndex + SystemConstants.itemsPorPagina - 1,
+      );
 
       final response = await databaseCall;
 
@@ -49,7 +52,6 @@ class ItemService {
       final totalCount = response[0]['total_count'] as int;
       final items = List<Map<String, dynamic>>.from(response);
       return PaginatedResponse(items: items, totalCount: totalCount);
-      
     } catch (e) {
       print('Erro ao buscar itens do Supabase via RPC: $e');
       return PaginatedResponse(items: [], totalCount: 0);
@@ -57,34 +59,66 @@ class ItemService {
   }
 
   Future<Map<String, dynamic>?> fetchItemById(int itemId) async {
-  try {
-    final supabase = Supabase.instance.client;
-    final response = await supabase
-        .from('item')
-        .select('''
-          *,
-          grupo:it_grupo_id(grp_nome)
-        ''')
-        .eq('id', itemId)
-        .single();
-    return response;
-  } catch (e) {
-    print('Erro ao buscar detalhes do item: $e');
-    return null;
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase
+          .rpc('buscar_detalhes_item_por_id', params: {'id_item_param': itemId})
+          .single();
+      return response;
+    } catch (e) {
+      print('Erro ao buscar detalhes do item via RPC: $e');
+      return null;
+    }
   }
-}
+
+  Future<PaginatedResponse> fetchLotesByItemId({
+    required int itemId,
+    required int page,
+    required SortParams sortParams,
+  }) async {
+    try {
+      PostgrestTransformBuilder databaseCall = supabase.rpc(
+        'buscar_lotes_por_item',
+        params: {'id_item_param': itemId},
+      );
+
+      if (sortParams.activeSortColumnDataField != null) {
+        databaseCall = databaseCall.order(
+          sortParams.activeSortColumnDataField!,
+          ascending: sortParams.isAscending,
+        );
+      }
+
+      final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
+      databaseCall = databaseCall.range(
+        startIndex,
+        startIndex + SystemConstants.itemsPorPagina - 1,
+      );
+
+      final response = await databaseCall;
+
+      if (response.isEmpty) {
+        return PaginatedResponse(items: [], totalCount: 0);
+      }
+
+      final totalCount = response[0]['total_count'] as int;
+      final items = List<Map<String, dynamic>>.from(response);
+      return PaginatedResponse(items: items, totalCount: totalCount);
+    } catch (e) {
+      print('Erro ao buscar lotes do Supabase via RPC: $e');
+      return PaginatedResponse(items: [], totalCount: 0);
+    }
+  }
 
 Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
       await supabase.rpc(
         'criar_item_com_lotes',
-        params: {
-          'payload': itemPayload,
-        },
+        params: {'payload': itemPayload},
       );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao criar item com lotes: ${e.message}');
-      throw 'Falha ao cadastrar item: ${e.message}';
+      rethrow; 
     } catch (e) {
       print('Erro desconhecido ao criar item com lotes: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
@@ -93,22 +127,25 @@ Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
 
   Future<void> updateItem(int itemId, Map<String, dynamic> itemData) async {
     try {
-      await supabase.from('item').update(itemData).eq('id', itemId);
+      await supabase.rpc(
+        'atualizar_item_e_lotes',
+        params: {'item_id_param': itemId, 'payload': itemData},
+      );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao atualizar item: ${e.message}');
-      throw 'Falha ao atualizar item: ${e.message}';
+      rethrow;
     } catch (e) {
       print('Erro desconhecido ao atualizar item: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
 
-  Future<void> deactivateItem(int itemId) async {
+Future<void> deactivateItem(int itemId) async {
     try {
       await supabase
-          .from('item')
-          .update({'it_ativo': false})
-          .eq('id', itemId);
+          .from(SupabaseTables.item)
+          .update({ItemFields.ativo: false})
+          .eq(ItemFields.id, itemId);
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao inativar item: ${e.message}');
       throw 'Falha ao inativar item: ${e.message}';

@@ -59,8 +59,8 @@ class CustomTextFormField extends StatelessWidget {
       minLines: textarea ? 3 : 1,
       maxLines: textarea ? null : 1,
       style: TextStyle(
-        color: text80,
-        fontSize: readOnly ? 16.0 : 14.0,
+        color: readOnly ? text60: text40,
+        fontSize: 16.0
       ),
       decoration: InputDecoration(
         labelText: upperLabel == null ? label : null,

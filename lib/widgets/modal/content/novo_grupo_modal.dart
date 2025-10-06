@@ -93,11 +93,10 @@ class _NewGroupModalState extends State<NewGroupModal> {
       if (viewingSectorId == null) {
         throw 'ID do setor de visualização não encontrado.';
       }
-      final payload = {
-        'grp_nome': _nameController.text,
-        'grp_setor_id': viewingSectorId,
-      };
-      await _groupService.createGroup(payload);
+      await _groupService.createGroup(
+        name: _nameController.text.trim(),
+        sectorId: viewingSectorId,
+      );
       if (mounted) {
         showCustomSnackbar(context, 'Grupo cadastrado com sucesso!');
         Navigator.of(context).pop(true);

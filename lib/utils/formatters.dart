@@ -28,7 +28,7 @@ String formatDate(dynamic date) {
     return 'Erro';
   }
 
-  final DateFormat formatter = DateFormat('dd/MM/yyyy');
+  final DateFormat formatter = DateFormat('dd/MM/yy');
   return formatter.format(dateObject);
 }
 
