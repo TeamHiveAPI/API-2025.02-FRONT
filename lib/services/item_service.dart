@@ -111,20 +111,17 @@ class ItemService {
   }
 
   Future<Map<String, dynamic>?> fetchItemByFicha(String ficha) async {
-    try {
-      final response = await supabase
-          .from(SupabaseTables.item)
-          .select()
-          .eq(ItemFields.numFicha, ficha)
-          .eq(ItemFields.ativo, true)
-          .maybeSingle();
+  try {
+    final response = await supabase
+        .rpc('buscar_item_por_ficha', params: {'p_ficha': ficha})
+        .single();
 
-      return response;
-    } catch (e) {
-      print('Erro ao buscar item pela ficha: $e');
-      return null;
-    }
+    return response;
+  } catch (e) {
+    print('Erro ao buscar item com estoque pela ficha via RPC: $e');
+    return null;
   }
+}
 
   Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
@@ -153,6 +150,27 @@ class ItemService {
     } catch (e) {
       print('Erro desconhecido ao atualizar item: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
+    }
+  }
+
+  Future<void> updateNonPerishableItemStock({
+    required int itemId,
+    required int newQuantity,
+  }) async {
+    try {
+      await supabase
+          .from('lote')
+          .update({
+            'lot_qtd_atual': newQuantity,
+          })
+          .eq('lot_item_id', itemId);
+
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao atualizar estoque: ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('Erro desconhecido ao atualizar estoque: $e');
+      throw 'Ocorreu um erro inesperado ao salvar. Tente novamente.';
     }
   }
 

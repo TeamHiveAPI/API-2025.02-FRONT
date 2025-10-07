@@ -8,6 +8,7 @@ import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/modificar_estoque_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_item_modal.dart';
+import 'package:sistema_almox/widgets/snackbar.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -45,26 +46,34 @@ class _StockScreenState extends State<StockScreen> {
     });
   }
 
-  Future<void> scanQrCodeForModification() async {
-    final String? scannedCode = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (context) => const QrPage()),
+Future<void> scanQrCodeForModification() async {
+  final String? scannedCode = await Navigator.push<String>(
+    context,
+    MaterialPageRoute(builder: (context) => const QrPage()),
+  );
+
+  if (scannedCode != null && mounted) {
+    final currentContext = context;
+
+    final result = await showCustomBottomSheet<bool>(
+      context: currentContext,
+      title: "Modificar Estoque",
+      child: ModifyStockModal(ficha: scannedCode),
     );
 
-    if (scannedCode != null && mounted) {
-      final String cleanCode = scannedCode.trim();
+    if (!mounted) return;
 
-      final result = await showCustomBottomSheet<Map<String, dynamic>>(
-        context: context,
-        title: "Modificar Estoque",
-        child: ModifyStockModal(ficha: cleanCode),
+    if (result == true) {
+      showCustomSnackbar(currentContext, 'Estoque atualizado com sucesso!');
+    } else if (result == false) {
+      showCustomSnackbar(
+        currentContext,
+        'O Nº de Ficha escaneado não pertence a nenhum item.',
+        isError: true,
       );
-
-      if (result != null) {
-        print("Navegar para a tela de edição com os dados: $result");
-      }
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

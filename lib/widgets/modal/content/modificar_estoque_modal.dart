@@ -4,6 +4,7 @@ import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
+import 'package:sistema_almox/widgets/snackbar.dart';
 
 class ModifyStockModal extends StatefulWidget {
   final String ficha;
@@ -17,6 +18,7 @@ class ModifyStockModal extends StatefulWidget {
 class _ModifyStockModalState extends State<ModifyStockModal> {
   Map<String, dynamic>? _itemData;
   bool _isLoading = true;
+  bool _isSaving = false;
   int _newQuantity = 0;
 
   final TextEditingController _quantityController = TextEditingController();
@@ -24,7 +26,9 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData();
+    });
   }
 
   @override
@@ -34,16 +38,21 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
   }
 
   Future<void> _fetchData() async {
+    if (!mounted) return;
+
     if (!_isLoading) {
       setState(() {
         _isLoading = true;
       });
     }
-
     final data = await ItemService.instance.fetchItemByFicha(widget.ficha);
 
-    if (mounted) {
-      final currentStock = data?['qtd_total'] ?? 0;
+    if (!mounted) return;
+
+    if (data == null) {
+      Navigator.of(context).pop(false);
+    } else {
+      final currentStock = data['qtd_total'] ?? 0;
       setState(() {
         _itemData = data;
         _newQuantity = currentStock;
@@ -69,19 +78,51 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
     }
   }
 
+  Future<void> _saveChanges() async {
+    if (_isSaving) return;
+
+    final navigator = Navigator.of(context);
+    final currentContext = context;
+
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final itemId = _itemData?['id'];
+      if (itemId == null) throw 'ID do item não encontrado!';
+
+      await ItemService.instance.updateNonPerishableItemStock(
+        itemId: itemId,
+        newQuantity: _newQuantity,
+      );
+
+      if (!mounted) return;
+
+      navigator.pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      showCustomSnackbar(
+        currentContext,
+        'Erro ao salvar: ${e.toString()}',
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget content;
-    if (!_isLoading && _itemData == null) {
-      content = _buildErrorState();
-    } else {
-      content = _buildSuccessState();
-    }
-
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
-      child: content,
+      child: _buildSuccessState(),
     );
   }
 
@@ -113,7 +154,7 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
           children: [
             _buildStepperButton(
               icon: Icons.remove,
-              onTap: _isLoading ? null : _decrementQuantity,
+              onTap: (_isLoading || _isSaving) ? null : _decrementQuantity,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -125,7 +166,7 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
                 ),
                 child: TextField(
                   controller: _quantityController,
-                  enabled: !_isLoading,
+                  enabled: !(_isLoading || _isSaving),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20,
@@ -153,22 +194,15 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
             const SizedBox(width: 8),
             _buildStepperButton(
               icon: Icons.add,
-              onTap: _isLoading ? null : _incrementQuantity,
+              onTap: (_isLoading || _isSaving) ? null : _incrementQuantity,
             ),
           ],
         ),
         const SizedBox(height: 24),
         CustomButton(
-          isLoadingInitialContent: _isLoading,
+          isLoading: _isSaving,
           text: 'Salvar Alteração',
-          onPressed: _isLoading
-              ? null
-              : () {
-                  Navigator.pop(context, {
-                    'item': _itemData,
-                    'newQuantity': _newQuantity,
-                  });
-                },
+          onPressed: (_isLoading || _isSaving) ? null : _saveChanges,
         ),
       ],
     );
@@ -189,27 +223,6 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
         ),
         child: Icon(icon, color: brandBlue),
       ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.error_outline, color: Colors.red.shade400, size: 48),
-        const SizedBox(height: 16),
-        const Text(
-          'Item não encontrado',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 24),
-        CustomButton(
-          text: 'Escanear Novamente',
-          onPressed: _fetchData,
-          widthPercent: 1.0,
-        ),
-      ],
     );
   }
 }
