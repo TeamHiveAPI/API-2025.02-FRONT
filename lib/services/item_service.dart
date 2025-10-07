@@ -110,7 +110,23 @@ class ItemService {
     }
   }
 
-Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
+  Future<Map<String, dynamic>?> fetchItemByFicha(String ficha) async {
+    try {
+      final response = await supabase
+          .from(SupabaseTables.item)
+          .select()
+          .eq(ItemFields.numFicha, ficha)
+          .eq(ItemFields.ativo, true)
+          .maybeSingle();
+
+      return response;
+    } catch (e) {
+      print('Erro ao buscar item pela ficha: $e');
+      return null;
+    }
+  }
+
+  Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
       await supabase.rpc(
         'criar_item_com_lotes',
@@ -118,7 +134,7 @@ Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
       );
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao criar item com lotes: ${e.message}');
-      rethrow; 
+      rethrow;
     } catch (e) {
       print('Erro desconhecido ao criar item com lotes: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
@@ -140,7 +156,7 @@ Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     }
   }
 
-Future<void> deactivateItem(int itemId) async {
+  Future<void> deactivateItem(int itemId) async {
     try {
       await supabase
           .from(SupabaseTables.item)

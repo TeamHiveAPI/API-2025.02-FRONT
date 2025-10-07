@@ -5,6 +5,8 @@ import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/stock_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/modificar_estoque_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_item_modal.dart';
 
 class StockScreen extends StatefulWidget {
@@ -43,6 +45,27 @@ class _StockScreenState extends State<StockScreen> {
     });
   }
 
+  Future<void> scanQrCodeForModification() async {
+    final String? scannedCode = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (context) => const QrPage()),
+    );
+
+    if (scannedCode != null && mounted) {
+      final String cleanCode = scannedCode.trim();
+
+      final result = await showCustomBottomSheet<Map<String, dynamic>>(
+        context: context,
+        title: "Modificar Estoque",
+        child: ModifyStockModal(ficha: cleanCode),
+      );
+
+      if (result != null) {
+        print("Navegar para a tela de edição com os dados: $result");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userService = UserService.instance;
@@ -62,7 +85,10 @@ class _StockScreenState extends State<StockScreen> {
               icon: Icons.add,
               widthPercent: 1.0,
               onPressed: () {
-                showNewStockItemModal(context);
+                showNewStockItemModal(
+                  context,
+                  onScanForModification: scanQrCodeForModification,
+                );
               },
             ),
             const SizedBox(height: 24),

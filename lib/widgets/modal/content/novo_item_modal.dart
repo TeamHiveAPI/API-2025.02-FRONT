@@ -4,7 +4,10 @@ import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 
-void showNewStockItemModal(BuildContext context) {
+void showNewStockItemModal(
+  BuildContext context, {
+  required Future<void> Function() onScanForModification,
+}) {
   showCustomBottomSheet(
     context: context,
     title: 'Escolha uma Ação',
@@ -29,7 +32,10 @@ void showNewStockItemModal(BuildContext context) {
             borderRadius: BorderRadius.circular(8),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                onScanForModification();
+              },
               highlightColor: Colors.black.withAlpha(20),
               splashColor: Colors.black.withAlpha(20),
               child: IntrinsicHeight(
