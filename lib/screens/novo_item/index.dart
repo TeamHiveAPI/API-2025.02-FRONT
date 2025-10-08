@@ -13,6 +13,7 @@ import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/lot_input_row.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/item_multi_cadastro.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
@@ -110,7 +111,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
       _formHandler.lotControllers.clear();
 
       for (final lote in lotesData) {
-        final lotController = LotFieldControllers(
+        final lotController = LotController(
           id: lote['id'],
           codigoLote: lote['codigo'],
           initialQuantity: lote['qtd_atual']?.toString() ?? '0',
@@ -128,41 +129,40 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Map<String, dynamic> _buildItemPayload() {
-    final payload = {
-      'nome': _formHandler.nameController.text.trim(),
-      'num_ficha': _formHandler.recordNumberController.text.trim(),
-      'unidade': _formHandler.unitOfMeasureController.text.trim(),
-      'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
-      'id_grupo': _formHandler.selectedGroupId,
-      'perecivel': _formHandler.isPerishable,
-      'ativo': true,
-    };
+  final payload = {
+    'nome': _formHandler.nameController.text.trim(),
+    'num_ficha': _formHandler.recordNumberController.text.trim(),
+    'unidade': _formHandler.unitOfMeasureController.text.trim(),
+    'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
+    'id_grupo': _formHandler.selectedGroupId,
+    'perecivel': _formHandler.isPerishable,
+    'ativo': true,
+  };
 
-    if (viewingSectorId == 2) {
-      payload['controlado'] = _formHandler.isControlled;
-    }
-
-    if (_formHandler.isPerishable) {
-      payload['lotes'] = _formHandler.lotControllers.map((loteCtrl) {
-        return {
-          'id': loteCtrl.id,
-          'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
-          'data_validade': loteCtrl.dateController.text,
-          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
-        };
-      }).toList();
-    } else {
-      payload['lotes'] = [
-        {
-          'qtd_atual':
-              int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
-          'data_validade': null,
-          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
-        },
-      ];
-    }
-    return payload;
+  if (viewingSectorId == 2) {
+    payload['controlado'] = _formHandler.isControlled;
   }
+
+  if (_formHandler.isPerishable) {
+    payload['lotes'] = _formHandler.lotControllers.map((LotController loteCtrl) {
+      return {
+        'id': loteCtrl.id,
+        'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
+        'data_validade': loteCtrl.dateController.text,
+        'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+      };
+    }).toList();
+  } else {
+    payload['lotes'] = [
+      {
+        'qtd_atual': int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
+        'data_validade': null,
+        'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+      },
+    ];
+  }
+  return payload;
+}
 
   void _showMultiRegisterModal() async {
     final result = await showCustomBottomSheet(
@@ -549,21 +549,21 @@ class _NewItemScreenState extends State<NewItemScreen> {
                         ),
                       const SizedBox(height: 24),
                       LotManagementSection(
-                        initialIsPerishable: isEditMode
-                            ? _formHandler.isPerishable
-                            : false,
+                        initialIsPerishable: _formHandler.isPerishable,
                         initialLotes: isEditMode
                             ? _formHandler.lotControllers
                             : null,
                         onChanged: (isPerishable, lotControllers) {
                           setState(() {
                             _formHandler.isPerishable = isPerishable;
-                            _formHandler.lotControllers = lotControllers;
 
                             for (var lot in _formHandler.lotControllers) {
                               lot.quantityController.removeListener(
                                 _updateTotalQuantity,
                               );
+                            }
+                            _formHandler.lotControllers = lotControllers;
+                            for (var lot in _formHandler.lotControllers) {
                               lot.quantityController.addListener(
                                 _updateTotalQuantity,
                               );
