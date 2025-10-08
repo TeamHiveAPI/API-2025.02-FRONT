@@ -67,8 +67,8 @@ class NewOrderScreenState extends State<NewOrderScreen> {
           'id': item[ItemFields.id],
           'itemName': item[ItemFields.nome],
           'unidMedida': item[ItemFields.unidade],
-          'qtdDisponivel': item['qtd_disponivel'] ?? 0, // Quantidade calculada pelos lotes
-          'qtdReservada': item[ItemFields.qtdReservada] ?? 0,
+          'qtdDisponivel': item['qtd_atual'] ?? 0,
+          'qtdReservada': item['total_count'] ?? 0,
         }).toList();
         
         itemNamesForSuggestions = inventory
@@ -197,7 +197,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                         unit: _formHandler.selectedItem?['unidMedida'],
                         requested: _formHandler.quantityController.text,
                         available: _formHandler.selectedItem != null
-                            ? '${_formHandler.selectedItem!['quantity'] - _formHandler.selectedItem!['qtdReservada']} ${_formHandler.selectedItem!['unidMedida']}'
+                            ? '${(_formHandler.selectedItem!['qtdDisponivel'] as int? ?? 0) - (_formHandler.selectedItem!['qtdReservada'] as int? ?? 0)} ${_formHandler.selectedItem!['unidMedida']}'
                             : null,
                       ),
                       const SizedBox(height: 24),

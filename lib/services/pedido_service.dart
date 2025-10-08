@@ -113,7 +113,7 @@ class PedidoService {
 
       final itemResponse = await supabase
           .from(SupabaseTables.item)
-          .select('${ItemFields.grupoId}, ${ItemFields.qtdReservada}, ${ItemFields.nome}')
+          .select('${ItemFields.grupoId}, ${ItemFields.nome}')
           .eq(ItemFields.id, itemId)
           .eq(ItemFields.ativo, true)
           .single();
@@ -264,7 +264,7 @@ class PedidoService {
           .from(SupabaseTables.pedido)
           .select('''
             *,
-            ${SupabaseTables.itemPedido}!inner(${ItemPedidoFields.qtdSolicitada}, ${ItemPedidoFields.loteRetiradoId}, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade}, ${ItemFields.qtdReservada})),
+            ${SupabaseTables.itemPedido}!inner(${ItemPedidoFields.qtdSolicitada}, ${ItemPedidoFields.loteRetiradoId}, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})),
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}, ${UsuarioFields.nivelAcesso})
           ''')
           .eq(PedidoFields.id, pedidoId)

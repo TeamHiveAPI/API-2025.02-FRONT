@@ -45,19 +45,19 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: '${SupabaseTables.itemPedido}.0.${SupabaseTables.item}.${ItemFields.nome}',
+      dataField: 'item_nome',
       widthFactor: 0.55,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
-      dataField: '${SupabaseTables.itemPedido}.0.${ItemPedidoFields.qtdSolicitada}',
+      dataField: 'qtd_solicitada',
       widthFactor: 0.2,
       sortType: SortType.numeric,
     ),
     TableColumn(
       title: 'Status',
-      dataField: PedidoFields.status,
+      dataField: 'status_descricao',
       widthFactor: 0.25,
       sortType: SortType.alphabetic,
       cellBuilder: (value) {

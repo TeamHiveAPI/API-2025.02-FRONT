@@ -25,7 +25,7 @@ class ItemService {
       PostgrestTransformBuilder databaseCall = supabase.rpc(
         'buscar_itens_por_setor',
         params: {
-          'setor_id_param': viewingSectorId,
+          'id_setor_param': viewingSectorId,
           'search_query_param': searchQuery ?? '',
         },
       );

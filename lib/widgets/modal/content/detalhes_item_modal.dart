@@ -88,15 +88,15 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     }
 
     final itemDataForButtons = _itemData ?? {};
-    final nome = _itemData?[ItemFields.nome] ?? '';
-    final numFicha = _itemData?[ItemFields.numFicha]?.toString() ?? '';
-    final unidMedida = _itemData?[ItemFields.unidade] ?? '';
-    final qtdDisponivel = 0; // Quantidade agora é calculada pelos lotes
-    final qtdReservada = _itemData?[ItemFields.qtdReservada] ?? 0;
-    final grupo = _itemData?[SupabaseTables.grupo]?[GrupoFields.nome] ?? '';
-    final controlado = _itemData?[ItemFields.controlado];
-    final itemSectorId = 0; // Setor agora é obtido via grupo
-    final isPerecivel = _itemData?[ItemFields.perecivel] ?? false;
+    final nome = _itemData?['nome'] ?? '';
+    final numFicha = _itemData?['num_ficha']?.toString() ?? '';
+    final unidMedida = _itemData?['unidade'] ?? '';
+    final qtdDisponivel = _itemData?['qtd_total'] ?? 0;
+    final qtdReservada = _itemData?['qtd_reservada'] ?? 0;
+    final grupo = _itemData?['grupo']?['nome'] ?? '';
+    final controlado = _itemData?['controlado'];
+    final itemSectorId = _itemData?['grupo']?['id_setor'] ?? 0;
+    final isPerecivel = _itemData?['perecivel'] ?? false;
     final isPharmacyItem = itemSectorId == 2;
 
     final bool hasExpired = _hasExpiredLots();
