@@ -27,14 +27,12 @@ void showCustomSnackbar(
               color: Colors.transparent,
               child: Container(
                 width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16.0,
+                  horizontal: 24.0,
+                  vertical: 28.0,
                 ),
                 decoration: BoxDecoration(
                   color: isError ? deleteRed : successGreen,
-                  borderRadius: BorderRadius.circular(4.0),
                   boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
