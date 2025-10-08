@@ -6,60 +6,43 @@ import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
-class ModifyStockModal extends StatefulWidget {
-  final String ficha;
-
-  const ModifyStockModal({super.key, required this.ficha});
+class ModifyNonPerishableStockModal extends StatefulWidget {
+  final Map<String, dynamic> itemData;
+  const ModifyNonPerishableStockModal({super.key, required this.itemData});
 
   @override
-  State<ModifyStockModal> createState() => _ModifyStockModalState();
+  State<ModifyNonPerishableStockModal> createState() =>
+      _ModifyNonPerishableStockModalState();
 }
 
-class _ModifyStockModalState extends State<ModifyStockModal> {
+class _ModifyNonPerishableStockModalState
+    extends State<ModifyNonPerishableStockModal> {
   Map<String, dynamic>? _itemData;
-  bool _isLoading = true;
   bool _isSaving = false;
   int _newQuantity = 0;
+  int? _lotId;
 
   final TextEditingController _quantityController = TextEditingController();
 
   @override
+  @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData();
-    });
+    _itemData = widget.itemData;
+    final currentStock = _itemData?['qtd_total'] ?? 0;
+    _newQuantity = currentStock;
+    _quantityController.text = _newQuantity.toString();
+
+    final lotes = _itemData!['lotes'] as List?;
+    if (lotes != null && lotes.isNotEmpty) {
+      _lotId = lotes[0]['id'];
+    }
   }
 
   @override
   void dispose() {
     _quantityController.dispose();
     super.dispose();
-  }
-
-  Future<void> _fetchData() async {
-    if (!mounted) return;
-
-    if (!_isLoading) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
-    final data = await ItemService.instance.fetchItemByFicha(widget.ficha);
-
-    if (!mounted) return;
-
-    if (data == null) {
-      Navigator.of(context).pop(false);
-    } else {
-      final currentStock = data['qtd_total'] ?? 0;
-      setState(() {
-        _itemData = data;
-        _newQuantity = currentStock;
-        _quantityController.text = _newQuantity.toString();
-        _isLoading = false;
-      });
-    }
   }
 
   void _incrementQuantity() {
@@ -79,43 +62,51 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
   }
 
   Future<void> _saveChanges() async {
-    if (_isSaving) return;
+  if (_isSaving) return;
 
-    final navigator = Navigator.of(context);
-    final currentContext = context;
+  final navigator = Navigator.of(context);
+  final currentContext = context;
 
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _isSaving = true;
-    });
+  FocusScope.of(context).unfocus();
+  setState(() {
+    _isSaving = true;
+  });
 
-    try {
-      final itemId = _itemData?['id'];
-      if (itemId == null) throw 'ID do item não encontrado!';
+  try {
+    final itemId = _itemData?['id'];
+    if (itemId == null) throw 'ID do item não encontrado.';
 
-      await ItemService.instance.updateNonPerishableItemStock(
-        itemId: itemId,
-        newQuantity: _newQuantity,
-      );
+    final Map<String, dynamic> payload = {
+      'lotes': [
+        {
+          'id': _lotId,
+          'qtd_atual': _newQuantity,
+          'data_validade': null,
+          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+        }
+      ]
+    };
 
-      if (!mounted) return;
+    await ItemService.instance.updateItem(itemId, payload);
 
-      navigator.pop(true);
-    } catch (e) {
-      if (!mounted) return;
-      showCustomSnackbar(
-        currentContext,
-        'Erro ao salvar: ${e.toString()}',
-        isError: true,
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-      }
+    if (!mounted) return;
+
+    navigator.pop(true);
+  } catch (e) {
+    if (!mounted) return;
+    showCustomSnackbar(
+      currentContext,
+      'Erro ao salvar: ${e.toString()}',
+      isError: true,
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -135,18 +126,14 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DetailItemCard(
-          isLoading: _isLoading,
-          label: "Nº DA FICHA E NOME",
-          value: displayValue,
-        ),
+        DetailItemCard(label: "Nº DA FICHA E NOME", value: displayValue),
         const SizedBox(height: 24),
         const Text(
           "NOVA QUANTIDADE",
           style: TextStyle(
             color: Colors.grey,
             fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
@@ -154,7 +141,7 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
           children: [
             _buildStepperButton(
               icon: Icons.remove,
-              onTap: (_isLoading || _isSaving) ? null : _decrementQuantity,
+              onTap: _isSaving ? null : _decrementQuantity,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -166,7 +153,7 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
                 ),
                 child: TextField(
                   controller: _quantityController,
-                  enabled: !(_isLoading || _isSaving),
+                  enabled: !_isSaving,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20,
@@ -194,7 +181,7 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
             const SizedBox(width: 8),
             _buildStepperButton(
               icon: Icons.add,
-              onTap: (_isLoading || _isSaving) ? null : _incrementQuantity,
+              onTap: _isSaving ? null : _incrementQuantity,
             ),
           ],
         ),
@@ -202,7 +189,7 @@ class _ModifyStockModalState extends State<ModifyStockModal> {
         CustomButton(
           isLoading: _isSaving,
           text: 'Salvar Alteração',
-          onPressed: (_isLoading || _isSaving) ? null : _saveChanges,
+          onPressed: _isSaving ? null : _saveChanges,
         ),
       ],
     );

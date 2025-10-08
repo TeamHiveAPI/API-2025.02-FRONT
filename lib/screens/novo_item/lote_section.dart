@@ -1,37 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
-import 'package:sistema_almox/widgets/inputs/text_field.dart';
+import 'package:sistema_almox/widgets/lot_input_row.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
-
-class LotFieldControllers {
-  final int? id;
-  final String? codigoLote;
-  final TextEditingController quantityController;
-  final TextEditingController dateController;
-
-  LotFieldControllers({
-    this.id,
-    this.codigoLote,
-    String? initialQuantity,
-    String? initialDate,
-  }) : quantityController = TextEditingController(text: initialQuantity),
-       dateController = TextEditingController(text: initialDate);
-
-  void dispose() {
-    quantityController.dispose();
-    dateController.dispose();
-  }
-}
+import 'package:intl/intl.dart';
 
 class LotManagementSection extends StatefulWidget {
-  final void Function(bool isPerishable, List<LotFieldControllers> lots)
-  onChanged;
-
+  final void Function(bool isPerishable, List<LotController> lots) onChanged;
   final bool initialIsPerishable;
-  final List<LotFieldControllers>? initialLotes;
+  final List<LotController>? initialLotes;
 
   const LotManagementSection({
     super.key,
@@ -46,7 +23,7 @@ class LotManagementSection extends StatefulWidget {
 
 class _LotManagementSectionState extends State<LotManagementSection> {
   bool _isPerishable = false;
-  final List<LotFieldControllers> _lotControllers = [];
+  final List<LotController> _lotControllers = [];
 
   @override
   void initState() {
@@ -84,7 +61,7 @@ class _LotManagementSectionState extends State<LotManagementSection> {
 
   void _addLot() {
     setState(() {
-      _lotControllers.add(LotFieldControllers());
+      _lotControllers.add(LotController(initialQuantity: '', initialDate: ''));
     });
     widget.onChanged(_isPerishable, _lotControllers);
   }
@@ -105,9 +82,7 @@ class _LotManagementSectionState extends State<LotManagementSection> {
       lastDate: DateTime(2101),
     );
     if (pickedDate != null) {
-      String formattedDate =
-          "${pickedDate.year.toString().padLeft(4, '0')}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-      controller.text = formattedDate;
+      controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
     }
   }
 
@@ -142,7 +117,6 @@ class _LotManagementSectionState extends State<LotManagementSection> {
             ),
           ],
         ),
-
         if (_isPerishable)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,7 +136,12 @@ class _LotManagementSectionState extends State<LotManagementSection> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _lotControllers.length,
                 itemBuilder: (context, index) {
-                  return _buildLotInputRow(index);
+                  return LotInputRow(
+                    index: index,
+                    lot: _lotControllers[index],
+                    onRemove: () => _removeLot(index),
+                    onSelectDate: _selectDate,
+                  );
                 },
               ),
               const SizedBox(height: 12),
@@ -179,77 +158,6 @@ class _LotManagementSectionState extends State<LotManagementSection> {
             ],
           ),
       ],
-    );
-  }
-
-  Widget _buildLotInputRow(int index) {
-    final lot = _lotControllers[index];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 18.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: CustomTextFormField(
-                    upperLabel: 'LOTE ${index + 1}',
-                    hintText: 'QTD',
-                    controller: lot.quantityController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Obrigatório' : null,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 3,
-                  child: CustomTextFormField(
-                    upperLabel: '',
-                    hintText: 'Validade',
-                    controller: lot.dateController,
-                    onTap: () => _selectDate(lot.dateController),
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Obrigatório' : null,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: SvgPicture.asset('assets/icons/calendar.svg'),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Padding(
-                  padding: const EdgeInsets.only(top: 30.0),
-                  child: CustomButton(
-                    icon: Icons.remove_circle_outline,
-                    squareMode: true,
-                    danger: true,
-                    secondary: true,
-                    onPressed: () => _removeLot(index),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Positioned(
-            top: 22,
-            right: 0,
-            child: Text(
-              lot.codigoLote ?? 'NOVO LOTE',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: lot.codigoLote != null ? text80 : successGreen,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -73,8 +73,8 @@ class ItemService {
 
   Future<PaginatedResponse> fetchLotesByItemId({
     required int itemId,
-    required int page,
-    required SortParams sortParams,
+    int? page,
+    SortParams? sortParams,
   }) async {
     try {
       PostgrestTransformBuilder databaseCall = supabase.rpc(
@@ -82,18 +82,20 @@ class ItemService {
         params: {'id_item_param': itemId},
       );
 
-      if (sortParams.activeSortColumnDataField != null) {
+      if (sortParams != null && sortParams.activeSortColumnDataField != null) {
         databaseCall = databaseCall.order(
           sortParams.activeSortColumnDataField!,
           ascending: sortParams.isAscending,
         );
       }
 
-      final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
-      databaseCall = databaseCall.range(
-        startIndex,
-        startIndex + SystemConstants.itemsPorPagina - 1,
-      );
+      if (page != null) {
+        final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
+        databaseCall = databaseCall.range(
+          startIndex,
+          startIndex + SystemConstants.itemsPorPagina - 1,
+        );
+      }
 
       final response = await databaseCall;
 
@@ -111,17 +113,17 @@ class ItemService {
   }
 
   Future<Map<String, dynamic>?> fetchItemByFicha(String ficha) async {
-  try {
-    final response = await supabase
-        .rpc('buscar_item_por_ficha', params: {'p_ficha': ficha})
-        .single();
+    try {
+      final response = await supabase
+          .rpc('buscar_item_por_ficha', params: {'p_ficha': ficha})
+          .single();
 
-    return response;
-  } catch (e) {
-    print('Erro ao buscar item com estoque pela ficha via RPC: $e');
-    return null;
+      return response;
+    } catch (e) {
+      print('Erro ao buscar item com estoque pela ficha via RPC: $e');
+      return null;
+    }
   }
-}
 
   Future<void> createItemWithLots(Map<String, dynamic> itemPayload) async {
     try {
@@ -160,11 +162,8 @@ class ItemService {
     try {
       await supabase
           .from('lote')
-          .update({
-            'lot_qtd_atual': newQuantity,
-          })
+          .update({'lot_qtd_atual': newQuantity})
           .eq('lot_item_id', itemId);
-
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao atualizar estoque: ${e.message}');
       rethrow;
