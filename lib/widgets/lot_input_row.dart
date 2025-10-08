@@ -57,6 +57,15 @@ class LotInputRow extends StatelessWidget {
                     upperLabel: 'LOTE ${index + 1}',
                     hintText: 'QTD',
                     controller: lot.quantityController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Obrigatório';
+                      }
+                      if ((int.tryParse(value) ?? 0) <= 0) {
+                        return 'Inválido';
+                      }
+                      return null;
+                    },
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
@@ -68,6 +77,12 @@ class LotInputRow extends StatelessWidget {
                     upperLabel: '',
                     hintText: 'Validade',
                     controller: lot.dateController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Obrigatório';
+                      }
+                      return null;
+                    },
                     onTap: () => onSelectDate(lot.dateController),
                     prefixIcon: Padding(
                       padding: const EdgeInsets.all(12.0),

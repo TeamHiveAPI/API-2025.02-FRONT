@@ -19,6 +19,8 @@ class _ModifyPerishableStockModalState
     extends State<ModifyPerishableStockModal> {
   Map<String, dynamic>? _itemData;
   bool _isSaving = false;
+  final _formKey = GlobalKey<FormState>();
+  bool _hasSubmitted = false;
 
   final List<LotController> _lotControllers = [];
 
@@ -56,6 +58,14 @@ class _ModifyPerishableStockModalState
 
   Future<void> _saveChanges() async {
     if (_isSaving) return;
+
+    setState(() {
+      _hasSubmitted = true;
+    });
+
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
 
     final navigator = Navigator.of(context);
     final currentContext = context;
@@ -146,17 +156,14 @@ class _ModifyPerishableStockModalState
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DetailItemCard(
-          label: "Nº DA FICHA E NOME",
-          value: displayValue,
-        ),
+        DetailItemCard(label: "Nº DA FICHA E NOME", value: displayValue),
         const SizedBox(height: 20),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 300),
-            child: Scrollbar(
-              child: SingleChildScrollView(child: _buildPerishableSection()),
-            ),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 300),
+          child: Scrollbar(
+            child: SingleChildScrollView(child: _buildPerishableSection()),
           ),
+        ),
         if (_lotControllers.length > 2) const SizedBox(height: 20),
         Row(
           children: [
@@ -165,7 +172,7 @@ class _ModifyPerishableStockModalState
                 isLoading: _isSaving,
                 icon: Icons.add,
                 text: 'Salvar',
-                onPressed:  _isSaving ? null : _saveChanges,
+                onPressed: _isSaving ? null : _saveChanges,
               ),
             ),
             const SizedBox(width: 20),
@@ -174,7 +181,7 @@ class _ModifyPerishableStockModalState
                 icon: Icons.add,
                 text: "Novo lote",
                 secondary: true,
-                onPressed:  _isSaving ? null : _addLot,
+                onPressed: _isSaving ? null : _addLot,
               ),
             ),
           ],
@@ -184,31 +191,38 @@ class _ModifyPerishableStockModalState
   }
 
   Widget _buildPerishableSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'LISTA DE LOTES',
-          style: TextStyle(
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+    return Form(
+      key: _formKey,
+      autovalidateMode: _hasSubmitted
+          ? AutovalidateMode.onUserInteraction
+          : AutovalidateMode.disabled,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'LISTA DE LOTES',
+            style: TextStyle(
+              color: Colors.grey,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _lotControllers.length,
-          itemBuilder: (context, index) {
-            return LotInputRow(
-              index: index,
-              lot: _lotControllers[index],
-              onRemove: () => _removeLot(index),
-              onSelectDate: _selectDate,
-            );
-          },
-        ),
-      ],
+          const SizedBox(height: 16),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _lotControllers.length,
+            itemBuilder: (context, index) {
+              return LotInputRow(
+                index: index,
+                lot: _lotControllers[index],
+                onRemove: () => _removeLot(index),
+                onSelectDate: _selectDate,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
