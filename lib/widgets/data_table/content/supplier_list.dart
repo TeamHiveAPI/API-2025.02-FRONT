@@ -1,0 +1,109 @@
+import 'package:flutter/material.dart';
+import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/services/supplier_service.dart';
+import 'package:sistema_almox/utils/table_handler_mixin.dart';
+import 'package:sistema_almox/widgets/data_table/json_table.dart';
+import 'package:sistema_almox/widgets/data_table/table_column.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_supplier_modal.dart'; 
+
+class SupplierList extends StatefulWidget {
+  final String? searchQuery;
+  final UserRole? userRole;
+
+  const SupplierList({super.key, this.searchQuery, this.userRole});
+
+  @override
+  State<SupplierList> createState() => _SupplierListState();
+}
+
+class _SupplierListState extends State<SupplierList> with TableHandler {
+  @override
+  List<TableColumn> get tableColumns => [
+        TableColumn(
+          title: 'Nome do fornecedor',
+          dataField: 'nome',  // Ajustado para nomes de campos reais
+          widthFactor: 0.4,
+          sortType: SortType.alphabetic,
+        ),
+        TableColumn(
+          title: 'CNPJ',
+          dataField: 'cnpj',
+          widthFactor: 0.3,
+          sortType: SortType.alphabetic,
+        ),
+        TableColumn(
+          title: 'Contato',
+          dataField: 'contato',
+          widthFactor: 0.3,
+          sortType: SortType.alphabetic,
+        ),
+      ];
+
+  @override
+  Future<PaginatedResponse> performFetch(
+    int page,
+    SortParams sortParams,
+    String? searchQuery,
+  ) {
+    return SupplierService.instance.fetchSuppliers(
+      page: page,
+      sortParams: sortParams,
+      searchQuery: searchQuery,
+      userRole: widget.userRole!,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initTableHandler(initialSearchQuery: widget.searchQuery ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant SupplierList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      onSearchQueryChanged(widget.searchQuery ?? '');
+    }
+  }
+
+  void _handleRowTap(Map<String, dynamic> supplierData) {
+    final int? supplierId = supplierData['id'];  // Ajustado para 'id'
+
+    if (supplierId == null) {
+      print("Erro: O ID do fornecedor não pôde ser encontrado para abrir os detalhes.");
+      return;
+    }
+
+    showCustomBottomSheet(
+      context: context,
+      title: "Detalhes do fornecedor",
+      child: DetalhesSupplierModal(supplierId: supplierId),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool showSkeleton = isLoading && loadedItems.isEmpty;
+    final List<Map<String, dynamic>> displayData = showSkeleton
+        ? List.generate(8, (_) => {})
+        : loadedItems;
+
+    return DynamicJsonTable(
+      jsonData: displayData,
+      columns: tableColumns,
+      isLoading: isLoading,
+      showSkeleton: showSkeleton,
+      totalResults: totalItems,
+      canLoadMore: hasMore,
+      onRowTap: showSkeleton ? null : _handleRowTap,
+      onLoadMore: loadMoreData,
+      onSort: handleSort,
+      activeSortColumnDataField: activeSortColumnDataField,
+      isAscending: isAscending,
+      thisOrThatState: thisOrThatState,
+    );
+  }
+}

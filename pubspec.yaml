@@ -23,6 +23,7 @@ dependencies:
   cached_network_image: ^3.3.1
   file_picker: ^8.0.0+1
   csv: ^6.0.0 
+  postgrest: ^2.5.0
 
 
 dev_dependencies:
