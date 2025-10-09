@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/screens/novo_item/lote_section.dart';
+import 'package:sistema_almox/widgets/lot_input_row.dart';
 
 class ItemGroup {
   final int id;
@@ -22,7 +22,7 @@ class RegisterItemFormHandler {
   int? selectedGroupId;
   bool isControlled = false;
   bool isPerishable = false;
-  List<LotFieldControllers> lotControllers = [];
+  List<LotController> lotControllers = [];
 
   void dispose() {
     nameController.dispose();
