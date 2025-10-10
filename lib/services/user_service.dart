@@ -49,8 +49,7 @@ class UserService with ChangeNotifier {
     try {
       final userData = await supabase
           .from(SupabaseTables.usuario)
-          .select(
-            '''
+          .select('''
               ${UsuarioFields.id},
               ${UsuarioFields.nome},
               ${UsuarioFields.email},
@@ -59,8 +58,7 @@ class UserService with ChangeNotifier {
               ${UsuarioFields.setorId},
               ${UsuarioFields.authUid},
               ${UsuarioFields.fotoUrl}
-            ''',
-          )
+            ''')
           .eq(UsuarioFields.authUid, userId)
           .single();
 
@@ -214,6 +212,24 @@ class UserService with ChangeNotifier {
   }
 
   Future<String>? _cachedAvatarUrlFuture;
+
+  Future<Map<String, dynamic>> fetchLieutenant({
+    required int accessLevel,
+    required int sectorId,
+  }) async {
+    try {
+      final data = await supabase
+          .from('usuario')
+          .select('id, usr_nome, usr_foto_url, usr_ultima_modificacao')
+          .eq('usr_nivel_acesso', accessLevel)
+          .eq('usr_setor_id', sectorId)
+          .single();
+      return data;
+    } catch (e) {
+      print('Erro ao buscar tenente: $e');
+      throw Exception('Não foi possível carregar os dados do usuário.');
+    }
+  }
 
   Future<String> getSignedAvatarUrl() {
     if (_currentUser == null ||
