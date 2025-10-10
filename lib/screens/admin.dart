@@ -1,26 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/widgets/cards/admin_header.dart';
+import 'package:sistema_almox/widgets/cards/management.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40.0),
-      color: Colors.white,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 40.0),
+            const AdminHeaderCard(),
 
-      width: double.infinity,
-      height: double.infinity,
+            const Spacer(),
 
-      child: const Center(
-        child: Text(
-          'Página Admin',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: text40,
-          ),
+            ManagementCard(
+              iconPath: "assets/icons/users.svg",
+              name: 'Usuários',
+              description: 'Atualize informações dos usuários do sistema',
+              onPressed: () {
+                print('Card de Usuários pressionado!');
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            ManagementCard(
+              iconPath: "assets/icons/groups.svg",
+              name: 'Grupos',
+              description: 'Gerencie os grupos de itens de cada setor',
+              onPressed: () {
+                print('Card de Grupos pressionado!');
+              },
+            ),
+            const SizedBox(height: 16),
+
+            ManagementCard(
+              iconPath: "assets/icons/suppliers.svg",
+              name: 'Fornecedores',
+              description:
+                  'Gerencie os fornecedores dos pedidos',
+              onPressed: () {
+                print('Card de Fornecedores pressionado!');
+              },
+            ),
+
+            const SizedBox(height: 20.0),
+          ],
         ),
       ),
     );
