@@ -92,8 +92,7 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
                         final signedUrl = snapshot.data ?? '';
 
                         return CachedNetworkImage(
-                          imageUrl:
-                              signedUrl,
+                          imageUrl: signedUrl,
                           fit: BoxFit.cover,
                           placeholder: (context, url) =>
                               const ShimmerPlaceholder.circle(radius: 40),
@@ -116,17 +115,24 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
         DetailItemCard(
           label: "NOME",
           value: formatName(nome),
+          copyButton: true,
           isLoading: _isLoading,
         ),
         const SizedBox(height: 12),
         DetailItemCard(
           label: "CPF",
           value: formatCPF(cpf),
+          copyButton: true,
           isLoading: _isLoading,
         ),
         const SizedBox(height: 12),
 
-        DetailItemCard(label: "EMAIL", value: email, isLoading: _isLoading),
+        DetailItemCard(
+          label: "EMAIL",
+          value: email,
+          copyButton: true,
+          isLoading: _isLoading,
+        ),
         const SizedBox(height: 12),
         DetailItemCard(label: "CARGO", value: cargoNome, isLoading: _isLoading),
 
