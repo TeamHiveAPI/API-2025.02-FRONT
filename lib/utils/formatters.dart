@@ -39,8 +39,8 @@ String formatCPF(String cpf) {
 }
 
 
-String formatName(String fullName) {
-  if (fullName.trim().isEmpty) {
+String formatName(dynamic fullName) {
+  if (fullName is! String || fullName.trim().isEmpty) {
     return '';
   }
 
