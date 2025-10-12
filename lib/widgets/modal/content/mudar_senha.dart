@@ -38,12 +38,6 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
   }
 
   void _validatePasswordOnType() {
-    if (_hasSubmitted) {
-      setState(() {
-        _hasSubmitted = false;
-      });
-    }
-
     final password = _passwordController.text;
     setState(() {
       _hasSixChars = password.length >= 6;
@@ -113,26 +107,24 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
           const Text(
             'Para a sua segurança, crie uma nova senha de acesso.',
             textAlign: TextAlign.center,
+            style: TextStyle(color: text60),
           ),
           const SizedBox(height: 24),
 
           CustomTextFormField(
-            upperLabel: 'Nova Senha',
+            label: 'Nova Senha',
             controller: _passwordController,
             obscureText: true,
+            autovalidateMode: _hasSubmitted
+                ? AutovalidateMode.onUserInteraction
+                : AutovalidateMode.disabled,
             validator: (value) {
-              if (!_hasSubmitted) {
-                return null;
-              }
               final isPasswordValid =
                   _hasSixChars &&
                   _hasUppercase &&
                   _hasNumber &&
                   _hasSpecialChar;
-              if (isPasswordValid) {
-                return null;
-              }
-              return 'Siga todas as condições abaixo';
+              return isPasswordValid ? null : 'Siga todas as condições abaixo';
             },
           ),
 

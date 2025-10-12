@@ -12,6 +12,7 @@ class DetailItemCard extends StatefulWidget {
   final Color? valueColor;
   final Widget? icon;
   final bool copyButton;
+  final bool hideLabel;
 
   const DetailItemCard({
     super.key,
@@ -22,6 +23,7 @@ class DetailItemCard extends StatefulWidget {
     this.valueColor,
     this.icon,
     this.copyButton = false,
+    this.hideLabel = false,
   });
 
   @override
@@ -55,7 +57,10 @@ class _DetailItemCardState extends State<DetailItemCard> {
       );
     }
 
-    final bool isSimpleClickable = widget.onPressed != null && !widget.copyButton;
+    final bool isSimpleClickable =
+        widget.onPressed != null && !widget.copyButton;
+
+    final double horizontalPadding = widget.hideLabel ? 20.0 : 12.0;
 
     final mainContent = _buildRealContent(isSimpleClickable);
 
@@ -67,7 +72,7 @@ class _DetailItemCardState extends State<DetailItemCard> {
             onTap: _handleCopyToClipboard,
             borderRadius: BorderRadius.circular(8),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 10, 40, 10),
+              padding: EdgeInsets.fromLTRB(12, horizontalPadding, 40, horizontalPadding),
               decoration: BoxDecoration(
                 color: const Color(0xFFFBFBFB),
                 borderRadius: BorderRadius.circular(8),
@@ -106,7 +111,10 @@ class _DetailItemCardState extends State<DetailItemCard> {
         onTap: widget.onPressed,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          padding: EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: horizontalPadding,
+          ),
           decoration: BoxDecoration(
             color: const Color(0xFFFBFBFB),
             borderRadius: BorderRadius.circular(8),
@@ -115,11 +123,14 @@ class _DetailItemCardState extends State<DetailItemCard> {
         ),
       );
     }
-    
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      padding: EdgeInsets.symmetric(
+        vertical: 10,
+        horizontal: horizontalPadding,
+      ),
       decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
+        color: brightGray,
         borderRadius: BorderRadius.circular(8),
       ),
       child: mainContent,
@@ -134,15 +145,17 @@ class _DetailItemCardState extends State<DetailItemCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                widget.label,
-                style: const TextStyle(
-                  color: text80,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              if (!widget.hideLabel) ...[
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    color: text80,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
+                const SizedBox(height: 4),
+              ],
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -157,7 +170,7 @@ class _DetailItemCardState extends State<DetailItemCard> {
                   if (widget.icon != null) ...[
                     const SizedBox(width: 2),
                     widget.icon!,
-                  ]
+                  ],
                 ],
               ),
             ],
@@ -166,11 +179,7 @@ class _DetailItemCardState extends State<DetailItemCard> {
         if (isClickable)
           const Padding(
             padding: EdgeInsets.only(left: 8.0),
-            child: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: text40,
-            ),
+            child: Icon(Icons.arrow_forward_ios, size: 16, color: text40),
           ),
       ],
     );
