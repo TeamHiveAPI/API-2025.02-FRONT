@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/screens/novo_soldado/form_handler.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
@@ -24,8 +22,18 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
   @override
   void initState() {
     super.initState();
-    _formHandler.init(widget.soldierToEdit);
+
     _formHandler.addListener(_onFormHandlerChange);
+    _formHandler.init(widget.soldierToEdit);
+  }
+
+  @override
+  void didUpdateWidget(covariant NewSoldierScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.soldierToEdit != oldWidget.soldierToEdit) {
+      _formHandler.init(widget.soldierToEdit);
+    }
   }
 
   @override
@@ -67,55 +75,69 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Center(
-                        child: GestureDetector(
-                          onTap: _formHandler.pickImage,
-                          child: Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.grey[200],
-                                backgroundImage:
-                                    _formHandler.selectedImage != null
-                                    ? FileImage(
-                                        File(_formHandler.selectedImage!.path),
-                                      )
-                                    : null,
-                                child: _formHandler.selectedImage == null
-                                    ? Icon(
-                                        Icons.add_a_photo,
-                                        color: Colors.grey[500],
-                                        size: 30,
-                                      )
-                                    : null,
-                              ),
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.grey[200],
+                              backgroundImage:
+                                  _formHandler.selectedImage != null
+                                  ? FileImage(
+                                      File(_formHandler.selectedImage!.path),
+                                    )
+                                  : null,
+                              child: _formHandler.selectedImage == null
+                                  ? Icon(
+                                      Icons.add_a_photo,
+                                      color: Colors.grey[500],
+                                      size: 30,
+                                    )
+                                  : null,
+                            ),
 
-                              if (_formHandler.selectedImage != null)
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: brandBlue,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 3,
+                            Positioned.fill(
+                              child: Material(
+                                color: Colors.transparent,
+                                shape: const CircleBorder(),
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  onTap: _formHandler.pickImage,
+                                  splashColor: const Color.fromARGB(16, 0, 0, 0),
+                                  highlightColor: const Color.fromARGB(16, 0, 0, 0)
+                                ),
+                              ),
+                            ),
+
+                            if (_formHandler.selectedImage != null)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Material(
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  color: const Color.fromARGB(255, 70, 70, 70),
+                                  elevation: 0,
+                                  child: InkWell(
+                                    onTap: _formHandler.clearImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 3,
+                                        ),
                                       ),
-                                    ),
-                                    child: SvgPicture.asset(
-                                      'assets/icons/switch.svg',
-                                      width: 20,
-                                      height: 20,
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
-                                        BlendMode.srcIn,
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 20,
                                       ),
                                     ),
                                   ),
                                 ),
-                            ],
-                          ),
+                              ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 32),

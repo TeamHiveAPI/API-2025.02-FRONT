@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/cards/lieutenant.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_usuario_modal.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 
 class LieutenantCards extends StatefulWidget {
@@ -24,7 +26,10 @@ class _LieutenantCardsState extends State<LieutenantCards> {
   }
 
   void _loadData() {
-    _almoxarifadoFuture = _userService.fetchLieutenant(accessLevel: 2, sectorId: 1);
+    _almoxarifadoFuture = _userService.fetchLieutenant(
+      accessLevel: 2,
+      sectorId: 1,
+    );
     _farmaciaFuture = _userService.fetchLieutenant(accessLevel: 2, sectorId: 2);
   }
 
@@ -32,9 +37,15 @@ class _LieutenantCardsState extends State<LieutenantCards> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildLieutenantCard(future: _almoxarifadoFuture, title: 'Tenente Almoxarifado'),
+        _buildLieutenantCard(
+          future: _almoxarifadoFuture,
+          title: 'Tenente Almoxarifado',
+        ),
         const SizedBox(height: 20),
-        _buildLieutenantCard(future: _farmaciaFuture, title: 'Tenente Farmácia'),
+        _buildLieutenantCard(
+          future: _farmaciaFuture,
+          title: 'Tenente Farmácia',
+        ),
       ],
     );
   }
@@ -54,6 +65,7 @@ class _LieutenantCardsState extends State<LieutenantCards> {
         }
         if (userSnapshot.hasData) {
           final userData = userSnapshot.data!;
+          final userId = userData['id'] as int;
           final userName = userData['usr_nome'] as String;
           final photoPath = userData['usr_foto_url'] as String? ?? '';
           final lastModifiedString = userData['usr_data_criacao'] as String?;
@@ -67,17 +79,45 @@ class _LieutenantCardsState extends State<LieutenantCards> {
             }
           }
           final displayDate = 'Desde $formattedDate';
+
           return FutureBuilder<String>(
             future: _userService.createSignedUrlForAvatar(photoPath),
             builder: (context, urlSnapshot) {
               final imageUrl = (urlSnapshot.data ?? '').isNotEmpty
                   ? urlSnapshot.data!
                   : 'assets/images/default_avatar.png';
-              return LieutenantCard(
-                title: title,
-                name: formatName(userName),
-                date: displayDate,
-                imageUrl: imageUrl,
+
+              return Stack(
+                children: [
+                  LieutenantCard(
+                    title: title,
+                    name: formatName(userName),
+                    date: displayDate,
+                    imageUrl: imageUrl,
+                  ),
+
+                  Positioned.fill(
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12.0),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () {
+                          showCustomBottomSheet(
+                            context: context,
+                            title: "Detalhes do Usuário",
+                            child: DetalhesUsuarioModal(
+                              idUsuario: userId,
+                              manageMode: true,
+                            ),
+                          );
+                        },
+                        splashColor: const Color.fromARGB(16, 0, 0, 0),
+                        highlightColor: const Color.fromARGB(16, 0, 0, 0),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           );

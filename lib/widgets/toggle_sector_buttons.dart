@@ -49,6 +49,8 @@ class SectorToggleButtons extends StatelessWidget {
       child: InkWell(
         onTap: () => onSectorSelected(sectorId),
         borderRadius: borderRadius,
+        splashColor: const Color.fromARGB(24, 0, 0, 0),
+        highlightColor: const Color.fromARGB(24, 0, 0, 0),
         child: Ink(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           decoration: BoxDecoration(

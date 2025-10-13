@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
@@ -25,6 +28,7 @@ class RegisterSoldierFormHandler with ChangeNotifier {
   );
 
   XFile? _selectedImage;
+  bool _isInitialImageLoading = false;
   XFile? get selectedImage => _selectedImage;
 
   bool _isSaving = false;
@@ -32,12 +36,55 @@ class RegisterSoldierFormHandler with ChangeNotifier {
 
   final _userService = UserService.instance;
 
+  bool get isInitialImageLoading => _isInitialImageLoading;
+
   void init(Map<String, dynamic>? soldierToEdit) {
+    _selectedImage = null;
+    notifyListeners();
+
     if (soldierToEdit != null) {
       nameController.text = soldierToEdit[UsuarioFields.nome] ?? '';
       cpfController.text = soldierToEdit[UsuarioFields.cpf] ?? '';
       emailController.text = soldierToEdit[UsuarioFields.email] ?? '';
-      // TODO: Lógica pra carregar foto
+
+      final String? photoUrl = soldierToEdit[UsuarioFields.fotoUrl];
+      if (photoUrl != null && photoUrl.isNotEmpty) {
+        _loadInitialImageFromUrl(photoUrl);
+      }
+    }
+  }
+
+  Future<void> _loadInitialImageFromUrl(String photoUrl) async {
+    _isInitialImageLoading = true;
+    notifyListeners();
+
+    print("   ⏳ [HANDLER] Carregando imagem da URL: $photoUrl");
+
+    try {
+      final signedUrl = await UserService.instance.createSignedUrlForAvatar(
+        photoUrl,
+      );
+      if (signedUrl.isEmpty) return;
+
+      final response = await http.get(Uri.parse(signedUrl));
+      if (response.statusCode != 200) return;
+
+      final tempDir = await getTemporaryDirectory();
+
+      final String uniqueFileName = photoUrl.replaceAll('/', '_');
+      final file = await File('${tempDir.path}/$uniqueFileName').create();
+
+      await file.writeAsBytes(response.bodyBytes);
+
+      _selectedImage = XFile(file.path);
+      print(
+        "   👍 [HANDLER] Imagem carregada e definida com sucesso em: ${file.path}",
+      );
+    } catch (e) {
+      print("   🔥 [HANDLER] Erro ao carregar imagem: $e");
+    } finally {
+      _isInitialImageLoading = false;
+      notifyListeners();
     }
   }
 
@@ -67,6 +114,13 @@ class RegisterSoldierFormHandler with ChangeNotifier {
 
     _selectedImage = XFile(croppedFile.path);
     notifyListeners();
+  }
+
+  void clearImage() {
+    if (_selectedImage != null) {
+      _selectedImage = null;
+      notifyListeners(); 
+    }
   }
 
   Future<void> registerSoldier(BuildContext context, XFile? avatarFile) async {
@@ -173,7 +227,11 @@ class RegisterSoldierFormHandler with ChangeNotifier {
           }
         }
 
-        showCustomSnackbar(context, 'Erro ao criar a conta: $errorMessage', isError: true);
+        showCustomSnackbar(
+          context,
+          'Erro ao criar a conta: $errorMessage',
+          isError: true,
+        );
       }
     } finally {
       _isSaving = false;
@@ -199,9 +257,7 @@ class RegisterSoldierFormHandler with ChangeNotifier {
 
     try {
       // final soldierId = soldierToEdit[UsuarioFields.id];
-      await Future.delayed(
-        const Duration(seconds: 1),
-      ); 
+      await Future.delayed(const Duration(seconds: 1));
       showCustomSnackbar(context, 'Soldado atualizado com sucesso!');
       if (context.mounted) Navigator.of(context).pop(true);
     } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/screens/novo_soldado/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/button.dart';
@@ -146,6 +147,15 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
                     text: "Editar",
                     onPressed: () {
                       Navigator.of(context).pop();
+
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => NewSoldierScreen(
+                            soldierToEdit:
+                                _userData,
+                          ),
+                        ),
+                      );
                     },
                     customIcon: 'assets/icons/edit.svg',
                   ),
@@ -153,7 +163,7 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: CustomButton(
-                    text: "Desativar",
+                    text: "Redefinir",
                     onPressed: () {
                       Navigator.of(context).pop();
                     },

@@ -68,18 +68,33 @@ class _DetailItemCardState extends State<DetailItemCard> {
       return Stack(
         alignment: Alignment.center,
         children: [
-          InkWell(
-            onTap: _handleCopyToClipboard,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: EdgeInsets.fromLTRB(12, horizontalPadding, 40, horizontalPadding),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFBFBFB),
-                borderRadius: BorderRadius.circular(8),
+          Container(
+            padding: EdgeInsets.fromLTRB(
+              12,
+              horizontalPadding,
+              40,
+              horizontalPadding,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBFBFB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: mainContent,
+          ),
+
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: _handleCopyToClipboard,
+                splashColor: const Color.fromARGB(16, 0, 0, 0),
+                highlightColor: const Color.fromARGB(16, 0, 0, 0),
               ),
-              child: mainContent,
             ),
           ),
+
           Positioned(
             right: 16,
             child: AnimatedSwitcher(
@@ -107,20 +122,32 @@ class _DetailItemCardState extends State<DetailItemCard> {
     }
 
     if (isSimpleClickable) {
-      return InkWell(
-        onTap: widget.onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: horizontalPadding,
+      return Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 10,
+              horizontal: horizontalPadding,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBFBFB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: mainContent,
           ),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFBFBFB),
-            borderRadius: BorderRadius.circular(8),
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: widget.onPressed,
+                splashColor: const Color.fromARGB(16, 0, 0, 0),
+                highlightColor: const Color.fromARGB(16, 0, 0, 0),
+              ),
+            ),
           ),
-          child: mainContent,
-        ),
+        ],
       );
     }
 
