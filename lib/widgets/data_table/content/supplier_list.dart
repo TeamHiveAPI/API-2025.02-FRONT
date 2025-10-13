@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/screens/novo_fornecedor/index.dart';
 import 'package:sistema_almox/services/supplier_service.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
@@ -23,19 +24,19 @@ class _SupplierListState extends State<SupplierList> with TableHandler {
   List<TableColumn> get tableColumns => [
         TableColumn(
           title: 'Nome do fornecedor',
-          dataField: 'nome',  // Ajustado para nomes de campos reais
+          dataField: 'frn_nome',
           widthFactor: 0.4,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
           title: 'CNPJ',
-          dataField: 'cnpj',
+          dataField: 'frn_cnpj',
           widthFactor: 0.3,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
           title: 'Contato',
-          dataField: 'contato',
+          dataField: 'frn_contato',
           widthFactor: 0.3,
           sortType: SortType.alphabetic,
         ),
@@ -69,10 +70,19 @@ class _SupplierListState extends State<SupplierList> with TableHandler {
     }
   }
 
+  
+  void refresh() {
+    if (mounted) {
+      initTableHandler(initialSearchQuery: widget.searchQuery ?? '');
+      setState(() {});
+    }
+  }
+
   void _handleRowTap(Map<String, dynamic> supplierData) {
-    final int? supplierId = supplierData['id'];  // Ajustado para 'id'
+    final int? supplierId = supplierData['id'];
 
     if (supplierId == null) {
+      
       print("Erro: O ID do fornecedor não pôde ser encontrado para abrir os detalhes.");
       return;
     }
@@ -81,7 +91,20 @@ class _SupplierListState extends State<SupplierList> with TableHandler {
       context: context,
       title: "Detalhes do fornecedor",
       child: DetalhesSupplierModal(supplierId: supplierId),
-    );
+    ).then((result) {
+      if (result is Map<String, dynamic> && result['action'] == 'edit') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NewSupplierScreen(supplierToEdit: result['data']),
+          ),
+        ).then((value) {
+          if (value == true) {
+            refresh();
+          }
+        });
+      }
+    });
   }
 
   @override

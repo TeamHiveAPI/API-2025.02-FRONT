@@ -12,12 +12,11 @@ abstract class SupabaseTables {
   static const String usuario = 'usuario';
 }
 
-
 const String fornTable = 'fornecedor';
-const String fornId = 'forn_id';
-const String fornNome = 'forn_nome';
-const String fornCnpj = 'forn_cnpj';
-const String fornContato = 'forn_contato';
+const String fornId = 'id';  
+const String fornNome = 'frn_nome';
+const String fornCnpj = 'frn_cnpj';
+const String fornContato = 'frn_contato';
 
 abstract class GrupoFields {
   static const String id = 'id';

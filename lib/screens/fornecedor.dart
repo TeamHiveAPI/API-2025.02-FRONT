@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/screens/novo_fornecedor/index.dart'; // ← Importe a página completa
-import 'package:sistema_almox/services/supplier_service.dart';
+import 'package:sistema_almox/screens/novo_fornecedor/index.dart'; 
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/supplier_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/main_scaffold/header.dart';
-import 'package:sistema_almox/widgets/snackbar.dart';
 
 class FornecedorScreen extends StatefulWidget {
   const FornecedorScreen({super.key});
@@ -19,6 +17,7 @@ class FornecedorScreen extends StatefulWidget {
 class _FornecedorScreenState extends State<FornecedorScreen> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  int _refreshCounter = 0; 
 
   @override
   void initState() {
@@ -45,12 +44,21 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
     });
   }
 
-  // MUDANÇA AQUI: Troquei showCustomBottomSheet por Navigator.push
   void _navigateToNewSupplierScreen(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const NewSupplierScreen()),
-    );
+    ).then((_) {
+      
+      _reloadSupplierList();
+    });
+  }
+
+  
+  void _reloadSupplierList() {
+    setState(() {
+      _refreshCounter++; 
+    });
   }
 
   @override
@@ -61,6 +69,7 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
     return Scaffold(
       appBar: CustomHeader(
         onProfileTap: (index) {
+          
           print('Perfil tocado, índice: $index');
         },
       ),
@@ -70,19 +79,6 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: text40,
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 24),
             CustomButton(
               text: 'Cadastrar Novo Fornecedor',
@@ -111,11 +107,18 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
                     onSearchChanged: _handleSearch,
                   ),
                 ),
+                SizedBox(width: 20),
+                CustomButton(
+                  icon: Icons.refresh,
+                  squareMode: true,
+                  onPressed: _reloadSupplierList,
+                ),
               ],
             ),
             const SizedBox(height: 20),
+            
             SupplierList(
-              key: ValueKey(userService.viewingSectorId),
+              key: ValueKey('supplier_list_${_refreshCounter}_${_searchQuery}'),
               searchQuery: _searchQuery,
               userRole: currentUserRole,
             ),
