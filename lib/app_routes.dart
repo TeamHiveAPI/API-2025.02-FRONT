@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/screens/novo_grupo/index.dart';
 import 'package:sistema_almox/screens/novo_item/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'screens/login.dart';
@@ -10,6 +11,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String newOrder = '/novo-pedido';
   static const String newItem = '/novo-item';
+  static const String newGroup = '/novo-grupo';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -34,6 +36,12 @@ class AppRoutes {
         } else {
           return MaterialPageRoute(builder: (_) => const NewItemScreen());
         }
+
+      case newGroup:
+        final role = UserService.instance.currentUser!.role;
+        return MaterialPageRoute(
+          builder: (_) => NewGroupScreen(),
+        );
 
       default:
         return MaterialPageRoute(

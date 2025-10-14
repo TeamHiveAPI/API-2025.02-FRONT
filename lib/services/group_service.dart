@@ -1,56 +1,81 @@
-import 'package:sistema_almox/core/constants/database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupService {
-  final supabase = Supabase.instance.client;
+  final SupabaseClient _client = Supabase.instance.client;
 
-  Future<List<Map<String, dynamic>>> fetchGroupsBySector(int idSetor) async {
+  // 🔹 Busca todos os grupos de um setor específico
+  Future<List<Map<String, dynamic>>> fetchGroupsBySector(int setorId) async {
+    final response = await _client
+        .from('grupo')
+        .select('id, grp_nome, grp_setor_id')
+        .eq('grp_setor_id', setorId);
+
+    return response;
+  }
+
+  // 🔹 Busca um grupo pelo nome (dentro de um setor)
+  Future<Map<String, dynamic>?> fetchGroupByName(
+    String nome,
+    int setorId,
+  ) async {
+    final response = await _client
+        .from('grupos')
+        .select('id, grp_nome, grp_setor_id')
+        .eq('grp_nome', nome)
+        .eq('grp_setor_id', setorId)
+        .maybeSingle();
+
+    return response;
+  }
+
+  // 🔹 Cria um novo grupo (usando função SQL se existir)
+  Future<int> createGroup({
+    required String name,
+    required int sectorId,
+  }) async {
     try {
-      final response = await supabase
-          .from(SupabaseTables.grupo)
-          .select('${GrupoFields.id}, ${GrupoFields.nome}')
-          .eq(GrupoFields.setorId, idSetor)
-          .order(GrupoFields.nome, ascending: true);
+      // 🧠 Tenta usar a função SQL (caso você tenha criado no Supabase)
+      final result = await _client.rpc(
+        'fn_insert_grupo', // nome da função SQL no Supabase
+        params: {
+          'p_nome': name,
+          'p_setor_id': sectorId,
+        },
+      );
 
-      return response;
+      if (result != null && result is List && result.isNotEmpty) {
+        return result.first['id'] as int;
+      }
+
+      // 🧩 fallback: inserção direta na tabela se a função SQL não existir
+      final insert = await _client.from('grupos').insert({
+        'grp_nome': name,
+        'grp_setor_id': sectorId,
+      }).select('id').maybeSingle();
+
+      if (insert == null) {
+        throw Exception('Falha ao criar grupo.');
+      }
+
+      return insert['id'] as int;
     } catch (e) {
-      print('Erro ao buscar grupos: $e');
-      throw Exception('Falha ao buscar os grupos do setor.');
+      rethrow;
     }
   }
 
-  Future<Map<String, dynamic>?> fetchGroupByName(String name, int sectorId) async {
-    try {
-      final response = await supabase
-          .from(SupabaseTables.grupo)
-          .select(GrupoFields.id)
-          .eq(GrupoFields.nome, name)
-          .eq(GrupoFields.setorId, sectorId)
-          .limit(1)
-          .maybeSingle();
-
-      return response;
-    } catch (e) {
-      print('Erro ao buscar grupo por nome: $e');
-      throw Exception('Falha ao buscar grupo por nome.');
-    }
+  // 🔹 Atualiza o nome de um grupo
+  Future<void> updateGroup({
+    required int id,
+    required String newName,
+  }) async {
+    await _client
+        .from('grupos')
+        .update({'grp_nome': newName})
+        .eq('id', id);
   }
 
-  Future<int> createGroup({required String name, required int sectorId}) async {
-    try {
-      final response = await supabase
-          .from(SupabaseTables.grupo)
-          .insert({
-            GrupoFields.nome: name,
-            GrupoFields.setorId: sectorId
-          })
-          .select(GrupoFields.id)
-          .single();
-
-      return response[GrupoFields.id] as int;
-    } catch (e) {
-      print('Erro ao criar grupo: $e');
-      throw Exception('Falha ao cadastrar o grupo.');
-    }
+  // 🔹 Remove um grupo pelo ID
+  Future<void> deleteGroup(int id) async {
+    await _client.from('grupos').delete().eq('id', id);
   }
 }

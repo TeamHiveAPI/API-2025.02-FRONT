@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
+import 'package:sistema_almox/screens/grupo.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
+
+  final int usuarioSetorId = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +35,15 @@ class AdminScreen extends StatelessWidget {
               iconPath: "assets/icons/groups.svg",
               name: 'Grupos',
               description: 'Gerencie os grupos de itens de cada setor',
-              onPressed: () {
-                print('Card de Grupos pressionado!');
-              },
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupsScreen(),
+                ),
+              );
+            },
+
             ),
             const SizedBox(height: 16),
 
