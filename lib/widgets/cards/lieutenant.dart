@@ -32,7 +32,11 @@ class LieutenantCard extends StatelessWidget {
           fit: BoxFit.cover,
           placeholder: (context, url) =>
               const ShimmerPlaceholder.circle(radius: 24),
-          errorWidget: (context, url, error) => const Icon(Icons.error),
+          errorWidget: (context, url, error) => CircleAvatar(
+            radius: 40,
+            backgroundColor: brandBlue,
+            child: Icon(Icons.person, size: 28, color: Colors.white),
+          ),
         ),
       );
     } else {

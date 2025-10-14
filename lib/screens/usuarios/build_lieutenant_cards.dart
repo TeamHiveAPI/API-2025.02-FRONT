@@ -85,7 +85,7 @@ class _LieutenantCardsState extends State<LieutenantCards> {
             builder: (context, urlSnapshot) {
               final imageUrl = (urlSnapshot.data ?? '').isNotEmpty
                   ? urlSnapshot.data!
-                  : 'assets/images/default_avatar.png';
+                  : '';
 
               return Stack(
                 children: [

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/screens/novo_soldado/form_handler.dart';
 import 'package:sistema_almox/screens/novo_soldado/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
@@ -32,9 +33,9 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
     _fetchData();
   }
 
-  void _reactivateUser() {
-    print('Ação confirmada! Implementar a lógica de reativação aqui.');
-    Navigator.of(context).pop();
+  void _reactivateUser() async {
+    if (_userData == null) return;
+    await RegisterSoldierFormHandler().reactivateUser(context, _userData!);
   }
 
   Future<void> _fetchData() async {

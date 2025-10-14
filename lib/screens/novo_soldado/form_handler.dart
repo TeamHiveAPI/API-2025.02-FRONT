@@ -403,6 +403,39 @@ class RegisterSoldierFormHandler with ChangeNotifier {
     }
   }
 
+  Future<void> reactivateUser(
+    BuildContext context,
+    Map<String, dynamic> soldierToEdit,
+  ) async {
+    _isSaving = true;
+    notifyListeners();
+
+    try {
+      final String userIdToReactivate = soldierToEdit[UsuarioFields.authUid];
+
+      await Supabase.instance.client
+          .from('usuario')
+          .update({'usr_ativo': true})
+          .eq('usr_auth_uid', userIdToReactivate);
+
+      if (context.mounted) {
+        showCustomSnackbar(context, 'Usuário reativado com sucesso!');
+        Navigator.of(context).pop(true);
+      }
+    } catch (error) {
+      if (context.mounted) {
+        showCustomSnackbar(
+          context,
+          'Erro ao reativar: ${error.toString()}',
+          isError: true,
+        );
+      }
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     nameController.dispose();

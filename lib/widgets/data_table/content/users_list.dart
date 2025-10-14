@@ -93,7 +93,7 @@ class _UsersListState extends State<UsersList> with TableHandler {
     }
   }
 
-  void _handleRowTap(Map<String, dynamic> userData) {
+  void _handleRowTap(Map<String, dynamic> userData) async {
     final int? id = userData[UsuarioFields.id];
 
     if (id == null) {
@@ -101,11 +101,15 @@ class _UsersListState extends State<UsersList> with TableHandler {
       return;
     }
 
-    showCustomBottomSheet(
+    final result = await showCustomBottomSheet(
       context: context,
       title: "Detalhes do Usuário",
       child: DetalhesUsuarioModal(idUsuario: id, manageMode: true),
     );
+
+    if (result == true) {
+      refreshData();
+    }
   }
 
   @override

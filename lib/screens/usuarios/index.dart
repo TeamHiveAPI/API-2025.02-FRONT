@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/main.dart';
 import 'package:sistema_almox/screens/usuarios/build_lieutenant_cards.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
@@ -19,10 +20,11 @@ class UsersScreen extends StatefulWidget {
   State<UsersScreen> createState() => _UsersScreenState();
 }
 
-class _UsersScreenState extends State<UsersScreen> {
+class _UsersScreenState extends State<UsersScreen> with RouteAware {
   final _userService = UserService.instance;
   String _searchQuery = '';
   bool _showInactiveUsers = false;
+  int _tableKeyCounter = 0;
 
   @override
   void initState() {
@@ -31,8 +33,26 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(
+      this as RouteAware,
+      ModalRoute.of(context) as PageRoute,
+    );
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    setState(() {
+      _tableKeyCounter++;
+    });
+  }
+
+  @override
   void dispose() {
     _userService.removeListener(_onSectorChange);
+    routeObserver.unsubscribe(this as RouteAware);
     super.dispose();
   }
 
@@ -124,17 +144,17 @@ class _UsersScreenState extends State<UsersScreen> {
 
                     const SizedBox(height: 16),
 
-                  CustomRadioButton<bool>(
-                    label: 'Mostrar usuários inativos',
-                    value: true,
-                    smaller: true,
-                    groupValue: _showInactiveUsers,
-                    onChanged: (value) {
-                      setState(() {
-                        _showInactiveUsers = !_showInactiveUsers;
-                      });
-                    },
-                  ),
+                    CustomRadioButton<bool>(
+                      label: 'Mostrar usuários inativos',
+                      value: true,
+                      smaller: true,
+                      groupValue: _showInactiveUsers,
+                      onChanged: (value) {
+                        setState(() {
+                          _showInactiveUsers = !_showInactiveUsers;
+                        });
+                      },
+                    ),
 
                     const SizedBox(height: 16),
 
@@ -143,6 +163,7 @@ class _UsersScreenState extends State<UsersScreen> {
                         viewingSectorId: sectorForTable,
                         searchQuery: _searchQuery,
                         showInactive: _showInactiveUsers,
+                        key: ValueKey(_tableKeyCounter),
                       )
                     else
                       const Center(
