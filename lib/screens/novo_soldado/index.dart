@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/screens/novo_soldado/form_handler.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
+import 'package:sistema_almox/widgets/radio_button.dart';
 
 class NewSoldierScreen extends StatefulWidget {
   final Map<String, dynamic>? soldierToEdit;
@@ -47,22 +50,70 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
     setState(() {});
   }
 
+  void _deactivateUser() async {
+    final bool? confirmed = await showCustomDialog(
+      context: context,
+      title: 'Confirmar Desativação',
+      primaryButtonText: 'Desativar',
+      primaryButtonDanger: true,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Tem certeza que deseja desativar este usuário?',
+            style: TextStyle(color: text60, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Ele perderá o acesso ao sistema até ser reativado.',
+            style: TextStyle(color: text60, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      _formHandler.deactivateUser(context, widget.soldierToEdit!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final viewingSectorId = UserService.instance.viewingSectorId;
-    final sectorName = viewingSectorId == 1
-        ? 'Almoxarifado'
-        : (viewingSectorId == 2 ? 'Farmácia' : 'N/A');
+    bool isLieutenant =
+        isEditMode && widget.soldierToEdit?['usr_nivel_acesso'] == 2;
+    String sectorName;
+
+    if (isLieutenant) {
+      final tenantSectorId = widget.soldierToEdit?['usr_setor_id'];
+      sectorName = tenantSectorId == 1
+          ? 'Almoxarifado'
+          : (tenantSectorId == 2 ? 'Farmácia' : 'N/A');
+    } else {
+      final viewingSectorId = UserService.instance.viewingSectorId;
+      sectorName = viewingSectorId == 1
+          ? 'Almoxarifado'
+          : (viewingSectorId == 2 ? 'Farmácia' : 'N/A');
+    }
+
     _formHandler.sectorController.text = sectorName;
+
+    String roleName = 'Soldado';
+    if (isLieutenant) {
+      roleName = 'Tenente';
+    }
+
+    final String pageTitle = isEditMode
+        ? 'Editar $roleName'
+        : 'Cadastrar Novo $roleName';
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            InternalPageHeader(
-              title: isEditMode ? 'Editar Soldado' : 'Cadastrar Novo Soldado',
-            ),
+            InternalPageHeader(title: pageTitle),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
@@ -102,8 +153,18 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                                 clipBehavior: Clip.antiAlias,
                                 child: InkWell(
                                   onTap: _formHandler.pickImage,
-                                  splashColor: const Color.fromARGB(16, 0, 0, 0),
-                                  highlightColor: const Color.fromARGB(16, 0, 0, 0)
+                                  splashColor: const Color.fromARGB(
+                                    16,
+                                    0,
+                                    0,
+                                    0,
+                                  ),
+                                  highlightColor: const Color.fromARGB(
+                                    16,
+                                    0,
+                                    0,
+                                    0,
+                                  ),
                                 ),
                               ),
                             ),
@@ -179,6 +240,52 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                         readOnly: true,
                         controller: _formHandler.sectorController,
                       ),
+
+                      if (isLieutenant)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'É NOVO TITULAR?',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: text60,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  CustomRadioButton<bool>(
+                                    value: true,
+                                    groupValue: _formHandler.houveTrocaDeCargo,
+                                    label: 'Sim',
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _formHandler.houveTrocaDeCargo =
+                                            value ?? false;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 24),
+                                  CustomRadioButton<bool>(
+                                    value: false,
+                                    groupValue: _formHandler.houveTrocaDeCargo,
+                                    label: 'Não',
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _formHandler.houveTrocaDeCargo =
+                                            value ?? true;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -205,6 +312,9 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                     },
               isLoading: _formHandler.isSaving,
               isEditMode: isEditMode,
+              onDeletePressed: isEditMode
+                  ? (_formHandler.isSaving ? null : _deactivateUser)
+                  : null,
             ),
           ],
         ),

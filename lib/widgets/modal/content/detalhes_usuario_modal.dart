@@ -32,6 +32,11 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
     _fetchData();
   }
 
+  void _reactivateUser() {
+    print('Ação confirmada! Implementar a lógica de reativação aqui.');
+    Navigator.of(context).pop();
+  }
+
   Future<void> _fetchData() async {
     final data = await UserService.instance.fetchUserById(widget.idUsuario);
     if (mounted) {
@@ -48,6 +53,9 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
       return const Center(child: Text('Usuário não encontrado.'));
     }
 
+    final bool isUserActive = _isLoading
+        ? true
+        : (_userData![UsuarioFields.ativo] ?? true);
     final String? fotoUrl = _isLoading
         ? null
         : _userData![UsuarioFields.fotoUrl];
@@ -140,38 +148,43 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
         if (widget.manageMode)
           Padding(
             padding: const EdgeInsets.only(top: 24.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    text: "Editar",
-                    onPressed: () {
-                      Navigator.of(context).pop();
-
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => NewSoldierScreen(
-                            soldierToEdit:
-                                _userData,
-                          ),
+            child: isUserActive
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: CustomButton(
+                          text: "Editar",
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    NewSoldierScreen(soldierToEdit: _userData),
+                              ),
+                            );
+                          },
+                          customIcon: 'assets/icons/edit.svg',
                         ),
-                      );
-                    },
-                    customIcon: 'assets/icons/edit.svg',
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CustomButton(
+                          text: "Redefinir",
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          secondary: true,
+                        ),
+                      ),
+                    ],
+                  )
+                : CustomButton(
+                    text: "Reativar Conta",
+                    onPressed: _reactivateUser,
+                    customIcon: 'assets/icons/key.svg',
+                    green: true,
+                    widthPercent: 1.0,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CustomButton(
-                    text: "Redefinir",
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    secondary: true,
-                  ),
-                ),
-              ],
-            ),
           ),
       ],
     );

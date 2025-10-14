@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
@@ -10,8 +11,15 @@ import 'package:sistema_almox/widgets/modal/content/detalhes_usuario_modal.dart'
 
 class UsersList extends StatefulWidget {
   final int? viewingSectorId;
+  final String searchQuery;
+  final bool showInactive;
 
-  const UsersList({super.key, required this.viewingSectorId});
+  const UsersList({
+    super.key,
+    required this.viewingSectorId,
+    required this.searchQuery,
+    required this.showInactive,
+  });
 
   @override
   State<UsersList> createState() => _UsersListState();
@@ -25,15 +33,31 @@ class _UsersListState extends State<UsersList> with TableHandler {
       dataField: UsuarioFields.nome,
       widthFactor: 0.7,
       sortType: SortType.alphabetic,
-      formatter: formatName
-    ),
+      advancedCellBuilder: (value, rowData) {
+        final bool isAtivo = rowData[UsuarioFields.ativo] ?? true;
+        final Color textColor = isAtivo ? text40 : text80;
 
+        return Text(
+          formatName(value),
+          style: TextStyle(color: textColor),
+        );
+      },
+    ),
     TableColumn(
       title: 'Criado em',
       dataField: UsuarioFields.dataCriacao,
       widthFactor: 0.3,
       sortType: SortType.numeric,
-      formatter: formatDate,
+      advancedCellBuilder: (value, rowData) {
+        final bool isAtivo = rowData[UsuarioFields.ativo] ?? true;
+        final Color textColor = isAtivo ? text40 : text80;
+
+        final String displayDate = (value == null || value.toString().isEmpty)
+            ? 'N/A'
+            : formatDate(value);
+
+        return Text(displayDate, style: TextStyle(color: textColor));
+      },
     ),
   ];
 
@@ -47,20 +71,25 @@ class _UsersListState extends State<UsersList> with TableHandler {
       page: page,
       sortParams: sortParams,
       searchQuery: searchQuery,
+      showInactive: widget.showInactive,
     );
   }
 
   @override
   void initState() {
     super.initState();
-    initTableHandler();
+    initTableHandler(initialSearchQuery: widget.searchQuery);
   }
 
   @override
   void didUpdateWidget(covariant UsersList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.viewingSectorId != oldWidget.viewingSectorId) {
+    if (widget.viewingSectorId != oldWidget.viewingSectorId ||
+        widget.showInactive != oldWidget.showInactive) {
       refreshData();
+    }
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      onSearchQueryChanged(widget.searchQuery);
     }
   }
 

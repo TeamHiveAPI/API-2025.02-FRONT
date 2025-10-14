@@ -96,6 +96,7 @@ class UserService with ChangeNotifier {
   Future<PaginatedResponse> fetchSectorUsers({
     required int page,
     required SortParams sortParams,
+    required bool showInactive,
     String? searchQuery,
   }) async {
     try {
@@ -109,6 +110,7 @@ class UserService with ChangeNotifier {
         params: {
           'id_setor_param': viewingSectorId,
           'search_query_param': searchQuery ?? '',
+          'mostrar_inativos': showInactive,
         },
       );
 

@@ -6,8 +6,10 @@ import 'package:sistema_almox/screens/usuarios/build_lieutenant_cards.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/users_list.dart';
+import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/modal/content/mostrar_senha_temp.dart';
+import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/toggle_sector_buttons.dart';
 
 class UsersScreen extends StatefulWidget {
@@ -19,6 +21,8 @@ class UsersScreen extends StatefulWidget {
 
 class _UsersScreenState extends State<UsersScreen> {
   final _userService = UserService.instance;
+  String _searchQuery = '';
+  bool _showInactiveUsers = false;
 
   @override
   void initState() {
@@ -34,6 +38,12 @@ class _UsersScreenState extends State<UsersScreen> {
 
   void _onSectorChange() {
     setState(() {});
+  }
+
+  void _handleSearch(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
   }
 
   @override
@@ -88,7 +98,7 @@ class _UsersScreenState extends State<UsersScreen> {
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Listagem de Usuários',
+                        'Listagem de Soldados',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -107,8 +117,33 @@ class _UsersScreenState extends State<UsersScreen> {
 
                     const SizedBox(height: 16),
 
+                    GenericSearchInput(
+                      onSearchChanged: _handleSearch,
+                      hintText: 'Pesquisar',
+                    ),
+
+                    const SizedBox(height: 16),
+
+                  CustomRadioButton<bool>(
+                    label: 'Mostrar usuários inativos',
+                    value: true,
+                    smaller: true,
+                    groupValue: _showInactiveUsers,
+                    onChanged: (value) {
+                      setState(() {
+                        _showInactiveUsers = !_showInactiveUsers;
+                      });
+                    },
+                  ),
+
+                    const SizedBox(height: 16),
+
                     if (sectorForTable != null)
-                      UsersList(viewingSectorId: sectorForTable)
+                      UsersList(
+                        viewingSectorId: sectorForTable,
+                        searchQuery: _searchQuery,
+                        showInactive: _showInactiveUsers,
+                      )
                     else
                       const Center(
                         child: Padding(

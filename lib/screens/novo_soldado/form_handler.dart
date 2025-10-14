@@ -15,6 +15,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class RegisterSoldierFormHandler with ChangeNotifier {
   final formKey = GlobalKey<FormState>();
   bool hasSubmitted = false;
+  bool houveTrocaDeCargo = false;
 
   final nameController = TextEditingController();
   final cpfController = TextEditingController();
@@ -29,6 +30,7 @@ class RegisterSoldierFormHandler with ChangeNotifier {
 
   XFile? _selectedImage;
   bool _isInitialImageLoading = false;
+  bool _userPickedNewImage = false;
   XFile? get selectedImage => _selectedImage;
 
   bool _isSaving = false;
@@ -40,11 +42,15 @@ class RegisterSoldierFormHandler with ChangeNotifier {
 
   void init(Map<String, dynamic>? soldierToEdit) {
     _selectedImage = null;
+    _userPickedNewImage = false;
+    houveTrocaDeCargo = false;
+
     notifyListeners();
 
     if (soldierToEdit != null) {
       nameController.text = soldierToEdit[UsuarioFields.nome] ?? '';
-      cpfController.text = soldierToEdit[UsuarioFields.cpf] ?? '';
+      final rawCpf = soldierToEdit[UsuarioFields.cpf] ?? '';
+      cpfController.text = cpfMaskFormatter.maskText(rawCpf);
       emailController.text = soldierToEdit[UsuarioFields.email] ?? '';
 
       final String? photoUrl = soldierToEdit[UsuarioFields.fotoUrl];
@@ -58,30 +64,31 @@ class RegisterSoldierFormHandler with ChangeNotifier {
     _isInitialImageLoading = true;
     notifyListeners();
 
-    print("   ⏳ [HANDLER] Carregando imagem da URL: $photoUrl");
-
     try {
+      final tempDir = await getTemporaryDirectory();
+      final String uniqueFileName = photoUrl.replaceAll('/', '_');
+      final file = File('${tempDir.path}/$uniqueFileName');
+
+      if (await file.exists()) {
+        await file.delete();
+      }
+
       final signedUrl = await UserService.instance.createSignedUrlForAvatar(
         photoUrl,
       );
-      if (signedUrl.isEmpty) return;
+      if (signedUrl.isEmpty) {
+        _selectedImage = null;
+        return;
+      }
 
       final response = await http.get(Uri.parse(signedUrl));
       if (response.statusCode != 200) return;
 
-      final tempDir = await getTemporaryDirectory();
-
-      final String uniqueFileName = photoUrl.replaceAll('/', '_');
-      final file = await File('${tempDir.path}/$uniqueFileName').create();
-
       await file.writeAsBytes(response.bodyBytes);
 
       _selectedImage = XFile(file.path);
-      print(
-        "   👍 [HANDLER] Imagem carregada e definida com sucesso em: ${file.path}",
-      );
     } catch (e) {
-      print("   🔥 [HANDLER] Erro ao carregar imagem: $e");
+      _selectedImage = null;
     } finally {
       _isInitialImageLoading = false;
       notifyListeners();
@@ -113,13 +120,15 @@ class RegisterSoldierFormHandler with ChangeNotifier {
     if (croppedFile == null) return;
 
     _selectedImage = XFile(croppedFile.path);
+    _userPickedNewImage = true;
     notifyListeners();
   }
 
   void clearImage() {
     if (_selectedImage != null) {
       _selectedImage = null;
-      notifyListeners(); 
+      _userPickedNewImage = true;
+      notifyListeners();
     }
   }
 
@@ -256,13 +265,138 @@ class RegisterSoldierFormHandler with ChangeNotifier {
     notifyListeners();
 
     try {
-      // final soldierId = soldierToEdit[UsuarioFields.id];
-      await Future.delayed(const Duration(seconds: 1));
-      showCustomSnackbar(context, 'Soldado atualizado com sucesso!');
-      if (context.mounted) Navigator.of(context).pop(true);
+      final String userId = soldierToEdit[UsuarioFields.authUid];
+      String? finalAvatarUrl = soldierToEdit[UsuarioFields.fotoUrl];
+      String? newAvatarPath;
+
+      final bool imageHasChanged = _userPickedNewImage;
+
+      if (imageHasChanged) {
+        if (_selectedImage != null) {
+          final signedUrlResponse = await Supabase.instance.client.functions
+              .invoke('create-signed-avatar-url', body: {'userId': userId});
+
+          if (signedUrlResponse.status != 200) {
+            throw Exception('Falha ao obter URL para upload da nova imagem.');
+          }
+
+          final urlData = signedUrlResponse.data;
+          final String? signedUrl = urlData['signedUrl'] as String?;
+          final String? avatarPath = urlData['path'] as String?;
+
+          if (signedUrl == null || avatarPath == null) {
+            throw Exception('Resposta da API inválida para URL de upload.');
+          }
+
+          final fileBytes = await _selectedImage!.readAsBytes();
+          final uri = Uri.parse(signedUrl);
+
+          final uploadResponse = await http.put(
+            uri,
+            body: fileBytes,
+            headers: {'Content-Type': 'image/png'},
+          );
+
+          if (uploadResponse.statusCode != 200) {
+            throw Exception(
+              'Falha no upload da nova imagem. Código: ${uploadResponse.statusCode}',
+            );
+          }
+
+          newAvatarPath = avatarPath;
+          finalAvatarUrl = newAvatarPath;
+        } else {
+          finalAvatarUrl = null;
+        }
+      }
+
+      final unmaskedCpf = cpfController.text.replaceAll(RegExp(r'[^\d]'), '');
+
+      final Map<String, dynamic> metadata = {
+        'display_name': nameController.text.trim(),
+        'foto_url': finalAvatarUrl,
+      };
+
+      if (unmaskedCpf.isNotEmpty) {
+        metadata['cpf'] = unmaskedCpf;
+      }
+
+      final updateData = {
+        'userId': userId,
+        'email': emailController.text.trim(),
+        'metadata': metadata,
+        'atualizar_data_cargo': houveTrocaDeCargo,
+      };
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'update-user',
+        body: updateData,
+      );
+
+      if (response.status != 200) {
+        throw FunctionException(
+          status: response.status,
+          details: response.data?['error'] ?? 'Falha ao atualizar o usuário.',
+        );
+      }
+
+      if (context.mounted) {
+        showCustomSnackbar(context, 'Usuário atualizado com sucesso!');
+        Navigator.of(context).pop(true);
+      }
     } catch (e) {
-      if (context.mounted)
-        showCustomSnackbar(context, e.toString(), isError: true);
+      if (context.mounted) {
+        String errorMessage = 'Ocorreu um erro inesperado. Tente novamente.';
+        if (e.toString().toLowerCase().contains('cpf') ||
+            e.toString().contains('usr_cpf_key')) {
+          errorMessage = 'O CPF informado já está em uso por outro usuário.';
+        } else if (e.toString().toLowerCase().contains('email') ||
+            e.toString().contains('usr_email_key')) {
+          errorMessage = 'O E-mail informado já está cadastrado.';
+        } else if (e is FunctionException) {
+          errorMessage = e.details.toString();
+        } else {
+          errorMessage = e.toString();
+        }
+        showCustomSnackbar(
+          context,
+          'Erro ao atualizar: $errorMessage',
+          isError: true,
+        );
+      }
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deactivateUser(
+    BuildContext context,
+    Map<String, dynamic> soldierToEdit,
+  ) async {
+    _isSaving = true;
+    notifyListeners();
+
+    try {
+      final String userIdToDeactivate = soldierToEdit[UsuarioFields.authUid];
+
+      await Supabase.instance.client
+          .from('usuario')
+          .update({'usr_ativo': false})
+          .eq('usr_auth_uid', userIdToDeactivate);
+
+      if (context.mounted) {
+        showCustomSnackbar(context, 'Usuário desativado com sucesso!');
+        Navigator.of(context).pop(true);
+      }
+    } catch (error) {
+      if (context.mounted) {
+        showCustomSnackbar(
+          context,
+          'Erro ao desativar: ${error.toString()}',
+          isError: true,
+        );
+      }
     } finally {
       _isSaving = false;
       notifyListeners();
