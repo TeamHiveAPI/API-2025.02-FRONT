@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/main_scaffold/header.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
@@ -11,6 +13,8 @@ import 'package:sistema_almox/screens/home.dart';
 import 'package:sistema_almox/screens/pedidos.dart';
 import 'package:sistema_almox/screens/perfil.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/mudar_senha.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -29,6 +33,23 @@ class MainScaffoldState extends State<MainScaffold> {
   void initState() {
     super.initState();
     _buildNavigationLists();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _checkFirstLogin();
+    });
+  }
+
+  void _checkFirstLogin() {
+    final userService = Provider.of<UserService>(context, listen: false);
+
+    if (userService.currentUser?.primeiroLogin == true) {
+      showCustomBottomSheet(
+        context: context,
+        title: 'Redefina Sua Senha',
+        child:
+            const ChangePasswordForm(),
+      );
+    }
   }
 
   void _buildNavigationLists() {

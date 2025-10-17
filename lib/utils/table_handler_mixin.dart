@@ -98,6 +98,11 @@ mixin TableHandler<T extends StatefulWidget> on State<T> {
     _fetchData();
   }
 
+    void refreshData() {
+    _fetchData(isReset: true);
+  }
+
+
   Future<void> _fetchData({bool isReset = false}) async {
     if (isLoading) return;
     setState(() {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
 import 'package:sistema_almox/screens/grupo.dart';
@@ -25,7 +26,7 @@ class AdminScreen extends StatelessWidget {
               name: 'Usuários',
               description: 'Atualize informações dos usuários do sistema',
               onPressed: () {
-                print('Card de Usuários pressionado!');
+                Navigator.of(context).pushNamed(AppRoutes.usuarios);
               },
             ),
 
@@ -50,8 +51,7 @@ class AdminScreen extends StatelessWidget {
             ManagementCard(
               iconPath: "assets/icons/suppliers.svg",
               name: 'Fornecedores',
-              description:
-                  'Gerencie os fornecedores dos pedidos',
+              description: 'Gerencie os fornecedores dos pedidos',
               onPressed: () {
                 print('Card de Fornecedores pressionado!');
               },
