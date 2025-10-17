@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/screens/novo_soldado/form_handler.dart';
 import 'package:sistema_almox/screens/novo_soldado/index.dart';
@@ -50,6 +51,9 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = UserService.instance.currentUser;
+    final bool isCoronel = currentUser?.role == UserRole.coronel;
+
     if (!_isLoading && _userData == null) {
       return const Center(child: Text('Usuário não encontrado.'));
     }
@@ -146,7 +150,7 @@ class _DetalhesUsuarioModalState extends State<DetalhesUsuarioModal> {
         const SizedBox(height: 12),
         DetailItemCard(label: "CARGO", value: cargoNome, isLoading: _isLoading),
 
-        if (widget.manageMode)
+        if (widget.manageMode && isCoronel)
           Padding(
             padding: const EdgeInsets.only(top: 24.0),
             child: isUserActive

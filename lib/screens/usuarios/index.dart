@@ -76,6 +76,14 @@ class _UsersScreenState extends State<UsersScreen> with RouteAware {
         ? _userService.viewingSectorId
         : currentUser.idSetor;
 
+    final String sectorName = sectorForTable == 1
+        ? 'Almoxarifado'
+        : (sectorForTable == 2 ? 'Farmácia' : '');
+
+    final String listTitle = !isCoronel && sectorName.isNotEmpty
+        ? 'Setor $sectorName'
+        : 'Listagem de Soldados';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -84,48 +92,51 @@ class _UsersScreenState extends State<UsersScreen> with RouteAware {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const InternalPageHeader(title: 'Listagem de Usuários'),
+              InternalPageHeader(title: 'Listagem de Usuários'),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 20),
-                    CustomButton(
-                      text: 'Cadastrar Novo Soldado',
-                      icon: Icons.add,
-                      widthPercent: 1.0,
-                      onPressed: () async {
-                        final result = await Navigator.of(
-                          context,
-                        ).pushNamed(AppRoutes.newSoldier);
+                    if (isCoronel)
+                      CustomButton(
+                        text: 'Cadastrar Novo Soldado',
+                        icon: Icons.add,
+                        widthPercent: 1.0,
+                        onPressed: () async {
+                          final result = await Navigator.of(
+                            context,
+                          ).pushNamed(AppRoutes.newSoldier);
 
-                        if (result != null &&
-                            result is Map<String, dynamic> &&
-                            context.mounted) {
-                          final String password = result['password'] as String;
-                          showTemporaryPasswordModal(context, password);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
+                          if (result != null &&
+                              result is Map<String, dynamic> &&
+                              context.mounted) {
+                            final String password =
+                                result['password'] as String;
+                            showTemporaryPasswordModal(context, password);
+                          }
+                        },
+                      ),
+
+                    if (isCoronel) const SizedBox(height: 20),
                     if (isCoronel) ...[
                       const LieutenantCards(),
                       const SizedBox(height: 32),
                     ] else
                       ...[],
 
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Listagem de Soldados',
+                        listTitle,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    if (isCoronel) const SizedBox(height: 16),
 
                     if (isCoronel && _userService.viewingSectorId != null)
                       SectorToggleButtons(

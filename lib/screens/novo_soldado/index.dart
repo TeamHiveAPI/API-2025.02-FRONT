@@ -220,6 +220,7 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                         inputFormatters: [_formHandler.cpfMaskFormatter],
                         validator: (value) =>
                             _formHandler.validateRequired(value, 'CPF'),
+                        readOnly: isEditMode ? true : false,
                       ),
 
                       const SizedBox(height: 24),
