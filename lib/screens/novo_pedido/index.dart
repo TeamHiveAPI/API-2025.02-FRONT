@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/core/constants/database.dart';
-import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
-import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
-import 'package:sistema_almox/widgets/cards/order_preview.dart';
 import 'package:sistema_almox/widgets/main_scaffold/index.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
+import 'package:sistema_almox/widgets/modal/content/item_picker_modal.dart';
+import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
 
 class NewOrderScreen extends StatefulWidget {
   final UserRole userRole;
@@ -26,89 +23,94 @@ class NewOrderScreen extends StatefulWidget {
 class NewOrderScreenState extends State<NewOrderScreen> {
   late final NewOrderFormHandler _formHandler;
 
-  final Key _searchKey = UniqueKey();
-  List<Map<String, dynamic>> inventory = [];
-  List<String> itemNamesForSuggestions = [];
+  // Removidos campos do fluxo antigo de item único
   bool _isLoading = false;
   bool _isSubmitting = false;
+  List<SelectedItem> _selectedItems = [];
 
   @override
   void initState() {
     super.initState();
     _formHandler = NewOrderFormHandler();
-    _formHandler.searchController.addListener(_onSearchTextChanged);
-    _loadAvailableItems();
-  }
-
-  void _onSearchTextChanged() {
-    if (_formHandler.searchController.text.isEmpty &&
-        _formHandler.selectedItem != null) {
-      setState(() {
-        _formHandler.selectedItem = null;
-      });
-    }
   }
 
   @override
   void dispose() {
-    _formHandler.searchController.removeListener(_onSearchTextChanged);
     _formHandler.dispose();
     super.dispose();
   }
 
-  Future<void> _loadAvailableItems() async {
-    setState(() => _isLoading = true);
-    
-    try {
-      final items = await PedidoService.instance.getAvailableItems();
-      
+  Future<void> _openItemPicker() async {
+    final result = await ItemPickerModal.show(context, initialSelection: _selectedItems);
+    if (result != null && mounted) {
       setState(() {
-        inventory = items.map((item) => {
-          'id': item['id_item'],
-          'itemName': item[ItemFields.nome],
-          'unidMedida': item[ItemFields.unidade],
-          'quantity': item['qtd_atual'] ?? 0,
-          'qtdReservada': item['qtd_reservada'] ?? 0,
-        }).toList();
-        
-        itemNamesForSuggestions = inventory
-            .map((item) => item['itemName'].toString())
-            .toList();
+        _selectedItems = result.items;
+        // Clear the single-item controls when using multi
+        _formHandler.searchController.clear();
+        _formHandler.selectedItem = null;
+        _formHandler.quantityController.clear();
       });
-    } catch (e) {
-      if (mounted) {
-        showCustomSnackbar(context, 'Erro ao carregar itens: $e', isError: true);
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _submitOrder() async {
     setState(() => _formHandler.hasSubmitted = true);
 
-    if (!(_formHandler.formKey.currentState?.validate() ?? false)) {
-      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
+    if (_selectedItems.isEmpty) {
+      showCustomSnackbar(context, 'Selecione ao menos um item no botão "Selecionar Itens".', isError: true);
       return;
     }
 
     setState(() => _isSubmitting = true);
 
     try {
-      final selectedItem = _formHandler.selectedItem!;
-      final requestedQuantity = int.parse(_formHandler.quantityController.text);
-      final selectedDate = _formHandler.selectedDate;
-
       String? dataRetirada;
-      if (selectedDate != null) {
-        dataRetirada = DateFormat('yyyy-MM-dd').format(selectedDate);
+      if (_formHandler.selectedDate != null) {
+        dataRetirada = DateFormat('yyyy-MM-dd').format(_formHandler.selectedDate!);
       }
 
-      await PedidoService.instance.createPedido(
-        itemId: selectedItem['id'],
-        quantidade: requestedQuantity,
-        dataRetirada: dataRetirada,
-      );
+      final itens = _selectedItems.map((s) {
+        List<Map<String, dynamic>> lotes;
+        int total;
+        if (s.lotes.length > 1) {
+          lotes = s.lotes
+              .where((l) => l.quantidade > 0)
+              .map((l) => {
+                    'lote_id': l.loteId,
+                    'quantidade': l.quantidade,
+                  })
+              .toList();
+          total = s.lotes.fold<int>(0, (acc, l) => acc + l.quantidade);
+        } else if (s.lotes.length == 1) {
+          final unico = s.lotes.first;
+          final q = s.quantidadeTotal;
+          lotes = q > 0
+              ? [
+                  {
+                    'lote_id': unico.loteId,
+                    'quantidade': q,
+                  }
+                ]
+              : [];
+          total = q;
+        } else {
+          total = s.quantidadeTotal;
+          lotes = const [];
+        }
+        return {
+          'item_id': s.itemId,
+          'quantidade': total,
+          'lotes': lotes,
+        };
+      }).where((e) => (e['quantidade'] as int) > 0).toList();
+
+      if (itens.isEmpty) {
+        showCustomSnackbar(context, 'Selecione quantidades válidas.', isError: true);
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
+      await PedidoService.instance.createPedidoMulti(itens: itens, dataRetirada: dataRetirada);
 
       if (mounted) {
         showCustomSnackbar(context, 'Pedido registrado com sucesso!');
@@ -119,7 +121,6 @@ class NewOrderScreenState extends State<NewOrderScreen> {
         }
         Navigator.of(context).pop();
       }
-
     } catch (e) {
       if (mounted) {
         showCustomSnackbar(context, e.toString(), isError: true);
@@ -154,52 +155,45 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GenericSearchInput(
-                        key: _searchKey,
-                        upperLabel: 'ITEM REQUISITADO',
-                        hintText: 'Pesquisar',
-                        controller: _formHandler.searchController,
-                        suggestions: itemNamesForSuggestions,
-                        onItemSelected: (String selectedItemName) {
-                          _formHandler.searchController.text = selectedItemName;
-                          setState(() {
-                            _formHandler.selectedItem = inventory.firstWhere(
-                              (item) => item['itemName'] == selectedItemName,
-                            );
-                          });
-                          _formHandler.formKey.currentState?.validate();
-                        },
-                        validator: (value) => _formHandler.validateItem(
-                          value,
-                          itemNamesForSuggestions,
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton.icon(
+                          onPressed: _isSubmitting ? null : _openItemPicker,
+                          icon: const Icon(Icons.playlist_add),
+                          label: const Text('Selecionar Itens'),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      CustomTextFormField(
-                        upperLabel: 'QUANTIDADE',
-                        hintText: 'Digite a quantidade',
-                        controller: _formHandler.quantityController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        validator: _formHandler.validateQuantity,
-                        onChanged: (value) {
-                          setState(() {});
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      OrderPreviewCard(
-                        isSelectionMode:
-                            _formHandler.selectedItem == null ||
-                            _formHandler.quantityController.text.isEmpty,
-                        title: _formHandler.selectedItem?['itemName'],
-                        unit: _formHandler.selectedItem?['unidMedida'],
-                        requested: _formHandler.quantityController.text,
-                        available: _formHandler.selectedItem != null
-                            ? '${(_formHandler.selectedItem!['quantity'] - (_formHandler.selectedItem!['qtdReservada'] as int? ?? 0))} ${_formHandler.selectedItem!['unidMedida']}'
-                            : null,
-                      ),
+                      if (_selectedItems.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Itens selecionados', style: TextStyle(fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 8),
+                              ..._selectedItems.map((s) {
+                                final total = s.lotes.length > 1
+                                    ? s.lotes.fold<int>(0, (acc, l) => acc + l.quantidade)
+                                    : s.quantidadeTotal;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: Row(
+                                    children: [
+                                      Expanded(child: Text('${s.nome} (${s.unidade})')),
+                                      Text('Qtd: $total'),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       CustomTextFormField(
                         upperLabel: 'DATA DE RETIRADA',
@@ -214,6 +208,18 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                           padding: const EdgeInsets.all(12.0),
                           child: SvgPicture.asset('assets/icons/calendar.svg'),
                         ),
+                        suffixIcon: (_formHandler.selectedDate != null && !_isSubmitting)
+                            ? IconButton(
+                                tooltip: 'Limpar data',
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _formHandler.selectedDate = null;
+                                    _formHandler.dateController.clear();
+                                  });
+                                },
+                              )
+                            : null,
                       ),
                       const SizedBox(height: 24),
                     ],

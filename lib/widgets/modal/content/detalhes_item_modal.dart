@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/app_routes.dart';
-import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';

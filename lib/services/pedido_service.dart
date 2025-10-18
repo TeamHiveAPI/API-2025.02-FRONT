@@ -111,7 +111,7 @@ class PedidoService {
         throw 'Usuário não identificado';
       }
 
-      final itemResponse = await supabase
+    await supabase
           .from(SupabaseTables.item)
           .select('${ItemFields.grupoId}, ${ItemFields.nome}')
           .eq(ItemFields.id, itemId)
@@ -284,9 +284,11 @@ class PedidoService {
       final viewingSectorId = UserService.instance.viewingSectorId;
 
       if (viewingSectorId == null) {
+        print('Setor de visualização não encontrado');
         return [];
       }
-
+      print('Buscando itens para o setor: $viewingSectorId');
+      
       final response = await supabase.rpc(
         'buscar_itens_por_setor',
         params: {
@@ -294,11 +296,80 @@ class PedidoService {
           'search_query_param': '',
         },
       );
-
-      return List<Map<String, dynamic>>.from(response);
+      
+      if (response == null) {
+        return [];
+      }
+      final items = List<Map<String, dynamic>>.from(response);
+      return items;
+    } on PostgrestException {
+      rethrow;
     } catch (e) {
-      print('Erro ao buscar itens disponíveis: $e');
-      return [];
+      print('Erro genérico ao buscar itens disponíveis: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> createPedidoMulti({
+    required List<Map<String, dynamic>> itens,
+    String? dataRetirada,
+  }) async {
+    try {
+      final currentUser = UserService.instance.currentUser;
+      final viewingSectorId = UserService.instance.viewingSectorId;
+      if (currentUser == null || viewingSectorId == null) {
+        throw 'Usuário não identificado';
+      }
+      final payload = {
+        'p_id_usuario': currentUser.idUsuario,
+        'p_id_setor': viewingSectorId,
+        'p_data_ret': dataRetirada,
+        'itens': itens,
+      };
+
+      await supabase.rpc('create_pedido_transaction_multi', params: payload);
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao criar pedido multi: ${e.message}');
+      throw 'Falha ao criar pedido: ${e.message}';
+    } catch (e) {
+      print('Erro desconhecido ao criar pedido multi: $e');
+      throw e.toString().contains('Falha')
+          ? e.toString()
+          : 'Ocorreu um erro inesperado. Tente novamente.';
+    }
+  }
+
+  // Retorna lotes ativos do item com campos padronizados
+  // id, codigo_lote, data_validade, qtd_atual, qtd_reservada, disponivel
+  Future<List<Map<String, dynamic>>> getLotesPorItem(int itemId) async {
+    try {
+      final resp = await supabase
+          .from(SupabaseTables.lote)
+      .select('id, codigo_lote:${LoteFields.codigo}, data_validade:${LoteFields.dataValidade}, qtd_atual:${LoteFields.qtdAtual}, qtd_reservada:${LoteFields.qtdReservada}, data_entrada:${LoteFields.dataEntrada}')
+          .eq(LoteFields.itemId, itemId)
+          .eq('lot_ativo', true)
+          .order(LoteFields.dataValidade, ascending: true)
+          .order(LoteFields.dataEntrada, ascending: true);
+
+      final list = (resp as List).cast<Map<String, dynamic>>();
+      return list.map((l) {
+        final int atual = ((l['qtd_atual'] ?? 0) as num).toInt();
+        final int reserv = ((l['qtd_reservada'] ?? 0) as num).toInt();
+        return {
+          'id': l['id'],
+          'codigo_lote': l['codigo_lote'],
+          'data_validade': l['data_validade'],
+          'qtd_atual': atual,
+          'qtd_reservada': reserv,
+          'disponivel': (atual - reserv) < 0 ? 0 : (atual - reserv),
+        };
+      }).toList();
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao buscar lotes do item $itemId: ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('Erro ao buscar lotes do item $itemId: $e');
+      rethrow;
     }
   }
 }
