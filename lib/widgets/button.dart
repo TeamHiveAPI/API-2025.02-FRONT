@@ -18,9 +18,10 @@ class CustomButton extends StatelessWidget {
   final double borderRadius;
   final bool secondary;
   final bool danger;
+  final bool green;
   final bool isLoading;
   final bool squareMode;
-   final bool isLoadingInitialContent;
+  final bool isLoadingInitialContent;
 
   const CustomButton({
     super.key,
@@ -35,37 +36,50 @@ class CustomButton extends StatelessWidget {
     this.borderRadius = 6.0,
     this.secondary = false,
     this.danger = false,
+    this.green = false,
     this.isLoading = false,
     this.squareMode = false,
     this.isLoadingInitialContent = false,
-  })  : assert(
-          widthPercent == null || (widthPercent > 0 && widthPercent <= 1),
-          'widthPercent deve estar entre 0.0 e 1.0',
-        ),
-        assert(
-          !(customIcon != null && icon != null),
-          'Use apenas customIcon OU icon, não os dois juntos.',
-        ),
-        assert(squareMode || text != null,
-            'O texto é obrigatório, a menos que o squareMode seja true.'),
-        assert(!squareMode || (icon != null || customIcon != null),
-            'Um ícone é obrigatório para o squareMode.'),
-        assert(!squareMode || (widthPercent == null && !isFullWidth),
-            'widthPercent e isFullWidth não podem ser usados com squareMode.');
-
+  }) : assert(
+         widthPercent == null || (widthPercent > 0 && widthPercent <= 1),
+         'widthPercent deve estar entre 0.0 e 1.0',
+       ),
+       assert(
+         !(customIcon != null && icon != null),
+         'Use apenas customIcon OU icon, não os dois juntos.',
+       ),
+       assert(
+         squareMode || text != null,
+         'O texto é obrigatório, a menos que o squareMode seja true.',
+       ),
+       assert(
+         !squareMode || (icon != null || customIcon != null),
+         'Um ícone é obrigatório para o squareMode.',
+       ),
+       assert(
+         !squareMode || (widthPercent == null && !isFullWidth),
+         'widthPercent e isFullWidth não podem ser usados com squareMode.',
+       ),
+       assert(
+         !danger || !green,
+         'O botão não pode ser danger e green ao mesmo tempo.',
+       );
 
   Color get _backgroundColor {
     if (secondary) {
       if (danger) return deleteRedLight;
+      if (green) return successGreenLight;
       return brandBlueLight;
     }
     if (danger) return deleteRed;
+    if (green) return successGreen;
     return brandBlue;
   }
 
   Color get _contentColor {
     if (secondary) {
       if (danger) return deleteRed;
+      if (green) return successGreen;
       return brandBlue;
     }
     return Colors.white;
@@ -73,8 +87,7 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-     if (isLoadingInitialContent) {
+    if (isLoadingInitialContent) {
       return _buildShimmerPlaceholder();
     }
 
@@ -96,7 +109,9 @@ class CustomButton extends StatelessWidget {
       foregroundColor: WidgetStateProperty.all(_contentColor),
       overlayColor: WidgetStateProperty.all(const Color.fromARGB(40, 0, 0, 0)),
       padding: WidgetStateProperty.all(padding),
-      minimumSize: squareMode ? WidgetStateProperty.all(const Size(48, 48)) : null,
+      minimumSize: squareMode
+          ? WidgetStateProperty.all(const Size(48, 48))
+          : null,
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
@@ -196,13 +211,13 @@ class CustomButton extends StatelessWidget {
     final placeholder = ShimmerPlaceholder(
       height: SystemConstants.alturaBotao.toDouble(),
     );
-    
+
     if (isFullWidth) {
       return SizedBox(width: double.infinity, child: placeholder);
     }
-    
+
     if (widthPercent != null) {
-       return LayoutBuilder(
+      return LayoutBuilder(
         builder: (context, constraints) {
           return SizedBox(
             width: constraints.maxWidth * widthPercent!,
@@ -211,7 +226,7 @@ class CustomButton extends StatelessWidget {
         },
       );
     }
-    
+
     if (squareMode) {
       return const SizedBox(
         width: 48,
@@ -223,4 +238,3 @@ class CustomButton extends StatelessWidget {
     return placeholder;
   }
 }
-

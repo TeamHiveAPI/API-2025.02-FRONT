@@ -238,7 +238,10 @@ class DynamicJsonTable extends StatelessWidget {
 
               final rawValue = _getValueFromPath(rowData, column.dataField);
               final Widget cellContent;
-              if (column.cellBuilder != null) {
+
+              if (column.advancedCellBuilder != null) {
+                cellContent = column.advancedCellBuilder!(rawValue, rowData);
+              } else if (column.cellBuilder != null) {
                 cellContent = column.cellBuilder!(rawValue);
               } else {
                 final displayValue =
