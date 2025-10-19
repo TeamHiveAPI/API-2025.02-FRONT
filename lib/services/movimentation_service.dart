@@ -40,4 +40,25 @@ class StockMovementService {
       throw Exception('Falha ao carregar movimentações.');
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchAllMovementsForReport({
+    String? searchQuery,
+  }) async {
+    try {
+      final response = await supabase.rpc(
+        'obter_movimentacoes_agrupadas',
+        params: {'search_query_param': searchQuery ?? ''},
+      );
+
+      if (response is! List) {
+        throw Exception("Formato de resposta inesperado da API.");
+      }
+
+      final data = List<Map<String, dynamic>>.from(response);
+      return data;
+    } catch (e) {
+      print('Erro ao buscar todas as movimentações para o relatório: $e');
+      throw Exception('Falha ao carregar dados para a auditoria.');
+    }
+  }
 }
