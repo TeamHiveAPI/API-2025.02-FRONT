@@ -1,14 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/services/audit.dart';
-import 'package:sistema_almox/services/movimentation_service.dart';
+import 'package:sistema_almox/utils/generate_audit_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/content/recent_movimentation.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
-import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
-import 'package:sistema_almox/widgets/modal/content/audit_pdf_preview.dart';
 
 class AllMovementsScreen extends StatefulWidget {
   const AllMovementsScreen({super.key});
@@ -17,7 +12,8 @@ class AllMovementsScreen extends StatefulWidget {
   State<AllMovementsScreen> createState() => _AllMovementsScreenState();
 }
 
-class _AllMovementsScreenState extends State<AllMovementsScreen> {
+class _AllMovementsScreenState extends State<AllMovementsScreen>
+    with GenerateAuditMixin<AllMovementsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isDownloading = false;
@@ -34,57 +30,17 @@ class _AllMovementsScreenState extends State<AllMovementsScreen> {
     });
   }
 
-  Future<void> _baixarAuditoria() async {
+  void _setDownloadingState(bool isDownloading) {
     setState(() {
-      _isDownloading = true;
+      _isDownloading = isDownloading;
     });
+  }
 
-    try {
-      final allMovements = await StockMovementService.instance
-          .fetchAllMovementsForReport(searchQuery: _searchQuery);
-
-      if (!mounted) return;
-
-      if (allMovements.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Nenhuma movimentação encontrada para gerar o relatório.',
-            ),
-          ),
-        );
-        return;
-      }
-
-      final Uint8List pdfBytes = await PdfAuditService.generateAuditPdf(
-        allMovements,
-      );
-      final String fileName =
-          'relatorio_auditoria_${DateTime.now().millisecondsSinceEpoch}.pdf';
-
-      if (!mounted) return;
-
-      await showCustomBottomSheet(
-        context: context,
-        title: 'Pré-visualização de PDF',
-        child: PdfPreviewContent(pdfBytes: pdfBytes, fileName: fileName),
-      );
-    } catch (e) {
-      print('Erro ao gerar PDF: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ocorreu um erro ao gerar o relatório.'),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDownloading = false;
-        });
-      }
-    }
+  Future<void> _baixarAuditoria() async {
+    await handleBaixarAuditoria(
+      searchQuery: _searchQuery,
+      setLoading: _setDownloadingState,
+    );
   }
 
   @override
@@ -107,7 +63,7 @@ class _AllMovementsScreenState extends State<AllMovementsScreen> {
                       GenericSearchInput(
                         controller: _searchController,
                         onSearchChanged: _handleSearch,
-                        hintText: 'Pesquisar por nome ou tipo',
+                        hintText: 'Pesquisar',
                       ),
                       const SizedBox(height: 20),
                       MovimentationLogTable(

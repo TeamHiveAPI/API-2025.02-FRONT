@@ -214,7 +214,20 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
         CustomButton(
           isLoadingInitialContent: _isLoadingInitialContent,
           text: "Ver Histórico de Movimentação",
-          onPressed: _isLoadingInitialContent ? null : () {},
+          onPressed: _isLoadingInitialContent
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.itemMovements,
+                    arguments: {
+                      'itemName': nome,
+                      'availableQuantity': qtdDisponivel,
+                      'reservedQuantity': qtdReservada,
+                    },
+                  );
+                },
           isFullWidth: true,
           customIcon: 'assets/icons/list.svg',
           iconPosition: IconPosition.right,

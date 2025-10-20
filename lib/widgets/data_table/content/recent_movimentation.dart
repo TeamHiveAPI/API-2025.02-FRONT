@@ -8,15 +8,20 @@ import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_movimentacao_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_usuario_modal.dart';
+import 'package:intl/intl.dart';
 
 class MovimentationLogTable extends StatefulWidget {
   final bool isRecentView;
   final String? searchQuery;
+  final bool isSpecificItem;
+  final String? fixedItemNameFilter;
 
   const MovimentationLogTable({
     super.key,
     this.isRecentView = false,
     this.searchQuery,
+    this.isSpecificItem = false,
+    this.fixedItemNameFilter,
   });
 
   @override
@@ -26,32 +31,56 @@ class MovimentationLogTable extends StatefulWidget {
 class _MovimentationLogTableState extends State<MovimentationLogTable>
     with TableHandler {
   @override
-  List<TableColumn> get tableColumns => [
-    TableColumn(
-      title: 'Nome do item',
-      dataField: 'nome_item',
-      widthFactor: 0.55,
-    ),
-    TableColumn(
-      title: 'QTD',
-      dataField: 'saldo_operacao',
-      widthFactor: 0.2,
-      cellBuilder: (value) {
-        final int saldo = value is int ? value : 0;
-        final bool isPositive = saldo > 0;
-        final String textoValor = isPositive ? '+$saldo' : saldo.toString();
+  List<TableColumn> get tableColumns {
+    final List<TableColumn> columns = [
+      TableColumn(
+        title: 'QTD',
+        dataField: 'saldo_operacao',
+        widthFactor: 0.2,
+        cellBuilder: (value) {
+          final int saldo = value is int ? value : 0;
+          final bool isPositive = saldo > 0;
+          final String textoValor = isPositive ? '+$saldo' : saldo.toString();
+          final Color? corDoSaldo = saldo == 0
+              ? null
+              : (isPositive ? successGreen : deleteRed);
 
-        return Text(
-          textoValor,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: isPositive ? successGreen : deleteRed,
-          ),
-        );
-      },
-    ),
-    TableColumn(title: 'Tipo', dataField: 'tipo_mov', widthFactor: 0.25),
-  ];
+          return Text(
+            textoValor,
+            style: TextStyle(fontWeight: FontWeight.w600, color: corDoSaldo),
+          );
+        },
+      ),
+      TableColumn(title: 'Tipo', dataField: 'tipo_mov', widthFactor: 0.25),
+    ];
+
+    final TableColumn mainColumn = widget.isSpecificItem
+        ? TableColumn(
+            title: 'Data e Hora',
+            dataField: 'data_operacao',
+            widthFactor: 0.55,
+            cellBuilder: (value) {
+              final DateTime dateTime = value is String
+                  ? DateTime.tryParse(value) ?? DateTime.now()
+                  : (value as DateTime? ?? DateTime.now());
+
+              final String formattedDate = DateFormat(
+                'dd/MM/yyyy HH:mm',
+              ).format(dateTime);
+
+              return Text(formattedDate);
+            },
+          )
+        : TableColumn(
+            title: 'Nome do item',
+            dataField: 'nome_item',
+            widthFactor: 0.55,
+          );
+
+    columns.insert(0, mainColumn);
+
+    return columns;
+  }
 
   @override
   Future<PaginatedResponse> performFetch(
@@ -62,21 +91,29 @@ class _MovimentationLogTableState extends State<MovimentationLogTable>
     return StockMovementService.instance.fetchMovements(
       page: page,
       isRecentView: widget.isRecentView,
+      fixedItemName: widget.fixedItemNameFilter,
       searchQuery: searchQuery,
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    initTableHandler(initialSearchQuery: widget.searchQuery ?? '');
-  }
+@override
+void initState() {
+  super.initState();
+  initTableHandler(
+    initialSearchQuery: widget.searchQuery ?? '',
+  );
+}
+
+
 
   @override
   void didUpdateWidget(covariant MovimentationLogTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.searchQuery != oldWidget.searchQuery) {
       onSearchQueryChanged(widget.searchQuery ?? '');
+    }
+    if (widget.fixedItemNameFilter != oldWidget.fixedItemNameFilter) {
+      onSearchQueryChanged(widget.fixedItemNameFilter ?? '');
     }
   }
 
@@ -111,7 +148,6 @@ class _MovimentationLogTableState extends State<MovimentationLogTable>
       );
     }
 
-    // Chama a função pela primeira vez
     showMovimentacaoModal();
   }
 

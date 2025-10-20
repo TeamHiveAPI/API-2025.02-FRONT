@@ -13,11 +13,15 @@ class StockMovementService {
     int pageSize = 8,
     bool isRecentView = false,
     String? searchQuery,
+    String? fixedItemName,
   }) async {
     try {
       var query = supabase.rpc(
         'obter_movimentacoes_agrupadas',
-        params: {'search_query_param': searchQuery ?? ''},
+        params: {
+          'search_query_param': searchQuery ?? '',
+          'fixed_item_name_param': fixedItemName ?? '',
+        },
       );
 
       if (isRecentView) {
@@ -43,11 +47,17 @@ class StockMovementService {
 
   Future<List<Map<String, dynamic>>> fetchAllMovementsForReport({
     String? searchQuery,
+    String? fixedItemName,
   }) async {
     try {
+      final params = {
+        'fixed_item_name_param': fixedItemName ?? '',
+        'search_query_param': searchQuery ?? '',
+      };
+
       final response = await supabase.rpc(
         'obter_movimentacoes_agrupadas',
-        params: {'search_query_param': searchQuery ?? ''},
+        params: params,
       );
 
       if (response is! List) {

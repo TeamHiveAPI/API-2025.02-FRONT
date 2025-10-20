@@ -24,7 +24,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
   List<TableColumn> get tableColumns => [
     TableColumn(
       title: 'Nome do item',
-      dataField: 'nome',
+      dataField: 'it_nome',
       widthFactor: 0.82,
       sortType: SortType.alphabetic,
     ),
