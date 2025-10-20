@@ -4,8 +4,8 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
@@ -114,42 +114,25 @@ class _PdfPreviewContentState extends State<PdfPreviewContent> {
   }
 
   Future<void> _savePdf() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
-    }
 
-    if (status.isGranted) {
-      try {
-        final directory = await getExternalStorageDirectory();
-        if (directory == null) {
-          throw Exception(
-            "Não foi possível encontrar o diretório para salvar.",
-          );
-        }
-
-        final downloadPath = '${directory.path}/Download';
-        await Directory(downloadPath).create(recursive: true);
-
-        final filePath = '$downloadPath/${widget.fileName}';
-        final file = File(filePath);
-
-        await file.writeAsBytes(widget.pdfBytes);
-
-        if (mounted) {
-          showCustomSnackbar(context, 'PDF salvo com sucesso!');
-        }
-      } catch (e) {
-        if (mounted) {
-          print(e);
-          showCustomSnackbar(context, 'Erro ao salvar PDF: $e', isError: true);
-        }
+    try {
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) {
+        throw Exception("Não foi possível encontrar o diretório para salvar.");
       }
-    } else {
+
+      final filePath = '${directory.path}/${widget.fileName}';
+      final file = File(filePath);
+
+      await file.writeAsBytes(widget.pdfBytes);
+
+      await OpenFilex.open(filePath);
+
+    } catch (e) {
       if (mounted) {
         showCustomSnackbar(
           context,
-          'A permissão de armazenamento foi negada.',
+          'Erro ao salvar PDF: $e',
           isError: true,
         );
       }

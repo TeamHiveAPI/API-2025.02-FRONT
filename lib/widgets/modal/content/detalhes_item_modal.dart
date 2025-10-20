@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/services/item_service.dart';
+import 'package:sistema_almox/utils/generate_qr_code.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_lotes_item_modal.dart';
@@ -19,6 +20,7 @@ class DetalhesItemModal extends StatefulWidget {
 class _DetalhesItemModalState extends State<DetalhesItemModal> {
   Map<String, dynamic>? _itemData;
   bool _isLoadingInitialContent = true;
+  bool _isSavingQr = false;
 
   @override
   void initState() {
@@ -28,12 +30,33 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
 
   Future<void> _fetchData() async {
     final data = await ItemService.instance.fetchItemById(widget.itemId);
-    
+
     if (mounted) {
       setState(() {
         _itemData = data;
         _isLoadingInitialContent = false;
       });
+    }
+  }
+
+  Future<void> _onQrCodePressed() async {
+    if (_itemData == null) return;
+
+    final numFicha = _itemData!['num_ficha']?.toString() ?? '';
+    final nomeItem = _itemData!['nome']?.toString() ?? '';
+
+    setState(() => _isSavingQr = true);
+
+    try {
+      await QrPdfGenerator.generateAndSave(
+        context: context,
+        numFicha: numFicha,
+        nomeItem: nomeItem,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingQr = false);
+      }
     }
   }
 
@@ -68,7 +91,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
 
       try {
         final expirationDate = DateTime.parse(dateStr);
-        return !expirationDate.isAfter(today); 
+        return !expirationDate.isAfter(today);
       } catch (e) {
         return false;
       }
@@ -224,7 +247,10 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
               child: CustomButton(
                 isLoadingInitialContent: _isLoadingInitialContent,
                 text: "QR Code",
-                onPressed: () {},
+                onPressed: _isLoadingInitialContent || _isSavingQr
+                    ? null
+                    : _onQrCodePressed,
+                isLoading: _isSavingQr,
                 secondary: true,
                 isFullWidth: true,
                 customIcon: 'assets/icons/download.svg',
