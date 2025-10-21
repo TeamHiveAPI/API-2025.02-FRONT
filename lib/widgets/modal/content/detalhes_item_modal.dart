@@ -240,20 +240,24 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
           CustomButton(
             isLoadingInitialContent: _isLoadingInitialContent,
             text: "Ver Histórico de Movimentação",
-            onPressed: _isLoadingInitialContent
-                ? null
-                : () {
-                    Navigator.of(context).pop();
-                    Navigator.pushNamed(
-                      context,
-                      AppRoutes.itemMovements,
-                      arguments: {
-                        'itemName': nome,
-                        'availableQuantity': qtdDisponivel,
-                        'reservedQuantity': qtdReservada,
-                      },
-                    );
-                  },
+
+            onPressed: () {
+              final arguments = {
+                'itemName': nome,
+                'availableQuantity': qtdDisponivel,
+                'reservedQuantity': qtdReservada,
+              };
+              void navigateAction(BuildContext callerContext) {
+                Navigator.pushNamedAndRemoveUntil(
+                  callerContext,
+                  AppRoutes.itemMovements,
+                  (route) => route is PageRoute,
+                  arguments: arguments,
+                );
+              }
+
+              Navigator.of(context).pop(navigateAction);
+            },
             isFullWidth: true,
             customIcon: 'assets/icons/list.svg',
             iconPosition: IconPosition.right,
@@ -265,16 +269,18 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
                 child: CustomButton(
                   isLoadingInitialContent: _isLoadingInitialContent,
                   text: "Editar",
-                  onPressed: _isLoadingInitialContent
-                      ? null
-                      : () {
-                          Navigator.of(context).pop(true);
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.newItem,
-                            arguments: itemDataForButtons,
-                          );
-                        },
+                  onPressed: () {
+                    void navigateAction(BuildContext callerContext) {
+                      Navigator.pushNamedAndRemoveUntil(
+                        callerContext,
+                        AppRoutes.newItem,
+                        (route) => route is PageRoute,
+                        arguments: itemDataForButtons,
+                      );
+                    }
+
+                    Navigator.of(context).pop(navigateAction);
+                  },
                   secondary: true,
                   isFullWidth: true,
                   customIcon: 'assets/icons/edit.svg',

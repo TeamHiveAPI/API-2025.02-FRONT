@@ -96,15 +96,11 @@ class _MovimentationLogTableState extends State<MovimentationLogTable>
     );
   }
 
-@override
-void initState() {
-  super.initState();
-  initTableHandler(
-    initialSearchQuery: widget.searchQuery ?? '',
-  );
-}
-
-
+  @override
+  void initState() {
+    super.initState();
+    initTableHandler(initialSearchQuery: widget.searchQuery ?? '');
+  }
 
   @override
   void didUpdateWidget(covariant MovimentationLogTable oldWidget) {
@@ -127,22 +123,32 @@ void initState() {
 
           onViewItemDetails: (itemId) async {
             Navigator.of(context).pop();
-            await showCustomBottomSheet(
+
+            final result = await showCustomBottomSheet(
               context: context,
               title: "Detalhes do Item",
               child: DetalhesItemModal(itemId: itemId),
             );
-            showMovimentacaoModal();
+
+            if (result is Function) {
+              result(context);
+            } else {
+              showMovimentacaoModal();
+            }
           },
 
           onViewUserDetails: (userId) async {
             Navigator.of(context).pop();
-            await showCustomBottomSheet(
+            final result = await showCustomBottomSheet(
               context: context,
               title: "Detalhes do Usuário",
               child: DetalhesUsuarioModal(idUsuario: userId),
             );
-            showMovimentacaoModal();
+            if (result is Function) {
+              result(context);
+            } else {
+              showMovimentacaoModal();
+            }
           },
         ),
       );
