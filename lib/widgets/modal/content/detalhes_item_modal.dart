@@ -7,6 +7,7 @@ import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_lotes_item_modal.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
+import 'package:sistema_almox/widgets/snackbar.dart';
 
 class DetalhesItemModal extends StatefulWidget {
   final int itemId;
@@ -30,6 +31,8 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
 
   Future<void> _fetchData() async {
     final data = await ItemService.instance.fetchItemById(widget.itemId);
+
+    print('DADOS DO ITEM RECEBIDOS: $data');
 
     if (mounted) {
       setState(() {
@@ -119,6 +122,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     final controlado = _itemData?['controlado'];
     final itemSectorId = _itemData?['grupo']?['id_setor'] ?? 0;
     final isPerecivel = _itemData?['perecivel'] ?? false;
+    final isAtivo = _itemData?['ativo'] ?? true;
     final isPharmacyItem = itemSectorId == 2;
 
     final bool hasExpired = _hasExpiredLots();
@@ -211,67 +215,90 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
           value: grupo,
         ),
         const SizedBox(height: 12),
-        CustomButton(
-          isLoadingInitialContent: _isLoadingInitialContent,
-          text: "Ver Histórico de Movimentação",
-          onPressed: _isLoadingInitialContent
-              ? null
-              : () {
-                  Navigator.of(context).pop();
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.itemMovements,
-                    arguments: {
-                      'itemName': nome,
-                      'availableQuantity': qtdDisponivel,
-                      'reservedQuantity': qtdReservada,
-                    },
-                  );
-                },
-          isFullWidth: true,
-          customIcon: 'assets/icons/list.svg',
-          iconPosition: IconPosition.right,
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: CustomButton(
-                isLoadingInitialContent: _isLoadingInitialContent,
-                text: "Editar",
-                onPressed: _isLoadingInitialContent
-                    ? null
-                    : () {
-                        Navigator.of(context).pop(true);
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.newItem,
-                          arguments: itemDataForButtons,
-                        );
+        if (!isAtivo) ...[
+          CustomButton(
+            isLoadingInitialContent: _isLoadingInitialContent,
+            text: "Reativar Item",
+            onPressed: _isLoadingInitialContent
+                ? null
+                : () async {
+                    await ItemService.instance.reactivateItem(widget.itemId);
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                      showCustomSnackbar(
+                        context,
+                        'Item reativado com sucesso!',
+                      );
+                    }
+                  },
+            isFullWidth: true,
+            customIcon: 'assets/icons/key.svg',
+            green: true,
+            iconPosition: IconPosition.right,
+          ),
+        ] else ...[
+          CustomButton(
+            isLoadingInitialContent: _isLoadingInitialContent,
+            text: "Ver Histórico de Movimentação",
+            onPressed: _isLoadingInitialContent
+                ? null
+                : () {
+                    Navigator.of(context).pop();
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.itemMovements,
+                      arguments: {
+                        'itemName': nome,
+                        'availableQuantity': qtdDisponivel,
+                        'reservedQuantity': qtdReservada,
                       },
-                secondary: true,
-                isFullWidth: true,
-                customIcon: 'assets/icons/edit.svg',
-                iconPosition: IconPosition.right,
+                    );
+                  },
+            isFullWidth: true,
+            customIcon: 'assets/icons/list.svg',
+            iconPosition: IconPosition.right,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  isLoadingInitialContent: _isLoadingInitialContent,
+                  text: "Editar",
+                  onPressed: _isLoadingInitialContent
+                      ? null
+                      : () {
+                          Navigator.of(context).pop(true);
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.newItem,
+                            arguments: itemDataForButtons,
+                          );
+                        },
+                  secondary: true,
+                  isFullWidth: true,
+                  customIcon: 'assets/icons/edit.svg',
+                  iconPosition: IconPosition.right,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: CustomButton(
-                isLoadingInitialContent: _isLoadingInitialContent,
-                text: "QR Code",
-                onPressed: _isLoadingInitialContent || _isSavingQr
-                    ? null
-                    : _onQrCodePressed,
-                isLoading: _isSavingQr,
-                secondary: true,
-                isFullWidth: true,
-                customIcon: 'assets/icons/download.svg',
-                iconPosition: IconPosition.right,
+              const SizedBox(width: 12),
+              Expanded(
+                child: CustomButton(
+                  isLoadingInitialContent: _isLoadingInitialContent,
+                  text: "QR Code",
+                  onPressed: _isLoadingInitialContent || _isSavingQr
+                      ? null
+                      : _onQrCodePressed,
+                  isLoading: _isSavingQr,
+                  secondary: true,
+                  isFullWidth: true,
+                  customIcon: 'assets/icons/download.svg',
+                  iconPosition: IconPosition.right,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ],
     );
   }
