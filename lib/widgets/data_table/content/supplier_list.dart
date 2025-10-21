@@ -23,20 +23,20 @@ class _SupplierListState extends State<SupplierList> with TableHandler {
   @override
   List<TableColumn> get tableColumns => [
         TableColumn(
-          title: 'Nome do fornecedor',
-          dataField: 'frn_nome',
+          title: 'Nome',
+          dataField: fornNome,
           widthFactor: 0.4,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
-          title: 'CNPJ',
-          dataField: 'frn_cnpj',
+          title: 'Setor',
+          dataField: fornSetor,
           widthFactor: 0.3,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
-          title: 'Contato',
-          dataField: 'frn_contato',
+          title: 'Itens',
+          dataField: fornItem,
           widthFactor: 0.3,
           sortType: SortType.alphabetic,
         ),
@@ -111,8 +111,26 @@ class _SupplierListState extends State<SupplierList> with TableHandler {
   Widget build(BuildContext context) {
     final bool showSkeleton = isLoading && loadedItems.isEmpty;
     final List<Map<String, dynamic>> displayData = showSkeleton
-        ? List.generate(8, (_) => {})
-        : loadedItems;
+    ? List.generate(8, (_) => {})
+    : loadedItems.map((item) {
+        dynamic setorValue = item[fornSetor];
+        String setorString = '';
+
+        if (setorValue is List<dynamic>) {
+          setorString = setorValue.join(', ');
+        } else if (setorValue is int) {
+          setorString = setorValue.toString();
+        } else if (setorValue is String) {
+          setorString = setorValue;
+        }
+
+        return {
+          ...item,
+          fornSetor: setorString,
+          fornItem: (item[fornItem] as List?)?.length.toString() ?? '0',
+        };
+      }).toList();
+
 
     return DynamicJsonTable(
       jsonData: displayData,

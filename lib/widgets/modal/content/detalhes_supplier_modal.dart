@@ -24,16 +24,19 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
   }
 
   Future<void> _fetchData() async {
-    final data = await SupplierService.instance.fetchSupplierById(widget.supplierId);
-    
-    if (mounted) {
-      setState(() {
-        _supplierData = data;
-        _isLoadingInitialContent = false;
-      });
-    } else if (mounted) {
-      showCustomSnackbar(context, 'Erro ao carregar detalhes do fornecedor.', isError: true);
-      setState(() => _isLoadingInitialContent = false);
+    try {
+      final data = await SupplierService.instance.fetchSupplierById(widget.supplierId);
+      if (mounted) {
+        setState(() {
+          _supplierData = data;
+          _isLoadingInitialContent = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackbar(context, 'Erro ao carregar detalhes do fornecedor: $e', isError: true);
+        setState(() => _isLoadingInitialContent = false);
+      }
     }
   }
 
@@ -51,7 +54,17 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
     final supplierDataForButtons = _supplierData ?? {};
     final nome = _supplierData?['frn_nome'] ?? '';
     final cnpj = _supplierData?['frn_cnpj'] ?? '';
-    final contato = _supplierData?['frn_contato'] ?? '';
+    final telefone = _supplierData?['frn_telefone'] ?? '';
+    final email = _supplierData?['frn_email'] ?? '';
+    final items = (_supplierData?['frn_item'] as List<dynamic>?)?.join(', ') ?? '';
+
+    dynamic setoresValue = _supplierData?['frn_setor_id'];
+    String setores = '';
+    if (setoresValue is List<dynamic>) {
+      setores = setoresValue.join(', ');
+    } else if (setoresValue is String) {
+      setores = setoresValue;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -63,24 +76,34 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
           value: nome,
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: DetailItemCard(
-                isLoading: _isLoadingInitialContent,
-                label: "CNPJ",
-                value: cnpj,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DetailItemCard(
-                isLoading: _isLoadingInitialContent,
-                label: "CONTATO",
-                value: contato,
-              ),
-            ),
-          ],
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "CNPJ",
+          value: cnpj,
+        ),
+        const SizedBox(height: 12),
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "TELEFONE",
+          value: telefone,
+        ),
+        const SizedBox(height: 12),
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "E-MAIL",
+          value: email,
+        ),
+        const SizedBox(height: 12),
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "ITENS",
+          value: items,
+        ),
+        const SizedBox(height: 12),
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "SETORES",
+          value: setores,
         ),
         const SizedBox(height: 12),
         CustomButton(

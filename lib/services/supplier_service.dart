@@ -16,61 +16,75 @@ class SupplierService {
     required UserRole userRole,
   }) async {
     try {
-      
-      final query = supabase.from(SupabaseTables.fornecedor).select();
-      
-      
+      final query = supabase
+          .from(SupabaseTables.fornecedor)
+          .select('id, frn_nome, frn_cnpj, frn_telefone, frn_email, frn_item, setor(set_nome)');
+
       if (searchQuery != null && searchQuery.isNotEmpty) {
-        query.or('frn_nome.ilike.%$searchQuery%,frn_cnpj.ilike.%$searchQuery%');  
+        query.or('frn_nome.ilike.%$searchQuery%,frn_cnpj.ilike.%$searchQuery%');
       }
 
-      
-      if (sortParams.activeSortColumnDataField != null) {
-        query.order(sortParams.activeSortColumnDataField!, 
-          ascending: sortParams.isAscending);
-      }
-
-      
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
       final dataResponse = await query.range(
-        startIndex, 
-        startIndex + SystemConstants.itemsPorPagina - 1
+        startIndex,
+        startIndex + SystemConstants.itemsPorPagina - 1,
       );
-
-      
-      final countQuery = supabase.from(SupabaseTables.fornecedor).select();
-      
-      if (searchQuery != null && searchQuery.isNotEmpty) {
-        countQuery.or('frn_nome.ilike.%$searchQuery%,frn_cnpj.ilike.%$searchQuery%');  
-      }
-
-      final countResponse = await countQuery;
-      final totalCount = countResponse.length;
 
       final items = List<Map<String, dynamic>>.from(dataResponse);
 
-      print('Fornecedores encontrados: ${items.length}');
-      print('Total de fornecedores: $totalCount');
+      
+      for (final item in items) {
+        if (item['setor'] != null) {
+          
+          if (item['setor'] is List && (item['setor'] as List).isNotEmpty) {
+            item['frn_setor_id'] = (item['setor'] as List).map((s) => s['set_nome']).join(', ');
+          } else if (item['setor'] is Map && item['setor']['set_nome'] != null) {
+            item['frn_setor_id'] = item['setor']['set_nome'];
+          } else {
+            item['frn_setor_id'] = '';
+          }
+        } else {
+          item['frn_setor_id'] = '';
+        }
+      }
 
-      return PaginatedResponse(items: items, totalCount: totalCount);
+
+      final countResponse = await supabase
+          .from(SupabaseTables.fornecedor)
+          .select('id');
+
+      return PaginatedResponse(
+        items: items,
+        totalCount: countResponse.length,
+      );
     } catch (e) {
       print('Erro ao buscar fornecedores: $e');
       return PaginatedResponse(items: [], totalCount: 0);
     }
   }
-  Future<Map<String, dynamic>?> fetchSupplierById(int supplierId) async {
-    try {
-      final response = await supabase
+
+    Future<Map<String, dynamic>?> fetchSupplierById(int supplierId) async {
+      try {
+        final response = await supabase
           .from(SupabaseTables.fornecedor)
-          .select()
+          .select('*, setor(set_nome)')
           .eq('id', supplierId)
           .single();
-      return response;
-    } catch (e) {
-      print('Erro ao buscar detalhes do fornecedor: $e');
-      return null;
+
+      if (response['setor'] != null) {
+        response['frn_setor_id'] = response['setor']['set_nome']; 
+      } else {
+        response['frn_setor_id'] = 'Sem setor';
+      }
+
+
+        return response;
+      } catch (e) {
+        print('Erro ao buscar detalhes do fornecedor: $e');
+        return null;
+      }
     }
-  }
+
 
   Future<void> createSupplier(Map<String, dynamic> supplierPayload) async {
     try {
@@ -78,7 +92,6 @@ class SupplierService {
           .from(SupabaseTables.fornecedor)
           .insert(supplierPayload);
     } on PostgrestException catch (e) {
-    
       print('Erro do Supabase ao criar fornecedor: ${e.message}');
       
       if (e.message.contains('fornecedor_frn_cnpj_key')) {  
@@ -87,7 +100,6 @@ class SupplierService {
         rethrow;
       }
     } catch (e) {
-
       print('Erro desconhecido ao criar fornecedor: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
@@ -108,7 +120,6 @@ class SupplierService {
         rethrow;
       }
     } catch (e) {
-    
       print('Erro desconhecido ao atualizar fornecedor: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
@@ -121,11 +132,9 @@ class SupplierService {
           .delete()
           .eq('id', supplierId);
     } on PostgrestException catch (e) {
-      
       print('Erro do Supabase ao deletar fornecedor: ${e.message}');
       throw 'Falha ao deletar fornecedor: ${e.message}';
     } catch (e) {
-      
       print('Erro desconhecido ao deletar fornecedor: $e');
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
