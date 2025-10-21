@@ -7,7 +7,6 @@ import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:sistema_almox/services/group_service.dart';
-import 'package:sistema_almox/services/user_service.dart';
 
 class EditGroupScreen extends StatefulWidget {
   final int groupId;
@@ -32,7 +31,6 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
   bool _isSubmitting = false;
 
   final _groupService = GroupService();
-  final _userService = UserService.instance;
 
   @override
   void initState() {
@@ -58,7 +56,6 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
 
     try {
       final nome = _nomeController.text.trim();
-      final setorId = int.parse(_setorController.text.trim());
 
       await _groupService.updateGroup(
         id: widget.groupId,
