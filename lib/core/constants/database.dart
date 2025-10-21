@@ -77,7 +77,6 @@ abstract class PedidoFields {
   static const String setorId = 'ped_setor_id';
   static const String motivoCancelamento = 'ped_motivo_cancelamento';
   static const String status = 'ped_status';
-  static const String dados = 'ped_dados';
   static const String dataRetirada = 'ped_data_retirada';
   static const String dataSolicitada = 'ped_data_solicitada';
   static const String responsavelCancelamentoId =

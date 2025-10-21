@@ -98,57 +98,6 @@ class PedidoService {
     }
   }
 
-  Future<void> createPedido({
-    required int itemId,
-    required int quantidade,
-    String? dataRetirada,
-  }) async {
-    try {
-      final currentUser = UserService.instance.currentUser;
-      final viewingSectorId = UserService.instance.viewingSectorId;
-
-      if (currentUser == null || viewingSectorId == null) {
-        throw 'Usuário não identificado';
-      }
-
-    await supabase
-          .from(SupabaseTables.item)
-          .select('${ItemFields.grupoId}, ${ItemFields.nome}')
-          .eq(ItemFields.id, itemId)
-          .eq(ItemFields.ativo, true)
-          .single();
-      if (quantidade <= 0) {
-        throw PedidoConstants.erroQuantidadeInvalida;
-      }
-
-      final bool temDataRetirada =
-          dataRetirada != null && dataRetirada.isNotEmpty;
-      final status = temDataRetirada
-          ? PedidoConstants.statusConcluido
-          : PedidoConstants.statusPendente;
-
-      await supabase.rpc(
-        'create_pedido_transaction',
-        params: {
-          'p_id_item': itemId,
-          'p_id_usuario': currentUser.idUsuario,
-          'p_id_setor': viewingSectorId,
-          'p_qtd_solicitada': quantidade,
-          'p_data_ret': temDataRetirada ? dataRetirada : null,
-          'p_status': status,
-        },
-      );
-    } on PostgrestException catch (e) {
-      print('Erro do Supabase ao criar pedido: ${e.message}');
-      throw 'Falha ao criar pedido: ${e.message}';
-    } catch (e) {
-      print('Erro desconhecido ao criar pedido: $e');
-      throw e.toString().contains('Falha')
-          ? e.toString()
-          : 'Ocorreu um erro inesperado. Tente novamente.';
-    }
-  }
-
   Future<void> cancelPedido({
     required int pedidoId,
     required String motivoCancelamento,
