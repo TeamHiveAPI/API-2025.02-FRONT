@@ -195,7 +195,7 @@ class _DetailItemCardState extends State<DetailItemCard> {
                     ),
                   ),
                   if (widget.icon != null) ...[
-                    const SizedBox(width: 2),
+                    const SizedBox(width: 6),
                     widget.icon!,
                   ],
                 ],
