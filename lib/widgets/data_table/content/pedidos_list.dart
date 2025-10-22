@@ -44,15 +44,21 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
+      title: 'ID',
+      dataField: PedidoFields.id,
+      widthFactor: 0.15,
+      sortType: SortType.numeric,
+    ),
+    TableColumn(
       title: 'Itens',
       dataField: 'item_nome',
-      widthFactor: 0.55,
+      widthFactor: 0.45,
       sortType: SortType.alphabetic,
     ),
     TableColumn(
       title: 'QTD',
       dataField: 'qtd_solicitada',
-      widthFactor: 0.2,
+      widthFactor: 0.15,
       sortType: SortType.numeric,
     ),
     TableColumn(

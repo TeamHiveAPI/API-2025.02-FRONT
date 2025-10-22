@@ -39,7 +39,6 @@ class PedidoService {
             responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome}),
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
             ${SupabaseTables.itemPedido}!inner(
-              id,
               ${ItemPedidoFields.itemId},
               ${ItemPedidoFields.qtdSolicitada},
               iped_lotes,
@@ -103,7 +102,6 @@ class PedidoService {
             responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome}),
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
             ${SupabaseTables.itemPedido}!inner(
-              id,
               ${ItemPedidoFields.itemId},
               ${ItemPedidoFields.qtdSolicitada},
               iped_lotes,
@@ -230,9 +228,6 @@ class PedidoService {
     }
   }
 
-
-
-
   Future<List<Map<String, dynamic>>> getAvailableItems() async {
     try {
       final viewingSectorId = UserService.instance.viewingSectorId;
@@ -293,8 +288,6 @@ class PedidoService {
     }
   }
 
-  // Retorna lotes ativos do item com campos padronizados
-  // id, codigo_lote, data_validade, qtd_atual, qtd_reservada, disponivel
   Future<List<Map<String, dynamic>>> getLotesPorItem(int itemId) async {
     try {
       final resp = await supabase

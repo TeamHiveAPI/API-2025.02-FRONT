@@ -73,13 +73,22 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             const SizedBox(height: 24),
 
-            const Text(
-              'Listagem de Pedidos',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: text40,
-              ),
+            Builder(
+              builder: (context) {
+                final sectorId = userService.viewingSectorId;
+                String sectorSuffix = '';
+                if (sectorId == 1) sectorSuffix = ' do Almoxarifado';
+                if (sectorId == 2) sectorSuffix = ' da Farmácia';
+                final title = 'Listagem de Pedidos$sectorSuffix';
+                return Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: text40,
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 16),

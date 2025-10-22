@@ -38,7 +38,9 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
   }
 
   void _showLotesModal() {
-    Navigator.of(context).pop();
+    // Retorna 'true' para o chamador não reabrir automaticamente o modal de pedido
+    // (em PedidosTable.onViewItemDetails, se result != true ele reabre o pedido).
+    Navigator.of(context).pop(true);
 
     showCustomBottomSheet(
       context: context,

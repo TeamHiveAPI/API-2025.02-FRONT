@@ -182,14 +182,30 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
                 child: Text('- $itemNome: (sem lotes informados)'),
               );
             }
-            final lotesStr = lotes.map((l) {
-              final idL = l['lote_id'];
-              final qL = l['quantidade'];
-              return '#$idL x$qL';
-            }).join(', ');
             return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text('- $itemNome: $lotesStr'),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('- $itemNome'),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: lotes.map<Widget>((l) {
+                      final dynamic codigo = l['codigo'] ?? l['codigo_lote'] ?? l['lote_id'];
+                      final qL = l['quantidade'];
+                      final unidade = it[SupabaseTables.item]?[ItemFields.unidade]?.toString() ?? '';
+                      final unidadeSuffix = unidade.isNotEmpty ? ' $unidade' : '';
+                      return Chip(
+                        label: Text('${codigo?.toString() ?? ''} • Qtd: $qL$unidadeSuffix'),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             );
           }).toList(),
           const SizedBox(height: 12),

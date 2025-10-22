@@ -11,6 +11,8 @@ import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
 import 'package:sistema_almox/widgets/modal/content/item_picker_modal.dart';
 import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
+import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/services/sector_service.dart';
 
 class NewOrderScreen extends StatefulWidget {
   final UserRole userRole;
@@ -77,6 +79,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
               .where((l) => l.quantidade > 0)
               .map((l) => {
                     'lote_id': l.loteId,
+                    'codigo': l.codigo,
                     'quantidade': l.quantidade,
                   })
               .toList();
@@ -84,10 +87,12 @@ class NewOrderScreenState extends State<NewOrderScreen> {
         } else if (s.lotes.length == 1) {
           final unico = s.lotes.first;
           final q = s.quantidadeTotal;
+          final dynamic codigo = unico.codigo;
           lotes = q > 0
               ? [
                   {
                     'lote_id': unico.loteId,
+                    'codigo': codigo,
                     'quantidade': q,
                   }
                 ]
@@ -155,6 +160,39 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Builder(
+                        builder: (context) {
+                          final int? sectorId = UserService.instance.viewingSectorId;
+                          if (sectorId == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return FutureBuilder<String?>(
+                            future: SectorService().getSectorNameById(sectorId),
+                            builder: (context, snapshot) {
+                              final name = snapshot.data;
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(bottom: 12.0),
+                                  child: SizedBox(height: 16, width: 120, child: LinearProgressIndicator(minHeight: 4)),
+                                );
+                              }
+                              if (name == null || name.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: Text(
+                                  'Setor: $name',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: ElevatedButton.icon(
