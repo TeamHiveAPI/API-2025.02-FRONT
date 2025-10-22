@@ -22,6 +22,9 @@ class RegisterSoldierFormHandler with ChangeNotifier {
   final emailController = TextEditingController();
   final sectorController = TextEditingController();
 
+  int? _selectedSectorId;
+  int? get selectedSectorId => _selectedSectorId;
+
   final cpfMaskFormatter = MaskTextInputFormatter(
     mask: '###.###.###-##',
     filter: {"#": RegExp(r'[0-9]')},
@@ -44,6 +47,7 @@ class RegisterSoldierFormHandler with ChangeNotifier {
     _selectedImage = null;
     _userPickedNewImage = false;
     houveTrocaDeCargo = false;
+    _selectedSectorId = null;
 
     notifyListeners();
 
@@ -52,12 +56,29 @@ class RegisterSoldierFormHandler with ChangeNotifier {
       final rawCpf = soldierToEdit[UsuarioFields.cpf] ?? '';
       cpfController.text = cpfMaskFormatter.maskText(rawCpf);
       emailController.text = soldierToEdit[UsuarioFields.email] ?? '';
+      _selectedSectorId = soldierToEdit[UsuarioFields.setorId];
 
       final String? photoUrl = soldierToEdit[UsuarioFields.fotoUrl];
       if (photoUrl != null && photoUrl.isNotEmpty) {
         _loadInitialImageFromUrl(photoUrl);
       }
+    } else {
+      // Para criação de novo soldado, definir setor padrão baseado no usuário atual
+      final currentUser = _userService.currentUser;
+      if (currentUser?.nivelAcesso == 3) {
+        // Coronel pode escolher qualquer setor, começar com Almoxarifado
+        _selectedSectorId = 1;
+      } else {
+        // Outros usuários usam o setor atual
+        _selectedSectorId = _userService.viewingSectorId;
+      }
     }
+  }
+
+  void setSelectedSector(int sectorId) {
+    _selectedSectorId = sectorId;
+    sectorController.text = _userService.getSectorName(sectorId);
+    notifyListeners();
   }
 
   Future<void> _loadInitialImageFromUrl(String photoUrl) async {
@@ -146,9 +167,9 @@ class RegisterSoldierFormHandler with ChangeNotifier {
     notifyListeners();
 
     try {
-      final viewingSectorId = _userService.viewingSectorId;
-      if (viewingSectorId == null) {
-        throw Exception('Setor de visualização não definido.');
+      final sectorId = _selectedSectorId;
+      if (sectorId == null) {
+        throw Exception('Setor não selecionado.');
       }
 
       final userResponse = await Supabase.instance.client.functions.invoke(
@@ -157,7 +178,7 @@ class RegisterSoldierFormHandler with ChangeNotifier {
           'name': nameController.text.trim(),
           'email': emailController.text.trim(),
           'cpf': cpfMaskFormatter.getUnmaskedText(),
-          'viewingSectorId': viewingSectorId,
+          'viewingSectorId': sectorId,
         },
       );
 

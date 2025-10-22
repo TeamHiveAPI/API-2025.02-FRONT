@@ -206,10 +206,17 @@ class UserService with ChangeNotifier {
 
   void toggleViewingSector() {
     if (_currentUser?.nivelAcesso == 3) {
-      if (_viewingSectorId == 1) {
-        _viewingSectorId = 2;
-      } else {
-        _viewingSectorId = 1;
+      // Coronel pode alternar entre todos os setores
+      if (_viewingSectorId == null || _viewingSectorId == 5) {
+        _viewingSectorId = 1; // Almoxarifado
+      } else if (_viewingSectorId == 1) {
+        _viewingSectorId = 2; // Farmácia
+      } else if (_viewingSectorId == 2) {
+        _viewingSectorId = 3; // Odontologia
+      } else if (_viewingSectorId == 3) {
+        _viewingSectorId = 4; // Médico
+      } else if (_viewingSectorId == 4) {
+        _viewingSectorId = 5; // Comum
       }
       print('Setor de visualização alterado para: $_viewingSectorId');
       notifyListeners();
@@ -329,12 +336,16 @@ class UserService with ChangeNotifier {
     switch (nivelAcesso) {
       case 1:
         switch (idSetor) {
-          case 0:
-            return UserRole.soldadoComum;
           case 1:
             return UserRole.soldadoEstoque;
           case 2:
             return UserRole.soldadoFarmacia;
+          case 3:
+            return UserRole.soldadoComum; // Odontologia
+          case 4:
+            return UserRole.soldadoComum; // Médico
+          case 5:
+            return UserRole.soldadoComum; // Comum
           default:
             return UserRole.soldadoComum;
         }
@@ -344,6 +355,12 @@ class UserService with ChangeNotifier {
             return UserRole.tenenteEstoque;
           case 2:
             return UserRole.tenenteFarmacia;
+          case 3:
+            return UserRole.soldadoComum; // Odontologia
+          case 4:
+            return UserRole.soldadoComum; // Médico
+          case 5:
+            return UserRole.soldadoComum; // Comum
           default:
             return UserRole.soldadoComum;
         }
@@ -368,6 +385,23 @@ class UserService with ChangeNotifier {
         return 'Tenente Farmácia';
       case UserRole.coronel:
         return 'Coronel';
+    }
+  }
+
+  String getSectorName(int sectorId) {
+    switch (sectorId) {
+      case 1:
+        return 'Almoxarifado';
+      case 2:
+        return 'Farmácia';
+      case 3:
+        return 'Odontologia';
+      case 4:
+        return 'Médico';
+      case 5:
+        return 'Comum';
+      default:
+        return 'N/A';
     }
   }
 

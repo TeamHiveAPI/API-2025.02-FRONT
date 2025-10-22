@@ -9,6 +9,7 @@ import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
+import 'package:sistema_almox/widgets/sector_dropdown.dart';
 
 class NewSoldierScreen extends StatefulWidget {
   final Map<String, dynamic>? soldierToEdit;
@@ -83,21 +84,24 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
   Widget build(BuildContext context) {
     bool isLieutenant =
         isEditMode && widget.soldierToEdit?['usr_nivel_acesso'] == 2;
-    String sectorName;
 
-    if (isLieutenant) {
+    // Definir o setor selecionado baseado no contexto
+    if (isEditMode) {
       final tenantSectorId = widget.soldierToEdit?['usr_setor_id'];
-      sectorName = tenantSectorId == 1
-          ? 'Almoxarifado'
-          : (tenantSectorId == 2 ? 'Farmácia' : 'N/A');
+      _formHandler.setSelectedSector(tenantSectorId ?? 1);
     } else {
-      final viewingSectorId = UserService.instance.viewingSectorId;
-      sectorName = viewingSectorId == 1
-          ? 'Almoxarifado'
-          : (viewingSectorId == 2 ? 'Farmácia' : 'N/A');
+      final currentUser = UserService.instance.currentUser;
+      if (currentUser?.nivelAcesso == 3) {
+        // Coronel pode escolher qualquer setor
+        if (_formHandler.selectedSectorId == null) {
+          _formHandler.setSelectedSector(1); // Padrão: Almoxarifado
+        }
+      } else {
+        // Outros usuários usam o setor atual
+        final viewingSectorId = UserService.instance.viewingSectorId ?? 1;
+        _formHandler.setSelectedSector(viewingSectorId);
+      }
     }
-
-    _formHandler.sectorController.text = sectorName;
 
     String roleName = 'Soldado';
     if (isLieutenant) {
@@ -235,11 +239,14 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
 
                       const SizedBox(height: 24),
 
-                      CustomTextFormField(
-                        upperLabel: 'SETOR',
-                        hintText: '',
-                        readOnly: true,
-                        controller: _formHandler.sectorController,
+                      SectorDropdown(
+                        selectedSectorId: _formHandler.selectedSectorId,
+                        onSectorChanged: (sectorId) {
+                          _formHandler.setSelectedSector(sectorId);
+                        },
+                        enabled:
+                            !isEditMode ||
+                            UserService.instance.currentUser?.nivelAcesso == 3,
                       ),
 
                       if (isLieutenant)
