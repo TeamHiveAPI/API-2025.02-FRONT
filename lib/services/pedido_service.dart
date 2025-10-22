@@ -29,13 +29,22 @@ class PedidoService {
       var baseQuery = supabase
           .from(SupabaseTables.pedido)
           .select('''
-            *,
-            ${SupabaseTables.itemPedido}!inner(
-              ${ItemPedidoFields.qtdSolicitada},
-              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})
-            ),
+            ${PedidoFields.id},
+            ${PedidoFields.status},
+            ${PedidoFields.dataSolicitada},
+            ${PedidoFields.dataRetirada},
+            ${PedidoFields.setorId},
+            ${PedidoFields.usuarioId},
+            ${PedidoFields.motivoCancelamento},
+            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome}),
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
-            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})
+            ${SupabaseTables.itemPedido}!inner(
+              id,
+              ${ItemPedidoFields.itemId},
+              ${ItemPedidoFields.qtdSolicitada},
+              iped_lotes,
+              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})
+            )
           ''')
           .eq(PedidoFields.setorId, viewingSectorId);
 
@@ -44,8 +53,10 @@ class PedidoService {
       }
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
+        // Busca por nome do item do pedido OU nome do usuário solicitante
         baseQuery = baseQuery.or(
-          '${SupabaseTables.itemPedido}.${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
+          '${SupabaseTables.itemPedido}.${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,'
+          '${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
         );
       }
 
@@ -53,6 +64,7 @@ class PedidoService {
       final totalCount = countResponse.count;
 
       PostgrestTransformBuilder<PostgrestList> dataQuery = baseQuery;
+
       if (sortParams.activeSortColumnDataField != null) {
         dataQuery = dataQuery.order(
           sortParams.activeSortColumnDataField!,
@@ -76,18 +88,27 @@ class PedidoService {
     }
   }
 
-    Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
+  Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
     try {
       final response = await supabase
           .from(SupabaseTables.pedido)
           .select('''
-            *,
-            ${SupabaseTables.itemPedido}!inner(
-              ${ItemPedidoFields.qtdSolicitada},
-              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome})
-            ),
+            ${PedidoFields.id},
+            ${PedidoFields.status},
+            ${PedidoFields.dataSolicitada},
+            ${PedidoFields.dataRetirada},
+            ${PedidoFields.setorId},
+            ${PedidoFields.usuarioId},
+            ${PedidoFields.motivoCancelamento},
+            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome}),
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
-            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})
+            ${SupabaseTables.itemPedido}!inner(
+              id,
+              ${ItemPedidoFields.itemId},
+              ${ItemPedidoFields.qtdSolicitada},
+              iped_lotes,
+              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})
+            )
           ''')
           .eq(PedidoFields.id, pedidoId)
           .single();
@@ -97,6 +118,8 @@ class PedidoService {
       return null;
     }
   }
+
+  // getPedidoDetails removido: usar fetchPedidoById(pedidoId)
 
   Future<void> cancelPedido({
     required int pedidoId,
@@ -207,26 +230,8 @@ class PedidoService {
     }
   }
 
-  Future<Map<String, dynamic>> getPedidoDetails(int pedidoId) async {
-    try {
-      final response = await supabase
-          .from(SupabaseTables.pedido)
-          .select('''
-            *,
-            ${SupabaseTables.itemPedido}!inner(${ItemPedidoFields.qtdSolicitada}, ${ItemPedidoFields.loteRetiradoId}, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})),
-            ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}, ${UsuarioFields.nivelAcesso})
-          ''')
-          .eq(PedidoFields.id, pedidoId)
-          .single();
-      return response;
-    } on PostgrestException catch (e) {
-      print('Erro do Supabase ao buscar detalhes do pedido: ${e.message}');
-      throw 'Falha ao carregar detalhes do pedido: ${e.message}';
-    } catch (e) {
-      print('Erro desconhecido ao buscar detalhes do pedido: $e');
-      throw 'Ocorreu um erro inesperado. Tente novamente.';
-    }
-  }
+
+
 
   Future<List<Map<String, dynamic>>> getAvailableItems() async {
     try {

@@ -44,7 +44,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
-      title: 'Nome do item',
+      title: 'Itens',
       dataField: 'item_nome',
       widthFactor: 0.55,
       sortType: SortType.alphabetic,
@@ -254,9 +254,27 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
                 statusDescricao = 'Desconhecido';
             }
 
+            final List<dynamic> itensPedido =
+                (item[SupabaseTables.itemPedido] as List?) ?? const [];
+
+            // Nome de exibição: primeiro item + "+N"
+            String itemNomeDisplay = 'N/A';
+            if (itensPedido.isNotEmpty) {
+              final primeiroNome = itensPedido.first[SupabaseTables.item]?[ItemFields.nome] ?? 'Item';
+              final extra = itensPedido.length - 1;
+              itemNomeDisplay = extra > 0 ? '$primeiroNome +$extra' : '$primeiroNome';
+            }
+
+            // Soma das quantidades solicitadas
+            final int qtdTotalSolicitada = itensPedido.fold<int>(0, (acc, it) {
+              final q = (it[ItemPedidoFields.qtdSolicitada] ?? 0);
+              return acc + (q is num ? q.toInt() : int.tryParse('$q') ?? 0);
+            });
+
             return {
               ...item,
-              'item_nome': item[SupabaseTables.itemPedido]?[0]?[SupabaseTables.item]?[ItemFields.nome] ?? 'N/A',
+              'item_nome': itemNomeDisplay,
+              'qtd_solicitada': qtdTotalSolicitada,
               'usuario_nome': item[SupabaseTables.usuario]?[UsuarioFields.nome] ?? 'N/A',
               'status_descricao': statusDescricao,
             };

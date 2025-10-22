@@ -41,7 +41,7 @@ abstract class ItemPedidoFields {
   static const String pedidoId = 'iped_pedido_id';
   static const String itemId = 'iped_item_id';
   static const String qtdSolicitada = 'iped_qtd_solicitada';
-  static const String loteRetiradoId = 'iped_lote_retirado_id';
+  static const String lotes = 'iped_lotes';
 }
 
 abstract class ItemPedidoCompraFields {

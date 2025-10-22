@@ -57,14 +57,13 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       );
     }
 
-    final itemNome = _pedidoData?[SupabaseTables.itemPedido]?[0]?[SupabaseTables.item]?[ItemFields.nome] ?? '';
-    final nomeUsuario = _pedidoData?[SupabaseTables.usuario]?[UsuarioFields.nome] ?? '';
+  final nomeUsuario = _pedidoData?[SupabaseTables.usuario]?[UsuarioFields.nome] ?? '';
     final idPedido = _pedidoData?[PedidoFields.id]?.toString() ?? '';
-    final idItem = _pedidoData?[SupabaseTables.itemPedido]?[0]?[ItemPedidoFields.itemId] ?? 0;
     final idUsuario = _pedidoData?[PedidoFields.usuarioId] ?? 0;
     final dataRet = _pedidoData?[PedidoFields.dataRetirada]?.toString() ?? 'Em aberto';
-    final qtdSolicitada = _pedidoData?[SupabaseTables.itemPedido]?[0]?[ItemPedidoFields.qtdSolicitada]?.toString() ?? '';
     final status = _pedidoData?[PedidoFields.status] ?? 1;
+  final List<dynamic> itensPedido =
+    (_pedidoData?[SupabaseTables.itemPedido] as List?) ?? const [];
 
     final isPendente = status == PedidoConstants.statusPendente;
     final isCancelado = status == PedidoConstants.statusCancelado;
@@ -86,17 +85,41 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        DetailItemCard(
-          isLoading: _isLoadingInitialContent,
-          label: "ITEM REQUISITADO",
-          value: itemNome,
-          onPressed: _isLoadingInitialContent
-              ? null
-              : () {
-                  if (widget.onViewItemDetails != null)
-                    widget.onViewItemDetails!(idItem);
+        // Lista de itens do pedido
+        if (_isLoadingInitialContent)
+          const DetailItemCard(
+            isLoading: true,
+            label: "ITENS",
+            value: '',
+          )
+        else ...[
+          const Text(
+            'Itens do pedido',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          ...itensPedido.map((it) {
+            final itemId = it[ItemPedidoFields.itemId] ?? 0;
+            final itemNome = it[SupabaseTables.item]?[ItemFields.nome] ?? '';
+            final unidade = it[SupabaseTables.item]?[ItemFields.unidade] ?? '';
+            final qtd = (it[ItemPedidoFields.qtdSolicitada] ?? 0).toString();
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: DetailItemCard(
+                isLoading: false,
+                label: unidade?.toString().isNotEmpty == true
+                    ? 'ITEM REQUISITADO (${unidade})'
+                    : 'ITEM REQUISITADO',
+                value: '$itemNome — Qtd: $qtd',
+                onPressed: () {
+                  if (widget.onViewItemDetails != null) {
+                    widget.onViewItemDetails!(itemId);
+                  }
                 },
-        ),
+              ),
+            );
+          }).toList(),
+        ],
         const SizedBox(height: 12),
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
@@ -137,25 +160,40 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
           ],
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: DetailItemCard(
-                isLoading: _isLoadingInitialContent,
-                label: "DATA DE RETIRADA",
-                value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DetailItemCard(
-                isLoading: _isLoadingInitialContent,
-                label: "QTD. SOLICITADA",
-                value: qtdSolicitada,
-              ),
-            ),
-          ],
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "DATA DE RETIRADA",
+          value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
         ),
+        const SizedBox(height: 12),
+        // Se houver lotes, exibe um resumo abaixo de cada item
+        if (!_isLoadingInitialContent && itensPedido.isNotEmpty) ...[
+          const Text(
+            'Lotes reservados/retirados',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          ...itensPedido.map((it) {
+            final itemNome = it[SupabaseTables.item]?[ItemFields.nome] ?? '';
+            final List<dynamic> lotes = (it['iped_lotes'] as List?) ?? const [];
+            if (lotes.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text('- $itemNome: (sem lotes informados)'),
+              );
+            }
+            final lotesStr = lotes.map((l) {
+              final idL = l['lote_id'];
+              final qL = l['quantidade'];
+              return '#$idL x$qL';
+            }).join(', ');
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text('- $itemNome: $lotesStr'),
+            );
+          }).toList(),
+          const SizedBox(height: 12),
+        ],
 
         if (isPendente) ...[
           const SizedBox(height: 24),
