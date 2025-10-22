@@ -56,8 +56,6 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
 
     try {
       final nome = _nomeController.text.trim();
-      // setorId is read-only on this screen and not used in update
-
       await _groupService.updateGroup(
         id: widget.groupId,
         newName: nome,

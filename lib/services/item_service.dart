@@ -187,4 +187,19 @@ class ItemService {
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
+
+  Future<void> reactivateItem(int itemId) async {
+    try {
+      await supabase
+          .from(SupabaseTables.item)
+          .update({ItemFields.ativo: true})
+          .eq(ItemFields.id, itemId);
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao reativar item: ${e.message}');
+      throw 'Falha ao reativarr item: ${e.message}';
+    } catch (e) {
+      print('Erro desconhecido ao reativaritem: $e');
+      throw 'Ocorreu um erro inesperado. Tente novamente.';
+    }
+  }
 }

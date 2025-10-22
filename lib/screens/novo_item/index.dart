@@ -129,40 +129,43 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Map<String, dynamic> _buildItemPayload() {
-  final payload = {
-    'nome': _formHandler.nameController.text.trim(),
-    'num_ficha': _formHandler.recordNumberController.text.trim(),
-    'unidade': _formHandler.unitOfMeasureController.text.trim(),
-    'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
-    'id_grupo': _formHandler.selectedGroupId,
-    'perecivel': _formHandler.isPerishable,
-    'ativo': true,
-  };
+    final payload = {
+      'nome': _formHandler.nameController.text.trim(),
+      'num_ficha': _formHandler.recordNumberController.text.trim(),
+      'unidade': _formHandler.unitOfMeasureController.text.trim(),
+      'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
+      'id_grupo': _formHandler.selectedGroupId,
+      'perecivel': _formHandler.isPerishable,
+      'ativo': true,
+    };
 
-  if (viewingSectorId == 2) {
-    payload['controlado'] = _formHandler.isControlled;
-  }
+    if (viewingSectorId == 2) {
+      payload['controlado'] = _formHandler.isControlled;
+    }
 
-  if (_formHandler.isPerishable) {
-    payload['lotes'] = _formHandler.lotControllers.map((LotController loteCtrl) {
-      return {
-        'id': loteCtrl.id,
-        'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
-        'data_validade': loteCtrl.dateController.text,
-        'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
-      };
-    }).toList();
-  } else {
-    payload['lotes'] = [
-      {
-        'qtd_atual': int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
-        'data_validade': null,
-        'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
-      },
-    ];
+    if (_formHandler.isPerishable) {
+      payload['lotes'] = _formHandler.lotControllers.map((
+        LotController loteCtrl,
+      ) {
+        return {
+          'id': loteCtrl.id,
+          'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
+          'data_validade': loteCtrl.dateController.text,
+          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+        };
+      }).toList();
+    } else {
+      payload['lotes'] = [
+        {
+          'qtd_atual':
+              int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
+          'data_validade': null,
+          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+        },
+      ];
+    }
+    return payload;
   }
-  return payload;
-}
 
   void _showMultiRegisterModal() async {
     final result = await showCustomBottomSheet(

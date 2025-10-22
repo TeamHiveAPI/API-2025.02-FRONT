@@ -64,7 +64,7 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
     }
   }
 
-  void _handleRowTap(Map<String, dynamic> itemData) {
+  void _handleRowTap(Map<String, dynamic> itemData) async {
     final int? itemId = itemData[ItemFields.id];
 
     if (itemId == null) {
@@ -74,11 +74,15 @@ class _StockItemsTableState extends State<StockItemsTable> with TableHandler {
       return;
     }
 
-    showCustomBottomSheet(
+    final result = await showCustomBottomSheet(
       context: context,
       title: "Detalhes do item",
       child: DetalhesItemModal(itemId: itemId),
     );
+
+    if (result is Function) {
+      result(context);
+    }
   }
 
   @override
