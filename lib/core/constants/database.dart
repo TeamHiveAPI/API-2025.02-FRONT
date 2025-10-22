@@ -82,7 +82,8 @@ abstract class PedidoFields {
   static const String dados = 'ped_dados';
   static const String dataRetirada = 'ped_data_retirada';
   static const String dataSolicitada = 'ped_data_solicitada';
-  static const String responsavelCancelamentoId = 'ped_responsavel_cancelamento_id';
+  static const String responsavelCancelamentoId =
+      'ped_responsavel_cancelamento_id';
 }
 
 abstract class PedidoCompraFields {
@@ -108,4 +109,7 @@ abstract class UsuarioFields {
   static const String cpf = 'usr_cpf';
   static const String authUid = 'usr_auth_uid';
   static const String fotoUrl = 'usr_foto_url';
+  static const String ativo = 'usr_ativo';
+  static const String primeiroLogin = 'usr_primeiro_login';
+  static const String dataCriacao = 'usr_data_criacao';
 }
