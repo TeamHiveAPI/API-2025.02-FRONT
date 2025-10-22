@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/services/supplier_service.dart';
-import 'package:sistema_almox/screens/novo_fornecedor/index.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
@@ -25,7 +24,9 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
 
   Future<void> _fetchData() async {
     try {
-      final data = await SupplierService.instance.fetchSupplierById(widget.supplierId);
+      final data = await SupplierService.instance.fetchSupplierById(
+        widget.supplierId,
+      );
       if (mounted) {
         setState(() {
           _supplierData = data;
@@ -34,7 +35,11 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
       }
     } catch (e) {
       if (mounted) {
-        showCustomSnackbar(context, 'Erro ao carregar detalhes do fornecedor: $e', isError: true);
+        showCustomSnackbar(
+          context,
+          'Erro ao carregar detalhes do fornecedor: $e',
+          isError: true,
+        );
         setState(() => _isLoadingInitialContent = false);
       }
     }
@@ -56,8 +61,10 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
     final cnpj = _supplierData?['frn_cnpj'] ?? '';
     final telefone = _supplierData?['frn_telefone'] ?? '';
     final email = _supplierData?['frn_email'] ?? '';
-    final items = (_supplierData?['frn_item'] as List<dynamic>?)?.join(', ') ?? '';
 
+    final itemList = _supplierData?['frn_item'] as List<dynamic>?;
+    final itemCount = itemList?.length ?? 0;
+    final itemsValue = itemCount.toString();
     dynamic setoresValue = _supplierData?['frn_setor_id'];
     String setores = '';
     if (setoresValue is List<dynamic>) {
@@ -88,22 +95,31 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
           value: telefone,
         ),
         const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: DetailItemCard(
+                isLoading: _isLoadingInitialContent,
+                label: "ITENS",
+                value: itemsValue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: DetailItemCard(
+                isLoading: _isLoadingInitialContent,
+                label: "SETOR",
+                value: setores,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
           label: "E-MAIL",
           value: email,
-        ),
-        const SizedBox(height: 12),
-        DetailItemCard(
-          isLoading: _isLoadingInitialContent,
-          label: "ITENS",
-          value: items,
-        ),
-        const SizedBox(height: 12),
-        DetailItemCard(
-          isLoading: _isLoadingInitialContent,
-          label: "SETORES",
-          value: setores,
         ),
         const SizedBox(height: 12),
         CustomButton(
@@ -111,7 +127,9 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
           onPressed: _isLoadingInitialContent
               ? null
               : () {
-                  Navigator.of(context).pop({'action': 'edit', 'data': supplierDataForButtons});
+                  Navigator.of(
+                    context,
+                  ).pop({'action': 'edit', 'data': supplierDataForButtons});
                 },
           secondary: true,
           isFullWidth: true,

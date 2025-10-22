@@ -25,20 +25,14 @@ class _SupplierListState extends State<SupplierList> with TableHandler {
         TableColumn(
           title: 'Nome',
           dataField: fornNome,
-          widthFactor: 0.4,
-          sortType: SortType.alphabetic,
-        ),
-        TableColumn(
-          title: 'Setor',
-          dataField: fornSetor,
-          widthFactor: 0.3,
+          widthFactor: 0.8,
           sortType: SortType.alphabetic,
         ),
         TableColumn(
           title: 'Itens',
           dataField: fornItem,
-          widthFactor: 0.3,
-          sortType: SortType.alphabetic,
+          widthFactor: 0.2,
+          sortType: SortType.numeric,
         ),
       ];
 

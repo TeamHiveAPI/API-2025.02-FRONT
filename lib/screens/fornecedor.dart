@@ -17,7 +17,6 @@ class FornecedorScreen extends StatefulWidget {
 class _FornecedorScreenState extends State<FornecedorScreen> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  int _refreshCounter = 0; 
 
   @override
   void initState() {
@@ -49,15 +48,6 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
       context,
       MaterialPageRoute(builder: (context) => const NewSupplierScreen()),
     ).then((_) {
-      
-      _reloadSupplierList();
-    });
-  }
-
-  
-  void _reloadSupplierList() {
-    setState(() {
-      _refreshCounter++; 
     });
   }
 
@@ -107,18 +97,11 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
                     onSearchChanged: _handleSearch,
                   ),
                 ),
-                SizedBox(width: 20),
-                CustomButton(
-                  icon: Icons.refresh,
-                  squareMode: true,
-                  onPressed: _reloadSupplierList,
-                ),
               ],
             ),
             const SizedBox(height: 20),
             
             SupplierList(
-              key: ValueKey('supplier_list_${_refreshCounter}_${_searchQuery}'),
               searchQuery: _searchQuery,
               userRole: currentUserRole,
             ),
