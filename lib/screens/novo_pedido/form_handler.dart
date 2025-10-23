@@ -50,10 +50,17 @@ class NewOrderFormHandler {
   }
 
   Future<void> selectDate(BuildContext context) async {
+    // Permitir seleção apenas de hoje em diante (sem datas no passado)
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initial = (selectedDate != null && !selectedDate!.isBefore(today))
+        ? selectedDate!
+        : today;
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
+      initialDate: initial,
+      firstDate: today,
       lastDate: DateTime(2101),
     );
     if (picked != null) {

@@ -25,7 +25,6 @@ class NewOrderScreen extends StatefulWidget {
 class NewOrderScreenState extends State<NewOrderScreen> {
   late final NewOrderFormHandler _formHandler;
 
-  // Removidos campos do fluxo antigo de item único
   bool _isLoading = false;
   bool _isSubmitting = false;
   List<SelectedItem> _selectedItems = [];
@@ -47,7 +46,6 @@ class NewOrderScreenState extends State<NewOrderScreen> {
     if (result != null && mounted) {
       setState(() {
         _selectedItems = result.items;
-        // Clear the single-item controls when using multi
         _formHandler.searchController.clear();
         _formHandler.selectedItem = null;
         _formHandler.quantityController.clear();
@@ -222,8 +220,28 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                                   padding: const EdgeInsets.symmetric(vertical: 4),
                                   child: Row(
                                     children: [
-                                      Expanded(child: Text('${s.nome} (${s.unidade})')),
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: _isSubmitting ? null : _openItemPicker,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                            child: Text('${s.nome} (${s.unidade})'),
+                                          ),
+                                        ),
+                                      ),
                                       Text('Qtd: $total'),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        tooltip: 'Remover',
+                                        icon: const Icon(Icons.close),
+                                        onPressed: _isSubmitting
+                                            ? null
+                                            : () {
+                                                setState(() {
+                                                  _selectedItems.removeWhere((it) => it.itemId == s.itemId);
+                                                });
+                                              },
+                                      ),
                                     ],
                                   ),
                                 );

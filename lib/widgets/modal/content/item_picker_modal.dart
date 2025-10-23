@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sistema_almox/core/constants/database.dart';
-import 'package:sistema_almox/services/item_service.dart';
-import 'package:sistema_almox/config/permissions.dart';
-import 'package:sistema_almox/utils/table_handler_mixin.dart';
-import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
 
 class ItemPickerResult {
@@ -12,7 +8,6 @@ class ItemPickerResult {
   ItemPickerResult(this.items);
 }
 
-/// Formatter that prevents entering a value greater than [max].
 class _MaxValueTextInputFormatter extends TextInputFormatter {
   final int max;
   const _MaxValueTextInputFormatter(this.max);
@@ -22,7 +17,7 @@ class _MaxValueTextInputFormatter extends TextInputFormatter {
     final text = newValue.text;
     if (text.isEmpty) return newValue.copyWith(text: '');
     final value = int.tryParse(text);
-    if (value == null) return oldValue; // reject non-numeric
+    if (value == null) return oldValue;
     if (value > max) {
       final capped = max.toString();
       return TextEditingValue(
@@ -47,7 +42,7 @@ class SelectedItem {
   final int itemId;
   final String nome;
   final String unidade;
-  int quantidadeTotal; // quando não houver lotes múltiplos
+  int quantidadeTotal;
   final List<SelectedLot> lotes;
   SelectedItem({
     required this.itemId,
@@ -89,7 +84,6 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
   void initState() {
     super.initState();
     _searchCtrl.addListener(_onSearchChanged);
-    // Pre-fill selection from initialSelection if provided
     if (widget.initialSelection != null && widget.initialSelection!.isNotEmpty) {
       for (final sel in widget.initialSelection!) {
         _selected[sel.itemId] = SelectedItem(
@@ -126,13 +120,10 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final res = await ItemService.instance.fetchItems(
-        page: 1,
-        sortParams: SortParams(activeSortColumnDataField: null, isAscending: true, thisOrThatState: ThisOrThatSortState.none),
+      final items = await PedidoService.instance.getAvailableItems(
         searchQuery: _searchCtrl.text.trim(),
-        userRole: UserRole.soldadoComum,
       );
-      _items = res.items;
+      _items = items;
     } catch (_) {
       _items = [];
     } finally {
@@ -144,19 +135,16 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
     return await PedidoService.instance.getLotesPorItem(itemId);
   }
 
-  // Returns how many lots are currently enabled for input (FIFO rule):
-  // Only the first non-full lot (quantidade < disponivel) and all previous lots are enabled.
   int _enabledLotsCount(SelectedItem s) {
     for (int i = 0; i < s.lotes.length; i++) {
       final lot = s.lotes[i];
       final max = lot.disponivel;
-      // If max <= 0, treat as already full; otherwise require quantidade == max to unlock next
       final isFull = max <= 0 || lot.quantidade >= max;
       if (!isFull) {
-        return i + 1; // enable up to and including this lot
+        return i + 1;
       }
     }
-    return s.lotes.length; // all considered full; all enabled
+    return s.lotes.length;
   }
 
   Future<void> _toggleItem(Map<String, dynamic> item) async {
@@ -175,7 +163,6 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
     final lotes = await _loadLotes(id);
     setState(() => _loadingLots[id] = false);
 
-    // Se houver mais de um lote, permitir rateio por lote; senão, usar quantidadeTotal
     if (lotes.length > 1) {
       sel.lotes.addAll(lotes.map((l) => SelectedLot(
             loteId: l['id'] as int,
@@ -193,7 +180,6 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
         codigo: l['codigo_lote']?.toString(),
         validade: l['data_validade']?.toString(),
       ));
-      // Com um lote só, vamos permitir que o usuário digite a quantidade total; no submit mapeamos para esse lote
     }
 
     setState(() => _selected[id] = sel);
@@ -225,151 +211,199 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
               Expanded(
                 child: _loading
                     ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: _items.length,
-                        itemBuilder: (context, index) {
-                          final it = _items[index];
-                          final String nome = (it['nome'] ?? it[ItemFields.nome]).toString();
-                          if (_searchCtrl.text.isNotEmpty && !nome.toLowerCase().contains(_searchCtrl.text.toLowerCase())) {
-                            return const SizedBox.shrink();
-                          }
-                          final int id = it['id'] as int;
-                          final bool selected = _selected.containsKey(id);
-                          final loadingLots = _loadingLots[id] == true;
-                          final sel = _selected[id];
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ListTile(
-                                title: Text(nome),
-                                subtitle: Text((it['unidade'] ?? it[ItemFields.unidade]).toString()),
-                                trailing: Checkbox(value: selected, onChanged: (_) => _toggleItem(it)),
-                                onTap: () => _toggleItem(it),
+                    : Builder(
+                        builder: (context) {
+                          final query = _searchCtrl.text.toLowerCase();
+                          final visibleItems = _items.where((it) {
+                            final String nome = (it['nome'] ?? it[ItemFields.nome]).toString();
+                            return query.isEmpty || nome.toLowerCase().contains(query);
+                          }).toList();
+
+                          if (visibleItems.isEmpty) {
+                            final bool isSearching = query.isNotEmpty;
+                            final String message = isSearching
+                                ? 'Nenhum item encontrado para a busca.'
+                                : 'Nenhum item disponível para este setor.';
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Text(
+                                  message,
+                                  style: const TextStyle(color: Colors.black54),
+                                ),
                               ),
-                              if (selected)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: loadingLots
-                                      ? const Center(child: CircularProgressIndicator())
-                                      : Column(
-                                          children: [
-                                            if (sel!.lotes.length > 1) ...List.generate(sel.lotes.length, (idx) {
-                                              final lotSel = sel.lotes[idx];
-                                              final disp = lotSel.disponivel;
-                                              final enabledCount = _enabledLotsCount(sel);
-                                              final isEnabled = idx < enabledCount;
-                                              return Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Expanded(
-                                                    child: Column(
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: visibleItems.length,
+                            itemBuilder: (context, index) {
+                              final it = visibleItems[index];
+                              final String nome = (it['nome'] ?? it[ItemFields.nome]).toString();
+                              final int id = it['id'] as int;
+                              final bool selected = _selected.containsKey(id);
+                              final loadingLots = _loadingLots[id] == true;
+                              final sel = _selected[id];
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ListTile(
+                                    title: Text(nome),
+                                    subtitle: Text((it['unidade'] ?? it[ItemFields.unidade]).toString()),
+                                    trailing: Checkbox(value: selected, onChanged: (_) => _toggleItem(it)),
+                                    onTap: () => _toggleItem(it),
+                                  ),
+                                  if (selected)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      child: loadingLots
+                                          ? const Center(child: CircularProgressIndicator())
+                                          : Column(
+                                              children: [
+                                                if (sel!.lotes.length > 1) ...List.generate(sel.lotes.length, (idx) {
+                                                  final lotSel = sel.lotes[idx];
+                                                  final disp = lotSel.disponivel;
+                                                  final enabledCount = _enabledLotsCount(sel);
+                                                  final isEnabled = idx < enabledCount;
+                                                  return Padding(
+                                                    padding: const EdgeInsets.only(bottom: 10.0),
+                                                    child: Row(
                                                       crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
-                                                        Text('${lotSel.codigo ?? 'Lote'} • Val: ${lotSel.validade ?? '-'} • Disp: $disp'),
-                                                        if (!isEnabled)
-                                                          const Padding(
-                                                            padding: EdgeInsets.only(top: 2.0),
-                                                            child: Text(
-                                                              'Preencha o lote anterior primeiro',
-                                                              style: TextStyle(fontSize: 11, color: Colors.black45),
-                                                            ),
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              Text('${lotSel.codigo ?? 'Lote'} • Disp: $disp'),
+                                                              if ((lotSel.validade != null) && lotSel.validade!.toString().isNotEmpty)
+                                                                Padding(
+                                                                  padding: const EdgeInsets.only(top: 2.0),
+                                                                  child: Text(
+                                                                    'Val: ${lotSel.validade}',
+                                                                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                                                                  ),
+                                                                ),
+                                                              if (!isEnabled)
+                                                                const Padding(
+                                                                  padding: EdgeInsets.only(top: 2.0),
+                                                                  child: Text(
+                                                                    'Preencha o lote anterior primeiro',
+                                                                    style: TextStyle(fontSize: 11, color: Colors.black45),
+                                                                  ),
+                                                                ),
+                                                            ],
                                                           ),
+                                                        ),
+                                                        SizedBox(
+                                                          width: 90,
+                                                          child: TextFormField(
+                                                            initialValue: lotSel.quantidade.toString(),
+                                                            enabled: isEnabled,
+                                                            keyboardType: TextInputType.number,
+                                                            decoration: const InputDecoration(isDense: true, labelText: 'Qtd'),
+                                                            inputFormatters: isEnabled
+                                                                ? [
+                                                                    FilteringTextInputFormatter.digitsOnly,
+                                                                    _MaxValueTextInputFormatter(disp),
+                                                                  ]
+                                                                : [FilteringTextInputFormatter.digitsOnly],
+                                                            onChanged: (v) {
+                                                              final q = int.tryParse(v) ?? 0;
+                                                              setState(() {
+                                                                lotSel.quantidade = q.clamp(0, disp);
+                                                                final newEnabled = _enabledLotsCount(sel);
+                                                                for (int j = newEnabled; j < sel.lotes.length; j++) {
+                                                                  if (sel.lotes[j].quantidade != 0) {
+                                                                    sel.lotes[j].quantidade = 0;
+                                                                  }
+                                                                }
+                                                              });
+                                                            },
+                                                          ),
+                                                        ),
                                                       ],
                                                     ),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 90,
-                                                    child: TextFormField(
-                                                      initialValue: lotSel.quantidade.toString(),
-                                                      enabled: isEnabled,
-                                                      keyboardType: TextInputType.number,
-                                                      decoration: const InputDecoration(isDense: true, labelText: 'Qtd'),
-                                                      inputFormatters: isEnabled
-                                                          ? [
-                                                              FilteringTextInputFormatter.digitsOnly,
-                                                              _MaxValueTextInputFormatter(disp),
-                                                            ]
-                                                          : [FilteringTextInputFormatter.digitsOnly],
-                                                      onChanged: (v) {
-                                                        final q = int.tryParse(v) ?? 0;
-                                                        setState(() {
-                                                          lotSel.quantidade = q.clamp(0, disp);
-                                                          // Enforce FIFO: if a previous lot is reduced below max, zero out subsequent lots
-                                                          final newEnabled = _enabledLotsCount(sel);
-                                                          for (int j = newEnabled; j < sel.lotes.length; j++) {
-                                                            if (sel.lotes[j].quantidade != 0) {
-                                                              sel.lotes[j].quantidade = 0;
-                                                            }
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            }),
-                                            if (sel.lotes.length == 1) ...[
-                                              // Exibe informações e limite do único lote disponível
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Padding(
-                                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                                  child: Text(
-                                                    '${sel.lotes.first.codigo ?? 'Lote'} • Val: ${sel.lotes.first.validade ?? '-'} • Disp: ${sel.lotes.first.disponivel}',
-                                                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                                                  ),
-                                                ),
-                                              ),
-                                              Row(
-                                                children: [
-                                                  const Text('Quantidade:'),
-                                                  const SizedBox(width: 8),
-                                                  SizedBox(
-                                                    width: 120,
-                                                    child: TextFormField(
-                                                      initialValue: sel.quantidadeTotal.toString(),
-                                                      keyboardType: TextInputType.number,
-                                                      decoration: InputDecoration(
-                                                        isDense: true,
-                                                        labelText: 'Qtd',
-                                                        suffixText: 'max ${sel.lotes.first.disponivel}',
+                                                  );
+                                                }),
+                                                if (sel.lotes.length == 1) ...[
+                                                  Align(
+                                                    alignment: Alignment.centerLeft,
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.only(bottom: 8.0),
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            '${sel.lotes.first.codigo ?? 'Lote'} • Disp: ${sel.lotes.first.disponivel}',
+                                                          ),
+                                                          if ((sel.lotes.first.validade != null) && sel.lotes.first.validade!.toString().isNotEmpty)
+                                                            const SizedBox(height: 2),
+                                                          if ((sel.lotes.first.validade != null) && sel.lotes.first.validade!.toString().isNotEmpty)
+                                                            const Text(
+                                                              // The validity value itself is shown below with styling
+                                                              '',
+                                                            ),
+                                                          if ((sel.lotes.first.validade != null) && sel.lotes.first.validade!.toString().isNotEmpty)
+                                                            Text(
+                                                              'Val: ${sel.lotes.first.validade}',
+                                                              style: const TextStyle(fontSize: 12, color: Colors.black54),
+                                                            ),
+                                                        ],
                                                       ),
-                                                      inputFormatters: [
-                                                        FilteringTextInputFormatter.digitsOnly,
-                                                        _MaxValueTextInputFormatter(sel.lotes.first.disponivel),
-                                                      ],
-                                                      onChanged: (v) {
-                                                        final q = int.tryParse(v) ?? 0;
-                                                        final max = sel.lotes.first.disponivel;
-                                                        setState(() => sel.quantidadeTotal = q.clamp(0, max));
-                                                      },
                                                     ),
                                                   ),
-                                                ],
-                                              ),
-                                            ]
-                                            else if (sel.lotes.isEmpty) Row(
-                                              children: [
-                                                const Text('Quantidade:'),
-                                                const SizedBox(width: 8),
-                                                SizedBox(
-                                                  width: 100,
-                                                  child: TextFormField(
-                                                    initialValue: sel.quantidadeTotal.toString(),
-                                                    keyboardType: TextInputType.number,
-                                                    onChanged: (v) {
-                                                      final q = int.tryParse(v) ?? 0;
-                                                      setState(() => sel.quantidadeTotal = q.clamp(0, 100000));
-                                                    },
+                                                  Row(
+                                                    children: [
+                                                      const Text('Quantidade:'),
+                                                      const SizedBox(width: 8),
+                                                      SizedBox(
+                                                        width: 120,
+                                                        child: TextFormField(
+                                                          initialValue: sel.quantidadeTotal.toString(),
+                                                          keyboardType: TextInputType.number,
+                                                          decoration: InputDecoration(
+                                                            isDense: true,
+                                                            labelText: 'Qtd',
+                                                            suffixText: 'max ${sel.lotes.first.disponivel}',
+                                                          ),
+                                                          inputFormatters: [
+                                                            FilteringTextInputFormatter.digitsOnly,
+                                                            _MaxValueTextInputFormatter(sel.lotes.first.disponivel),
+                                                          ],
+                                                          onChanged: (v) {
+                                                            final q = int.tryParse(v) ?? 0;
+                                                            final max = sel.lotes.first.disponivel;
+                                                            setState(() => sel.quantidadeTotal = q.clamp(0, max));
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
+                                                ]
+                                                else if (sel.lotes.isEmpty) Row(
+                                                  children: [
+                                                    const Text('Quantidade:'),
+                                                    const SizedBox(width: 8),
+                                                    SizedBox(
+                                                      width: 100,
+                                                      child: TextFormField(
+                                                        initialValue: sel.quantidadeTotal.toString(),
+                                                        keyboardType: TextInputType.number,
+                                                        onChanged: (v) {
+                                                          final q = int.tryParse(v) ?? 0;
+                                                          setState(() => sel.quantidadeTotal = q.clamp(0, 100000));
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
-                                          ],
-                                        ),
-                                ),
-                              const Divider(height: 1),
-                            ],
+                                    ),
+                                  const Divider(height: 1),
+                                ],
+                              );
+                            },
                           );
                         },
                       ),
@@ -390,8 +424,6 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
                         onPressed: _selected.isEmpty
                             ? null
                             : () {
-                                // Filtra apenas itens com quantidade válida e
-                                // espelha a quantidadeTotal no único lote quando aplicável
                                 final list = _selected.values
                                     .where((s) {
                                       if (s.lotes.length > 1) {

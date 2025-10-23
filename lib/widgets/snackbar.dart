@@ -128,7 +128,6 @@ void showCustomSnackbar(
 }
 
 class _CustomSnackbarAnimation extends StatefulWidget {
-  // 4. Alterado de 'child' para 'builder'
   final Widget Function(BuildContext context, Animation<double> progress)
   builder;
   final Duration duration;
@@ -148,11 +147,8 @@ class _CustomSnackbarAnimation extends StatefulWidget {
 
 class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
     with TickerProviderStateMixin {
-  // Mudado para TickerProviderStateMixin
   late AnimationController _moveController;
   late Animation<Offset> _offsetAnimation;
-
-  // 5. Novo controller para a barra de progresso
   late AnimationController _progressController;
 
   void close() {
@@ -171,7 +167,6 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
       vsync: this,
     );
 
-    // Controller para a barra de progresso
     _progressController = AnimationController(
       duration: widget.duration,
       vsync: this,

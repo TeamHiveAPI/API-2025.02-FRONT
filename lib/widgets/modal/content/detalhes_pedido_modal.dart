@@ -85,7 +85,6 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Lista de itens do pedido
         if (_isLoadingInitialContent)
           const DetailItemCard(
             isLoading: true,
@@ -166,7 +165,6 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
           value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
         ),
         const SizedBox(height: 12),
-        // Se houver lotes, exibe um resumo abaixo de cada item
         if (!_isLoadingInitialContent && itensPedido.isNotEmpty) ...[
           const Text(
             'Lotes reservados/retirados',

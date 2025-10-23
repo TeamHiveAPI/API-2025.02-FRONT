@@ -218,7 +218,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         child: MotivoCancelamentoModal(
           motivo: pedidoData[PedidoFields.motivoCancelamento] ?? 'Não especificado',
           responsavelNome:
-              'Dados do responsável', // Campo responsável agora está em ped_responsavel_cancelamento_id
+              'Dados do responsável',
           responsavelId: pedidoData[PedidoFields.responsavelCancelamentoId],
           onViewResponsavelDetails: (userId) {
             Navigator.of(context).pop(userId);
@@ -262,16 +262,12 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
 
             final List<dynamic> itensPedido =
                 (item[SupabaseTables.itemPedido] as List?) ?? const [];
-
-            // Nome de exibição: primeiro item + "+N"
             String itemNomeDisplay = 'N/A';
             if (itensPedido.isNotEmpty) {
               final primeiroNome = itensPedido.first[SupabaseTables.item]?[ItemFields.nome] ?? 'Item';
               final extra = itensPedido.length - 1;
               itemNomeDisplay = extra > 0 ? '$primeiroNome +$extra' : '$primeiroNome';
             }
-
-            // Soma das quantidades solicitadas
             final int qtdTotalSolicitada = itensPedido.fold<int>(0, (acc, it) {
               final q = (it[ItemPedidoFields.qtdSolicitada] ?? 0);
               return acc + (q is num ? q.toInt() : int.tryParse('$q') ?? 0);

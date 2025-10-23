@@ -52,7 +52,6 @@ class PedidoService {
       }
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
-        // Busca por nome do item do pedido OU nome do usuário solicitante
         baseQuery = baseQuery.or(
           '${SupabaseTables.itemPedido}.${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,'
           '${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
@@ -116,8 +115,6 @@ class PedidoService {
       return null;
     }
   }
-
-  // getPedidoDetails removido: usar fetchPedidoById(pedidoId)
 
   Future<void> cancelPedido({
     required int pedidoId,
@@ -228,7 +225,7 @@ class PedidoService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAvailableItems() async {
+  Future<List<Map<String, dynamic>>> getAvailableItems({String searchQuery = ''}) async {
     try {
       final viewingSectorId = UserService.instance.viewingSectorId;
 
@@ -239,18 +236,21 @@ class PedidoService {
       print('Buscando itens para o setor: $viewingSectorId');
       
       final response = await supabase.rpc(
-        'buscar_itens_por_setor',
+        'buscar_itens_com_lote_por_setor',
         params: {
           'id_setor_param': viewingSectorId,
-          'search_query_param': '',
+          'search_query_param': searchQuery,
         },
       );
-      
       if (response == null) {
         return [];
       }
-      final items = List<Map<String, dynamic>>.from(response);
-      return items;
+      final items = List<Map<String, dynamic>>.from(response ?? const []);
+      return items.where((it) {
+        final disponivel = it['disponivel'] ?? ((it['qtd_atual'] ?? 0) - (it['qtd_reservada'] ?? 0));
+        final numDisp = (disponivel is num) ? disponivel : int.tryParse(disponivel.toString()) ?? 0;
+        return numDisp > 0;
+      }).toList();
     } on PostgrestException {
       rethrow;
     } catch (e) {
@@ -290,27 +290,49 @@ class PedidoService {
 
   Future<List<Map<String, dynamic>>> getLotesPorItem(int itemId) async {
     try {
-      final resp = await supabase
+      print('Buscando lotes para o item ID: $itemId');
+      final itemResp = await supabase
+          .from(SupabaseTables.item)
+          .select('it_perecivel')
+          .eq('id', itemId)
+          .single();
+      final bool isPerecivel = (itemResp['it_perecivel'] == true);
+
+      final today = DateTime.now().toIso8601String().split('T').first;
+
+      final filter = supabase
           .from(SupabaseTables.lote)
-      .select('id, codigo_lote:${LoteFields.codigo}, data_validade:${LoteFields.dataValidade}, qtd_atual:${LoteFields.qtdAtual}, qtd_reservada:${LoteFields.qtdReservada}, data_entrada:${LoteFields.dataEntrada}')
+          .select(
+              'id, codigo_lote:${LoteFields.codigo}, data_validade:${LoteFields.dataValidade}, qtd_atual:${LoteFields.qtdAtual}, qtd_reservada:${LoteFields.qtdReservada}, data_entrada:${LoteFields.dataEntrada}')
           .eq(LoteFields.itemId, itemId)
-          .eq('lot_ativo', true)
+          .eq('lot_ativo', true);
+
+      if (isPerecivel) {
+        filter.gte(LoteFields.dataValidade, today);
+      }
+
+      final resp = await filter
           .order(LoteFields.dataValidade, ascending: true)
           .order(LoteFields.dataEntrada, ascending: true);
-
       final list = (resp as List).cast<Map<String, dynamic>>();
-      return list.map((l) {
-        final int atual = ((l['qtd_atual'] ?? 0) as num).toInt();
-        final int reserv = ((l['qtd_reservada'] ?? 0) as num).toInt();
-        return {
-          'id': l['id'],
-          'codigo_lote': l['codigo_lote'],
-          'data_validade': l['data_validade'],
-          'qtd_atual': atual,
-          'qtd_reservada': reserv,
-          'disponivel': (atual - reserv) < 0 ? 0 : (atual - reserv),
-        };
-      }).toList();
+
+      final mapped = list
+          .map((l) {
+            final int atual = ((l['qtd_atual'] ?? 0) as num).toInt();
+            final int reserv = ((l['qtd_reservada'] ?? 0) as num).toInt();
+            final int disp = (atual - reserv);
+            return {
+              'id': l['id'],
+              'codigo_lote': l['codigo_lote'],
+              'data_validade': l['data_validade'],
+              'qtd_atual': atual,
+              'qtd_reservada': reserv,
+              'disponivel': disp < 0 ? 0 : disp,
+            };
+          })
+          .where((m) => ((m['disponivel'] ?? 0) as int) > 0)
+          .toList();
+      return mapped;
     } on PostgrestException catch (e) {
       print('Erro do Supabase ao buscar lotes do item $itemId: ${e.message}');
       rethrow;
