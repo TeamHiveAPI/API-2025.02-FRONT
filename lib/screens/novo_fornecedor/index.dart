@@ -138,7 +138,7 @@ class _NewSupplierScreenState extends State<NewSupplierScreen> {
                         children: [
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: 'LISTA de ITENS FORNECIDOS',
+                              upperLabel: 'LISTA DE ITENS FORNECIDOS',
                               hintText: 'Digite um item',
                               controller: _handler.newItemController,
                               onSubmitted: (_) => _handler.addItem(),

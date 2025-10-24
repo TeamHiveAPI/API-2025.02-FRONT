@@ -6,7 +6,13 @@ import 'package:sistema_almox/widgets/snackbar.dart';
 
 class DetalhesSupplierModal extends StatefulWidget {
   final int supplierId;
-  const DetalhesSupplierModal({super.key, required this.supplierId});
+  final Map<String, dynamic>? initialData;
+
+  const DetalhesSupplierModal({
+    super.key,
+    required this.supplierId,
+    this.initialData,
+  });
 
   @override
   _DetalhesSupplierModalState createState() => _DetalhesSupplierModalState();
@@ -19,7 +25,13 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
+
+    if (widget.initialData != null) {
+      _supplierData = widget.initialData;
+      _isLoadingInitialContent = false;
+    } else {
+      _fetchData();
+    }
   }
 
   Future<void> _fetchData() async {
@@ -62,8 +74,8 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
     final telefone = _supplierData?['frn_telefone'] ?? '';
     final email = _supplierData?['frn_email'] ?? '';
 
-    final itemList = _supplierData?['frn_item'] as List<dynamic>?;
-    final itemCount = itemList?.length ?? 0;
+    final itemList = _supplierData?['frn_item'] as List<dynamic>? ?? [];
+    final itemCount = itemList.length;
     final itemsValue = itemCount.toString();
     dynamic setoresValue = _supplierData?['frn_setor_id'];
     String setores = '';
@@ -81,18 +93,21 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
           isLoading: _isLoadingInitialContent,
           label: "NOME",
           value: nome,
+          copyButton: true,
         ),
         const SizedBox(height: 12),
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
           label: "CNPJ",
           value: cnpj,
+          copyButton: true,
         ),
         const SizedBox(height: 12),
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
           label: "TELEFONE",
           value: telefone,
+          copyButton: true,
         ),
         const SizedBox(height: 12),
         Row(
@@ -103,6 +118,17 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
                 isLoading: _isLoadingInitialContent,
                 label: "ITENS",
                 value: itemsValue,
+                onPressed: (_isLoadingInitialContent || itemCount == 0)
+                    ? null
+                    : () {
+                        Navigator.of(context).pop({
+                          'action': 'showItems',
+                          'data': {
+                            'items': itemList,
+                            'supplierData': _supplierData,
+                          }
+                        });
+                      },
               ),
             ),
             const SizedBox(width: 12),

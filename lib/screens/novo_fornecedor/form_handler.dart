@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/sector_service.dart';
 import 'package:sistema_almox/services/supplier_service.dart';
+import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,7 +32,7 @@ class SupplierFormHandler with ChangeNotifier {
   int? get selectedSectorId => _selectedSectorId;
 
   SupplierFormHandler(this._supplierToEdit)
-      : isEditMode = _supplierToEdit != null;
+    : isEditMode = _supplierToEdit != null;
 
   Future<void> initialize() async {
     await _loadSectors();
@@ -62,8 +64,9 @@ class SupplierFormHandler with ChangeNotifier {
     final supplier = _supplierToEdit!;
     nameController.text = supplier['frn_nome']?.toString() ?? '';
     cnpjController.text = formatCNPJ(supplier['frn_cnpj']?.toString() ?? '');
-    telefoneController.text =
-        formatPhone(supplier['frn_telefone']?.toString() ?? '');
+    telefoneController.text = formatPhone(
+      supplier['frn_telefone']?.toString() ?? '',
+    );
     emailController.text = supplier['frn_email']?.toString() ?? '';
     _items = List<String>.from(supplier['frn_item'] ?? []);
 
@@ -120,7 +123,8 @@ class SupplierFormHandler with ChangeNotifier {
     } on PostgrestException catch (e) {
       _handlePostgrestError(context, e);
     } catch (e) {
-      if (context.mounted) showCustomSnackbar(context, e.toString(), isError: true);
+      if (context.mounted)
+        showCustomSnackbar(context, e.toString(), isError: true);
     } finally {
       _setSaving(false);
     }
@@ -145,7 +149,10 @@ class SupplierFormHandler with ChangeNotifier {
         throw Exception('ID do fornecedor para edição não foi encontrado.');
       }
 
-      await SupplierService.instance.updateSupplier(supplierId as int, supplierPayload);
+      await SupplierService.instance.updateSupplier(
+        supplierId as int,
+        supplierPayload,
+      );
       showCustomSnackbar(context, 'Fornecedor atualizado com sucesso!');
       if (context.mounted) Navigator.of(context).pop(true);
     } on PostgrestException catch (e) {
@@ -174,24 +181,27 @@ class SupplierFormHandler with ChangeNotifier {
       return;
     }
 
-    final bool? confirmed = await showDialog<bool>(
+    final bool? confirmed = await showCustomDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmar Exclusão'),
-          content: const Text('Tem certeza que deseja desativar este fornecedor?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: const Text('Excluir', style: TextStyle(color: Colors.red)),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        );
-      },
+      title: 'Confirmar Exclusão',
+      primaryButtonText: 'Excluir',
+      primaryButtonDanger: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'Tem certeza que deseja desativar este fornecedor?',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: text60, fontSize: 14),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Não será possível gerar notas de empenho para ele até ele ser reativado.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: text60, fontSize: 14),
+          ),
+        ],
+      ),
     );
 
     if (confirmed != true) return;

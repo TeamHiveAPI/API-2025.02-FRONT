@@ -37,13 +37,23 @@ class _MovimentationLogTableState extends State<MovimentationLogTable>
         title: 'QTD',
         dataField: 'saldo_operacao',
         widthFactor: 0.2,
-        cellBuilder: (value) {
+        advancedCellBuilder: (value, rowData) {
           final int saldo = value is int ? value : 0;
-          final bool isPositive = saldo > 0;
-          final String textoValor = isPositive ? '+$saldo' : saldo.toString();
-          final Color? corDoSaldo = saldo == 0
-              ? null
-              : (isPositive ? successGreen : deleteRed);
+          final String tipoMov = rowData['tipo_mov'] as String? ?? '';
+
+          String textoValor;
+          Color? corDoSaldo;
+
+          if (tipoMov == 'RESERVA') {
+            textoValor = saldo.toString();
+            corDoSaldo = Colors.orange.shade500;
+          } else {
+            final bool isPositive = saldo > 0;
+            textoValor = isPositive ? '+$saldo' : saldo.toString();
+            corDoSaldo = saldo == 0
+                ? null
+                : (isPositive ? successGreen : deleteRed);
+          }
 
           return Text(
             textoValor,
