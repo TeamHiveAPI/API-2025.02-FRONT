@@ -23,6 +23,7 @@ dependencies:
   cached_network_image: ^3.3.1
   file_picker: ^8.0.0+1
   csv: ^6.0.0 
+  postgrest: ^2.5.0
   image_picker: ^1.2.0
   image_cropper: ^11.0.0
   mask_text_input_formatter: ^2.9.0

@@ -12,12 +12,14 @@ abstract class SupabaseTables {
   static const String usuario = 'usuario';
 }
 
-abstract class FornecedorFields {
-  static const String id = 'id';
-  static const String nome = 'frn_nome';
-  static const String cnpj = 'frn_cnpj';
-  static const String contato = 'frn_contato';
-}
+const String fornTable = 'fornecedor';
+const String fornId = 'id';  
+const String fornNome = 'frn_nome';
+const String fornCnpj = 'frn_cnpj';
+const String fornTelefone = 'frn_telefone';
+const String fornEmail = 'frn_email';
+const String fornItem = 'frn_item';
+const String fornSetor = 'frn_setor_id';
 
 abstract class GrupoFields {
   static const String id = 'id';

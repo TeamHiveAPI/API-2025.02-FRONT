@@ -135,8 +135,12 @@ class DetalhesMovimentacaoModal extends StatelessWidget {
                     cardBackgroundColor = Colors.red.shade50;
                     badgeColor = deleteRed;
                     break;
-                  default:
+                  case 'RESERVA':
                     cardBackgroundColor = Colors.orange.shade50;
+                    badgeColor = Colors.orange.shade500;
+                    break;
+                  default:
+                    cardBackgroundColor = coolGray;
                     badgeColor = Colors.grey.shade600;
                 }
 
