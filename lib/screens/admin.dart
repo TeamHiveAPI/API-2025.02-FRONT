@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
+import 'package:sistema_almox/screens/fornecedor.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
 import 'package:sistema_almox/screens/grupo.dart';
@@ -36,15 +37,12 @@ class AdminScreen extends StatelessWidget {
               iconPath: "assets/icons/groups.svg",
               name: 'Grupos',
               description: 'Gerencie os grupos de itens de cada setor',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GroupsScreen(),
-                ),
-              );
-            },
-
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GroupsScreen()),
+                );
+              },
             ),
             const SizedBox(height: 16),
 
@@ -53,7 +51,12 @@ class AdminScreen extends StatelessWidget {
               name: 'Fornecedores',
               description: 'Gerencie os fornecedores dos pedidos',
               onPressed: () {
-                print('Card de Fornecedores pressionado!');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FornecedorScreen(),
+                  ),
+                );
               },
             ),
 

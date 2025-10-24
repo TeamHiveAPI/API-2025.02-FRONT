@@ -17,6 +17,8 @@ class CustomTextFormField extends StatelessWidget {
   final bool obscureText;
   final AutovalidateMode? autovalidateMode;
   final bool textarea;
+  final void Function(String)? onSubmitted;
+
 
   const CustomTextFormField({
     super.key,
@@ -34,6 +36,7 @@ class CustomTextFormField extends StatelessWidget {
     this.obscureText = false,
     this.autovalidateMode,
     this.textarea = false,
+    this.onSubmitted,
   }) : assert(
           label != null || upperLabel != null,
           'Você deve fornecer um Label ou UpperLabel.',
