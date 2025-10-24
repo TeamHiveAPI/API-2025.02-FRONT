@@ -8,6 +8,7 @@ class CustomRadioButton<T> extends StatelessWidget {
   final String label;
   final double size;
   final double borderRadius;
+  final bool smaller;
 
   const CustomRadioButton({
     super.key,
@@ -17,11 +18,15 @@ class CustomRadioButton<T> extends StatelessWidget {
     required this.label,
     this.size = 29.0,
     this.borderRadius = 4.0,
+    this.smaller = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isSelected = value == groupValue;
+
+    final double currentCheckboxSize = smaller ? 22.0 : size;
+    final double currentFontSize = smaller ? 14.0 : 16.0;
 
     return InkWell(
       onTap: () => onChanged(value),
@@ -33,8 +38,8 @@ class CustomRadioButton<T> extends StatelessWidget {
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              height: size,
-              width: size,
+              height: currentCheckboxSize,
+              width: currentCheckboxSize,
               decoration: BoxDecoration(
                 color: isSelected ? brandBlue : Colors.transparent,
                 borderRadius: BorderRadius.circular(borderRadius),
@@ -46,7 +51,7 @@ class CustomRadioButton<T> extends StatelessWidget {
               child: isSelected
                   ? Icon(
                       Icons.check,
-                      size: size * 0.7,
+                      size: currentCheckboxSize * 0.7,
                       color: Colors.white,
                     )
                   : null,
@@ -55,9 +60,9 @@ class CustomRadioButton<T> extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: currentFontSize,
                 color: isSelected ? text80 : Colors.black54,
-                fontWeight: FontWeight.bold
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],

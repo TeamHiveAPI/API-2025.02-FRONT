@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/core/constants/system_constants.dart';
+import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/permissions.dart';
 
@@ -14,6 +16,7 @@ class UserModel {
   final int idSetor;
   final String authUid;
   final String? fotoUrl;
+  final bool primeiroLogin;
   final UserRole role;
 
   UserModel({
@@ -25,6 +28,7 @@ class UserModel {
     required this.idSetor,
     required this.authUid,
     this.fotoUrl,
+    required this.primeiroLogin,
     required this.role,
   });
 }
@@ -45,12 +49,18 @@ class UserService with ChangeNotifier {
   int? _viewingSectorId;
   int? get viewingSectorId => _viewingSectorId;
 
+  void setViewingSector(int sectorId) {
+    if (_viewingSectorId != sectorId) {
+      _viewingSectorId = sectorId;
+      notifyListeners();
+    }
+  }
+
   Future<bool> fetchAndSetCurrentUser(String userId) async {
     try {
       final userData = await supabase
           .from(SupabaseTables.usuario)
-          .select(
-            '''
+          .select('''
               ${UsuarioFields.id},
               ${UsuarioFields.nome},
               ${UsuarioFields.email},
@@ -58,9 +68,9 @@ class UserService with ChangeNotifier {
               ${UsuarioFields.nivelAcesso},
               ${UsuarioFields.setorId},
               ${UsuarioFields.authUid},
-              ${UsuarioFields.fotoUrl}
-            ''',
-          )
+              ${UsuarioFields.fotoUrl},
+              ${UsuarioFields.primeiroLogin}
+            ''')
           .eq(UsuarioFields.authUid, userId)
           .single();
 
@@ -73,12 +83,61 @@ class UserService with ChangeNotifier {
         idSetor: userData[UsuarioFields.setorId],
         authUid: userData[UsuarioFields.authUid],
         fotoUrl: userData[UsuarioFields.fotoUrl],
+        primeiroLogin: userData[UsuarioFields.primeiroLogin],
       );
       return true;
     } catch (e) {
       print("Erro ao buscar perfil do usuário no UserService: $e");
       await logout();
       return false;
+    }
+  }
+
+  Future<PaginatedResponse> fetchSectorUsers({
+    required int page,
+    required SortParams sortParams,
+    required bool showInactive,
+    String? searchQuery,
+  }) async {
+    try {
+      final viewingSectorId = UserService.instance.viewingSectorId;
+      if (viewingSectorId == null) {
+        return PaginatedResponse(items: [], totalCount: 0);
+      }
+
+      PostgrestTransformBuilder databaseCall = supabase.rpc(
+        'buscar_usuarios_por_setor',
+        params: {
+          'id_setor_param': viewingSectorId,
+          'search_query_param': searchQuery ?? '',
+          'mostrar_inativos': showInactive,
+        },
+      );
+
+      if (sortParams.activeSortColumnDataField != null) {
+        databaseCall = databaseCall.order(
+          sortParams.activeSortColumnDataField!,
+          ascending: sortParams.isAscending,
+        );
+      }
+
+      const int pageSize = SystemConstants.itemsPorPagina;
+      final int startIndex = (page - 1) * pageSize;
+      databaseCall = databaseCall.range(startIndex, startIndex + pageSize - 1);
+
+      final response = await databaseCall;
+
+      if (response.isEmpty) {
+        return PaginatedResponse(items: [], totalCount: 0);
+      }
+
+      final totalCount = response[0]['total_count'] as int;
+      final users = List<Map<String, dynamic>>.from(response);
+
+      return PaginatedResponse(items: users, totalCount: totalCount);
+    } catch (e) {
+      print('Erro ao buscar usuários do Supabase via RPC: $e');
+      return PaginatedResponse(items: [], totalCount: 0);
     }
   }
 
@@ -122,6 +181,7 @@ class UserService with ChangeNotifier {
           idSetor: userData['idSetor'],
           authUid: userData['authUid'],
           fotoUrl: userData['fotoUrl'],
+          primeiroLogin: userData['usr_primeiro_login'],
           role: role,
         );
 
@@ -146,10 +206,17 @@ class UserService with ChangeNotifier {
 
   void toggleViewingSector() {
     if (_currentUser?.nivelAcesso == 3) {
-      if (_viewingSectorId == 1) {
-        _viewingSectorId = 2;
-      } else {
-        _viewingSectorId = 1;
+      // Coronel pode alternar entre todos os setores
+      if (_viewingSectorId == null || _viewingSectorId == 5) {
+        _viewingSectorId = 1; // Almoxarifado
+      } else if (_viewingSectorId == 1) {
+        _viewingSectorId = 2; // Farmácia
+      } else if (_viewingSectorId == 2) {
+        _viewingSectorId = 3; // Odontologia
+      } else if (_viewingSectorId == 3) {
+        _viewingSectorId = 4; // Médico
+      } else if (_viewingSectorId == 4) {
+        _viewingSectorId = 5; // Comum
       }
       print('Setor de visualização alterado para: $_viewingSectorId');
       notifyListeners();
@@ -174,6 +241,7 @@ class UserService with ChangeNotifier {
     required int idSetor,
     required String authUid,
     required String? fotoUrl,
+    required bool primeiroLogin,
   }) {
     final role = _mapRoleFromDatabase(nivelAcesso, idSetor);
 
@@ -186,6 +254,7 @@ class UserService with ChangeNotifier {
       idSetor: idSetor,
       authUid: authUid,
       fotoUrl: fotoUrl,
+      primeiroLogin: primeiroLogin,
       role: role,
     );
 
@@ -207,6 +276,7 @@ class UserService with ChangeNotifier {
         'idSetor': _currentUser!.idSetor,
         'authUid': _currentUser!.authUid,
         'fotoUrl': _currentUser!.fotoUrl,
+        'primeiroLogin': _currentUser!.primeiroLogin,
         'role': _currentUser!.role.name,
       });
       await _storage.write(key: _userKey, value: userJson);
@@ -214,6 +284,24 @@ class UserService with ChangeNotifier {
   }
 
   Future<String>? _cachedAvatarUrlFuture;
+
+  Future<Map<String, dynamic>> fetchLieutenant({
+    required int accessLevel,
+    required int sectorId,
+  }) async {
+    try {
+      final data = await supabase
+          .from('usuario')
+          .select('id, usr_nome, usr_foto_url, usr_data_criacao')
+          .eq('usr_nivel_acesso', accessLevel)
+          .eq('usr_setor_id', sectorId)
+          .single();
+      return data;
+    } catch (e) {
+      print('Erro ao buscar tenente: $e');
+      throw Exception('Não foi possível carregar os dados do usuário.');
+    }
+  }
 
   Future<String> getSignedAvatarUrl() {
     if (_currentUser == null ||
@@ -248,12 +336,16 @@ class UserService with ChangeNotifier {
     switch (nivelAcesso) {
       case 1:
         switch (idSetor) {
-          case 0:
-            return UserRole.soldadoComum;
           case 1:
             return UserRole.soldadoEstoque;
           case 2:
             return UserRole.soldadoFarmacia;
+          case 3:
+            return UserRole.soldadoComum; // Odontologia
+          case 4:
+            return UserRole.soldadoComum; // Médico
+          case 5:
+            return UserRole.soldadoComum; // Comum
           default:
             return UserRole.soldadoComum;
         }
@@ -263,6 +355,12 @@ class UserService with ChangeNotifier {
             return UserRole.tenenteEstoque;
           case 2:
             return UserRole.tenenteFarmacia;
+          case 3:
+            return UserRole.soldadoComum; // Odontologia
+          case 4:
+            return UserRole.soldadoComum; // Médico
+          case 5:
+            return UserRole.soldadoComum; // Comum
           default:
             return UserRole.soldadoComum;
         }
@@ -278,15 +376,32 @@ class UserService with ChangeNotifier {
       case UserRole.soldadoComum:
         return 'Soldado Comum';
       case UserRole.soldadoEstoque:
-        return 'Soldado do Estoque';
+        return 'Soldado Almoxarifado';
       case UserRole.soldadoFarmacia:
-        return 'Soldado da Farmácia';
+        return 'Soldado Farmácia';
       case UserRole.tenenteEstoque:
-        return 'Tenente do Estoque';
+        return 'Tenente Almoxarifado';
       case UserRole.tenenteFarmacia:
-        return 'Tenente da Farmácia';
+        return 'Tenente Farmácia';
       case UserRole.coronel:
         return 'Coronel';
+    }
+  }
+
+  String getSectorName(int sectorId) {
+    switch (sectorId) {
+      case 1:
+        return 'Almoxarifado';
+      case 2:
+        return 'Farmácia';
+      case 3:
+        return 'Odontologia';
+      case 4:
+        return 'Médico';
+      case 5:
+        return 'Comum';
+      default:
+        return 'N/A';
     }
   }
 
