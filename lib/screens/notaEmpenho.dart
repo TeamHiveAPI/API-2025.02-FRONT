@@ -1,9 +1,14 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:sistema_almox/services/subirEmpenho.dart';
 import 'package:sistema_almox/services/criar_empenho.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'notaEmpenhoFormsScreen.dart';
+
 class NotaEmpenhoScreen extends StatefulWidget {
   const NotaEmpenhoScreen({super.key});
 
@@ -56,6 +61,69 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
     );
   }
 
+  /// 📄 Gera o PDF com os dados da nota
+  Future<void> _downloadDocument(BuildContext context, Map<String, dynamic> nota) async {
+    try {
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Padding(
+              padding: const pw.EdgeInsets.all(24),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('NOTA DE EMPENHO',
+                      style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(height: 16),
+                  _buildLine('NE', nota['NE']),
+                  _buildLine('Data', nota['data']),
+                  _buildLine('Favorecido', nota['favorecido']),
+                  _buildLine('Processo Adm', nota['processo_adm']),
+                  _buildLine('Material Recebido', nota['material_recebido']),
+                  _buildLine('NF Entregue no Almox', nota['nf_entregue_no_almox']),
+                  _buildLine('Justificativa de Atraso', nota['justificativa_atraso']),
+                  _buildLine('Enviado para Liquidar', nota['enviado_para_liquidar']),
+                  _buildLine('Item', nota['item']),
+                  _buildLine('Dias', nota['dias']?.toString()),
+                  _buildLine('Saldo', nota['saldo']?.toString()),
+                  pw.SizedBox(height: 24),
+                  pw.Divider(),
+                  pw.Align(
+                    alignment: pw.Alignment.centerRight,
+                    child: pw.Text('Gerado automaticamente em ${DateTime.now()}',
+                        style: const pw.TextStyle(fontSize: 10)),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+
+      final Uint8List pdfBytes = await pdf.save();
+      await Printing.sharePdf(
+        bytes: pdfBytes,
+        filename: 'NE_${nota['NE'] ?? 'sem_NE'}.pdf',
+      );
+
+      showCustomSnackbar(context, 'PDF gerado com sucesso!');
+    } catch (e) {
+      showCustomSnackbar(context, 'Erro ao gerar PDF: $e', isError: true);
+    }
+  }
+
+  pw.Widget _buildLine(String title, String? value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 6),
+      child: pw.Text(
+        '$title: ${value ?? '-'}',
+        style: const pw.TextStyle(fontSize: 12),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredNotas = _notas.where((n) {
@@ -72,17 +140,6 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CustomButton(
-                text: 'Nova Nota de Empenho',
-                icon: Icons.add,
-                widthPercent: 1.0,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NotaEmpenhoFormScreen()),
-                  ).then((_) => _fetchNotas());
-                },
-              ),
               const SizedBox(height: 24),
               const Text('Listagem de Notas de Empenho',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
@@ -90,7 +147,6 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
               GenericSearchInput(controller: _searchController, onSearchChanged: _handleSearch),
               const SizedBox(height: 20),
 
-              // Tabela de notas
               DataTable(
                 headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
                 columns: const [
@@ -123,12 +179,35 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () => _confirmDelete(context, nota['id'], nota['NE']),
                         ),
+                        IconButton(
+                          icon: const Icon(Icons.picture_as_pdf, color: Colors.orange),
+                          onPressed: () => _downloadDocument(context, nota),
+                        ),
                       ],
                     )),
                   ]);
                 }).toList(),
               ),
-            ],
+                            CustomButton(
+                text: 'Nova Nota de Empenho',
+                icon: Icons.add,
+                widthPercent: 1.0,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotaEmpenhoFormScreen()),
+                  ).then((_) => _fetchNotas());
+                },
+              ),
+              const SizedBox(height: 16),
+            CustomButton(
+            text: 'Adicionar empenho',
+               icon: Icons.add,
+               widthPercent: 1.0,
+               onPressed: () {
+               UploadPdfPage.navigateTo(context);
+               },
+            ),            ],
           ),
         ),
       ),

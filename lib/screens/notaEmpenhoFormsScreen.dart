@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/services/criar_empenho.dart';
+import 'package:sistema_almox/services/item_service.dart';
+import 'package:sistema_almox/services/fornecedor_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
@@ -13,6 +15,8 @@ class NotaEmpenhoFormScreen extends StatefulWidget {
 
 class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   final _service = NotaEmpenhoService();
+  final _fornecedorService = FornecedorService();
+  final _itemService = ItemService.instance;
 
   final _neController = TextEditingController();
   final _favorecidoController = TextEditingController();
@@ -27,33 +31,62 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
 
   DateTime _data = DateTime.now();
 
-@override
-void initState() {
-  super.initState();
-  if (widget.nota != null) {
-    final nota = widget.nota!;
-    _neController.text = nota['NE'] ?? '';
-    _data = nota['data'] != null 
-        ? DateTime.tryParse(nota['data'].toString()) ?? DateTime.now()
-        : DateTime.now();
-    _favorecidoController.text = nota['favorecido'] ?? '';
-    _processoController.text = nota['processo_adm'] ?? '';
-    _materialController.text = nota['material_recebido'] ?? '';
-    _nfController.text = nota['nf_entregue_no_almox'] ?? '';
-    _justificativaController.text = nota['justificativa_atraso'] ?? '';
-    _enviadoController.text = nota['enviado_para_liquidar'] ?? '';
-    _itemController.text = nota['item'] ?? '';
-    _diasController.text = nota['dias']?.toString() ?? '';
-    _saldoController.text = nota['saldo']?.toString() ?? '';
-  } else {
-    _data = DateTime.now();
-  }
-}
+  List<String> _fornecedores = [];
+  List<String> _itens = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _carregarFornecedores();
+    _carregarItens();
+
+    if (widget.nota != null) {
+      final nota = widget.nota!;
+      _neController.text = nota['NE'] ?? '';
+      _data = nota['data'] != null
+          ? DateTime.tryParse(nota['data'].toString()) ?? DateTime.now()
+          : DateTime.now();
+      _favorecidoController.text = nota['favorecido'] ?? '';
+      _processoController.text = nota['processo_adm'] ?? '';
+      _materialController.text = nota['material_recebido'] ?? '';
+      _nfController.text = nota['nf_entregue_no_almox'] ?? '';
+      _justificativaController.text = nota['justificativa_atraso'] ?? '';
+      _enviadoController.text = nota['enviado_para_liquidar'] ?? '';
+      _itemController.text = nota['item'] ?? '';
+      _diasController.text = nota['dias']?.toString() ?? '';
+      _saldoController.text = nota['saldo']?.toString() ?? '';
+    } else {
+      _data = DateTime.now();
+    }
+  }
+
+  Future<void> _carregarFornecedores() async {
+    final lista = await _fornecedorService.fetchFornecedores();
+    setState(() {
+      _fornecedores = lista;
+    });
+  }
+
+  Future<void> _carregarItens() async {
+    final lista = await _itemService.fetchItensNomes();
+    setState(() {
+      _itens = lista;
+    });
+  }
 
   Future<void> _save() async {
     if (_neController.text.isEmpty || _favorecidoController.text.isEmpty) {
       showCustomSnackbar(context, 'Preencha os campos obrigatórios!', isError: true);
+      return;
+    }
+
+    if (!_fornecedores.contains(_favorecidoController.text.trim())) {
+      showCustomSnackbar(context, 'O favorecido deve ser um fornecedor válido!', isError: true);
+      return;
+    }
+
+    if (!_itens.contains(_itemController.text.trim())) {
+      showCustomSnackbar(context, 'O item deve ser válido!', isError: true);
       return;
     }
 
@@ -91,13 +124,57 @@ void initState() {
         child: Column(
           children: [
             TextField(controller: _neController, decoration: const InputDecoration(labelText: 'NE')),
-            TextField(controller: _favorecidoController, decoration: const InputDecoration(labelText: 'Favorecido')),
+
+            Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
+                return _fornecedores.where((f) =>
+                    f.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+              },
+              onSelected: (String selection) {
+                _favorecidoController.text = selection;
+              },
+              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                controller.text = _favorecidoController.text;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: const InputDecoration(labelText: 'Favorecido'),
+                  onChanged: (value) => _favorecidoController.text = value,
+                );
+              },
+            ),
+
             TextField(controller: _processoController, decoration: const InputDecoration(labelText: 'Processo Adm')),
             TextField(controller: _materialController, decoration: const InputDecoration(labelText: 'Material Recebido')),
             TextField(controller: _nfController, decoration: const InputDecoration(labelText: 'NF Entregue no Almox')),
             TextField(controller: _justificativaController, decoration: const InputDecoration(labelText: 'Justificativa de Atraso')),
             TextField(controller: _enviadoController, decoration: const InputDecoration(labelText: 'Enviado para Liquidar')),
-            TextField(controller: _itemController, decoration: const InputDecoration(labelText: 'Item')),
+
+            /// --- Autocomplete para item ---
+            Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
+                return _itens.where((i) =>
+                    i.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+              },
+              onSelected: (String selection) {
+                _itemController.text = selection;
+              },
+              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                controller.text = _itemController.text;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: const InputDecoration(
+                    labelText: 'Item',
+                    hintText: 'Digite ou selecione um item existente',
+                  ),
+                  onChanged: (value) => _itemController.text = value,
+                );
+              },
+            ),
+
             TextField(
               controller: _diasController,
               decoration: const InputDecoration(labelText: 'Dias'),
@@ -106,8 +183,9 @@ void initState() {
             TextField(
               controller: _saldoController,
               decoration: const InputDecoration(labelText: 'Saldo'),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
+
             TextField(
               readOnly: true,
               decoration: InputDecoration(
@@ -135,5 +213,5 @@ void initState() {
         ),
       ),
     );
-  }
+  } 
 }

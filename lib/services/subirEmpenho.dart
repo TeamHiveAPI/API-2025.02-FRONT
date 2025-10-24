@@ -1,13 +1,3 @@
-            // CustomButton(
-            //   text: 'Adicionar empenho',
-            //   icon: Icons.add,
-            //   widthPercent: 1.0,
-            //   onPressed: () {
-            //     UploadPdfPage.navigateTo(context);
-            //   },
-            // ),
-            // const SizedBox(height: 16),
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:file_picker/file_picker.dart';
