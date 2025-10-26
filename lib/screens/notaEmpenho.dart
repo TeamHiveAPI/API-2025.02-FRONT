@@ -60,8 +60,6 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
     );
   }
 
-  /// 📄 Gera o PDF com os dados da nota
-
 
   pw.Widget _buildLine(String title, String? value) {
     return pw.Padding(
@@ -96,9 +94,8 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
               GenericSearchInput(controller: _searchController, onSearchChanged: _handleSearch),
               const SizedBox(height: 20),
 
-              // Substitua a parte do DataTable por isto:
               SingleChildScrollView(
-                scrollDirection: Axis.horizontal, // permite scroll horizontal
+                scrollDirection: Axis.horizontal, 
                 child: DataTable(
                   headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
                   columns: const [
@@ -111,7 +108,7 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
                   rows: filteredNotas.map((nota) {
                     return DataRow(cells: [
                       DataCell(SizedBox(
-                          width: 120, // largura fixa ou adaptável
+                          width: 120, 
                           child: Text(nota['item'] ?? '', overflow: TextOverflow.ellipsis),
                       )),
                       DataCell(Text(nota['NE'] ?? '')),

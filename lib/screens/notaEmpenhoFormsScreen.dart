@@ -4,7 +4,7 @@ import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotaEmpenhoFormScreen extends StatefulWidget {
-  final Map<String, dynamic>? nota; // quando editar, passa a nota obtida via GET
+  final Map<String, dynamic>? nota; 
 
   const NotaEmpenhoFormScreen({super.key, this.nota});
 
@@ -15,7 +15,6 @@ class NotaEmpenhoFormScreen extends StatefulWidget {
 class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // controllers
   final _neController = TextEditingController();
   final _favorecidoController = TextEditingController();
   final _itemController = TextEditingController();
@@ -24,10 +23,8 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   final _justificativaController = TextEditingController();
   final _dataTextController = TextEditingController();
 
-  // data interna
   DateTime _dataController = DateTime.now();
 
-  // checkboxes
   bool processoAdmSim = false;
   bool processoAdmNao = true;
   bool materialRecebidoSim = false;
@@ -45,8 +42,6 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
     final nota = widget.nota;
 
     if (nota != null) {
-      // ---------- MODO EDIÇÃO ----------
-      print('🔁 MODO EDIÇÃO: populando campos com dados do GET');
 
       _neController.text = nota['NE']?.toString() ?? '';
       _favorecidoController.text = nota['favorecido']?.toString() ?? '';
@@ -55,7 +50,6 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
       _saldoController.text = nota['saldo']?.toString() ?? '';
       _justificativaController.text = nota['justificativa_atraso']?.toString() ?? '';
 
-      // Data
       if (nota['data'] != null && nota['data'] is String && nota['data'].toString().trim().isNotEmpty) {
         final dataStr = nota['data'].toString().trim();
         _dataTextController.text = dataStr;
@@ -79,7 +73,6 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
         _dataTextController.text = '';
       }
 
-      // Checkboxes
       processoAdmSim = (nota['processo_adm']?.toString().toLowerCase() == 'sim');
       processoAdmNao = !processoAdmSim;
       materialRecebidoSim = (nota['material_recebido']?.toString().toLowerCase() == 'sim');
@@ -91,8 +84,7 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
 
       _atualizarSaldo();
     } else {
-      // ---------- MODO CRIAÇÃO ----------
-      print('🆕 MODO CRIAÇÃO: valores padrão');
+
 
       _neController.text = '';
       _favorecidoController.text = '';
@@ -174,7 +166,6 @@ Future<void> _save() async {
   setState(() => _isSaving = true);
 
   try {
-    // Prepara os dados de forma segura
     String? dataIso;
     if (_dataTextController.text.isNotEmpty) {
       try {
@@ -202,8 +193,6 @@ Future<void> _save() async {
       'item': _itemController.text.isNotEmpty ? _itemController.text : widget.nota?['item'],
     };
 
-    // 🔹 DEBUG: imprime todos os dados que serão enviados
-    print('💾 Dados preparados para salvar:');
     dados.forEach((k, v) => print('  - $k: $v'));
 
     final supabase = Supabase.instance.client;
@@ -269,12 +258,12 @@ Future<void> _save() async {
                     decoration: InputDecoration(
                       labelText: 'Favorecido',
                       labelStyle: TextStyle(
-                        color: Colors.grey[600], // label mais cinza
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w400,
                       ),
                       border: OutlineInputBorder(),
                       filled: true,
-                      fillColor: Colors.grey[200], // fundo levemente cinza para indicar readonly
+                      fillColor: Colors.grey[200], 
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -284,12 +273,12 @@ Future<void> _save() async {
                     decoration: InputDecoration(
                       labelText: 'Item',
                       labelStyle: TextStyle(
-                        color: Colors.grey[600], // label mais cinza
+                        color: Colors.grey[600], 
                         fontWeight: FontWeight.w400,
                       ),
                       border: OutlineInputBorder(),
                       filled: true,
-                      fillColor: Colors.grey[200], // fundo levemente cinza para indicar readonly
+                      fillColor: Colors.grey[200], 
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -299,12 +288,12 @@ Future<void> _save() async {
                     decoration: InputDecoration(
                       labelText: 'Item',
                       labelStyle: TextStyle(
-                        color: Colors.grey[600], // label mais cinza
+                        color: Colors.grey[600], 
                         fontWeight: FontWeight.w400,
                       ),
                       border: OutlineInputBorder(),
                       filled: true,
-                      fillColor: Colors.grey[200], // fundo levemente cinza para indicar readonly
+                      fillColor: Colors.grey[200], 
                     ),),                  
                   const SizedBox(height: 12),
                   Row(

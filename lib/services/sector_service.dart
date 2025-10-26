@@ -13,6 +13,7 @@ class SectorService {
           .single();
 
       return response[SetorFields.nome] as String?;
+
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return null;

@@ -10,12 +10,9 @@ import '../screens/notaEmpenhoFormsScreen.dart';
 class UploadPdfPage {
   static const String STORAGE_BUCKET = 'notas-empenho';
 
-  // ===========================================================
-  // UPLOAD MÚLTIPLO (com reload automático após salvar)
-  // ===========================================================
 static Future<void> uploadMultiplePdfs(
   BuildContext? context, {
-  VoidCallback? onReload, // 👈 adiciona esse parâmetro
+  VoidCallback? onReload, 
 }) async {
   final supabase = Supabase.instance.client;
 
@@ -52,19 +49,14 @@ static Future<void> uploadMultiplePdfs(
       throw Exception('Erro ao ler bytes do PDF');
     }
 
-    // =======================================================
-    // 1️⃣ Extrair texto do PDF
+
     final PdfDocument document = PdfDocument(inputBytes: fileBytes);
     final String extractedText =
         PdfTextExtractor(document).extractText() ?? '';
     document.dispose();
 
-    // =======================================================
-    // 2️⃣ Extrair dados com Regex
     final extracted = _extractDataFromPdf(extractedText);
 
-    // =======================================================
-    // 3️⃣ Upload do arquivo
     final storagePath = 'uploads/$fileName';
     await supabase.storage.from(STORAGE_BUCKET).uploadBinary(
           storagePath,
@@ -75,8 +67,6 @@ static Future<void> uploadMultiplePdfs(
     final publicUrl =
         supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
 
-    // =======================================================
-    // 4️⃣ Abrir tela de criação
     if (context != null) {
       final result = await Navigator.push(
         context,
@@ -93,10 +83,9 @@ static Future<void> uploadMultiplePdfs(
         ),
       );
 
-      // =======================================================
-      // 5️⃣ Recarregar lista automaticamente
+
       if (result == true && onReload != null) {
-        onReload(); // 👈 chama o callback real de reload
+        onReload(); 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('🔄 Lista de notas recarregada!')),
         );
@@ -116,9 +105,6 @@ static Future<void> uploadMultiplePdfs(
 }
 
 
-  // ===========================================================
-  // EXTRAÇÃO DE DADOS
-  // ===========================================================
   static Map<String, dynamic> _extractDataFromPdf(String text) {
     final regexNE = RegExp(
       r'(?<=\bNúmero\s*)\n?\s*([0-9]{3,})',
@@ -144,11 +130,6 @@ static Future<void> uploadMultiplePdfs(
     final favorecido = regexFav.firstMatch(text)?.group(1)?.trim() ?? '';
     final data = regexData.firstMatch(text)?.group(1)?.trim() ?? '';
     final item = regexItem.firstMatch(text)?.group(1)?.trim() ?? '';
-
-    print('🧾 Extraído NE: $ne');
-    print('🏢 Favorecido: $favorecido');
-    print('📅 Data: $data');
-    print('📦 Item: $item');
 
     return {'NE': ne, 'favorecido': favorecido, 'data': data, 'item': item};
   }

@@ -5,6 +5,8 @@ import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/snackbar.dart'; 
 import 'EditGroupScreen.dart';
+import 'package:sistema_almox/services/sector_service.dart';
+
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
 
@@ -116,24 +118,32 @@ class _GroupsScreenState extends State<GroupsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CustomButton(
-                  text: 'Cadastrar Novo Grupo',
-                  icon: Icons.add,
-                  widthPercent: 1.0,
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/novo-grupo').then((value) {
-                      _fetchGroups();
-                    });
-                  },
-                ),
-
                 const SizedBox(height: 16),
 
-                Text(
-                  'ID do setor atual: ${_userService.viewingSectorId ?? 'Não definido'}',
-                  style: const TextStyle(fontSize: 16, color: Colors.red),
-                ),
-                const SizedBox(height: 24),
+              _currentSectorId == null
+                ? const Text(
+                    'Setor atual: Não definido',
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  )
+                : FutureBuilder<String?>(
+                    future: SectorService().getSectorNameById(_currentSectorId!),
+                    builder: (context, snapshot) {
+                      String displayName;
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        displayName = 'Carregando...';
+                      } else if (snapshot.hasError) {
+                        displayName = 'Erro';
+                      } else {
+                        displayName = snapshot.data ?? 'Não definido';
+                      }
+
+                      return Text(
+                        'Setor atual: $displayName',
+                        style: const TextStyle(fontSize: 16, color: Colors.red),
+                      );
+                    },
+                  ),
+
 
                 const Text(
                   'Listagem de Grupos',
@@ -198,6 +208,17 @@ class _GroupsScreenState extends State<GroupsScreen> {
                       ]);
                     }).toList(),
                   ),
+                ),
+                const SizedBox(height: 30),
+              CustomButton(
+                  text: 'Cadastrar Novo Grupo',
+                  icon: Icons.add,
+                  widthPercent: 0.8,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/novo-grupo').then((value) {
+                      _fetchGroups();
+                    });
+                  },
                 ),
               ],
             ),
