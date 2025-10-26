@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/services/criar_empenho.dart';
-import 'package:sistema_almox/services/item_service.dart';
-import 'package:sistema_almox/services/fornecedor_service.dart';
-import 'package:sistema_almox/widgets/button.dart';
-import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:intl/intl.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotaEmpenhoFormScreen extends StatefulWidget {
-  final Map<String, dynamic>? nota;
+  final Map<String, dynamic>? nota; // quando editar, passa a nota obtida via GET
+
   const NotaEmpenhoFormScreen({super.key, this.nota});
 
   @override
@@ -14,204 +13,351 @@ class NotaEmpenhoFormScreen extends StatefulWidget {
 }
 
 class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
-  final _service = NotaEmpenhoService();
-  final _fornecedorService = FornecedorService();
-  final _itemService = ItemService.instance;
+  final _formKey = GlobalKey<FormState>();
 
+  // controllers
   final _neController = TextEditingController();
   final _favorecidoController = TextEditingController();
-  final _processoController = TextEditingController();
-  final _materialController = TextEditingController();
-  final _nfController = TextEditingController();
-  final _justificativaController = TextEditingController();
-  final _enviadoController = TextEditingController();
   final _itemController = TextEditingController();
   final _diasController = TextEditingController();
   final _saldoController = TextEditingController();
+  final _justificativaController = TextEditingController();
+  final _dataTextController = TextEditingController();
 
-  DateTime _data = DateTime.now();
+  // data interna
+  DateTime _dataController = DateTime.now();
 
-  List<String> _fornecedores = [];
-  List<String> _itens = [];
+  // checkboxes
+  bool processoAdmSim = false;
+  bool processoAdmNao = true;
+  bool materialRecebidoSim = false;
+  bool materialRecebidoNao = true;
+  bool nfEntregueSim = false;
+  bool nfEntregueNao = true;
+  bool enviadoLiquidarSim = false;
+  bool enviadoLiquidarNao = true;
+
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _carregarFornecedores();
-    _carregarItens();
+    final nota = widget.nota;
 
-    if (widget.nota != null) {
-      final nota = widget.nota!;
-      _neController.text = nota['NE'] ?? '';
-      _data = nota['data'] != null
-          ? DateTime.tryParse(nota['data'].toString()) ?? DateTime.now()
-          : DateTime.now();
-      _favorecidoController.text = nota['favorecido'] ?? '';
-      _processoController.text = nota['processo_adm'] ?? '';
-      _materialController.text = nota['material_recebido'] ?? '';
-      _nfController.text = nota['nf_entregue_no_almox'] ?? '';
-      _justificativaController.text = nota['justificativa_atraso'] ?? '';
-      _enviadoController.text = nota['enviado_para_liquidar'] ?? '';
-      _itemController.text = nota['item'] ?? '';
+    if (nota != null) {
+      // ---------- MODO EDIÇÃO ----------
+      print('🔁 MODO EDIÇÃO: populando campos com dados do GET');
+
+      _neController.text = nota['NE']?.toString() ?? '';
+      _favorecidoController.text = nota['favorecido']?.toString() ?? '';
+      _itemController.text = nota['item']?.toString() ?? '';
       _diasController.text = nota['dias']?.toString() ?? '';
       _saldoController.text = nota['saldo']?.toString() ?? '';
+      _justificativaController.text = nota['justificativa_atraso']?.toString() ?? '';
+
+      // Data
+      if (nota['data'] != null && nota['data'] is String && nota['data'].toString().trim().isNotEmpty) {
+        final dataStr = nota['data'].toString().trim();
+        _dataTextController.text = dataStr;
+        try {
+          final parts = dataStr.split('/');
+          if (parts.length == 3) {
+            _dataController = DateTime(
+              int.parse(parts[2]),
+              int.parse(parts[1]),
+              int.parse(parts[0]),
+            );
+          } else {
+            try {
+              _dataController = DateTime.parse(dataStr);
+            } catch (_) {}
+          }
+        } catch (e) {
+          print('⚠️ Falha ao converter data da nota em edição: $e');
+        }
+      } else {
+        _dataTextController.text = '';
+      }
+
+      // Checkboxes
+      processoAdmSim = (nota['processo_adm']?.toString().toLowerCase() == 'sim');
+      processoAdmNao = !processoAdmSim;
+      materialRecebidoSim = (nota['material_recebido']?.toString().toLowerCase() == 'sim');
+      materialRecebidoNao = !materialRecebidoSim;
+      nfEntregueSim = (nota['nf_entregue_no_almox']?.toString().toLowerCase() == 'sim');
+      nfEntregueNao = !nfEntregueSim;
+      enviadoLiquidarSim = (nota['enviado_para_liquidar']?.toString().toLowerCase() == 'sim');
+      enviadoLiquidarNao = !enviadoLiquidarSim;
+
+      _atualizarSaldo();
     } else {
-      _data = DateTime.now();
+      // ---------- MODO CRIAÇÃO ----------
+      print('🆕 MODO CRIAÇÃO: valores padrão');
+
+      _neController.text = '';
+      _favorecidoController.text = '';
+      _itemController.text = '';
+      _diasController.text = '';
+      _saldoController.text = '';
+      _justificativaController.text = '';
+      _dataController = DateTime.now();
+      _dataTextController.text = DateFormat('dd/MM/yyyy').format(_dataController);
+
+      processoAdmSim = false;
+      processoAdmNao = true;
+      materialRecebidoSim = false;
+      materialRecebidoNao = true;
+      nfEntregueSim = false;
+      nfEntregueNao = true;
+      enviadoLiquidarSim = false;
+      enviadoLiquidarNao = true;
+
+      _atualizarSaldo();
     }
   }
 
-  Future<void> _carregarFornecedores() async {
-    final lista = await _fornecedorService.fetchFornecedores();
-    setState(() {
-      _fornecedores = lista;
-    });
+  @override
+  void dispose() {
+    _neController.dispose();
+    _favorecidoController.dispose();
+    _itemController.dispose();
+    _diasController.dispose();
+    _saldoController.dispose();
+    _justificativaController.dispose();
+    _dataTextController.dispose();
+    super.dispose();
   }
 
-  Future<void> _carregarItens() async {
-    final lista = await _itemService.fetchItensNomes();
-    setState(() {
-      _itens = lista;
-    });
+  void _atualizarSaldo() {
+    if (_diasController.text.isEmpty) {
+      _saldoController.text = _saldoController.text.isNotEmpty ? _saldoController.text : '';
+      return;
+    }
+
+    final dias = int.tryParse(_diasController.text) ?? 0;
+    final agora = DateTime.now();
+    final diferenca = _dataController.difference(agora).inDays + dias;
+    _saldoController.text = diferenca.toString();
   }
 
-  Future<void> _save() async {
-    if (_neController.text.isEmpty || _favorecidoController.text.isEmpty) {
-      showCustomSnackbar(context, 'Preencha os campos obrigatórios!', isError: true);
-      return;
+  Widget _buildCheckRow(
+      String label, bool simValue, bool naoValue, void Function() onSim, void Function() onNao) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Wrap(
+          alignment: WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 4,
+          spacing: 8,
+          children: [
+            SizedBox(
+              width: constraints.maxWidth > 600 ? 220 : constraints.maxWidth * 0.45,
+              child: Text(label, style: const TextStyle(fontSize: 16)),
+            ),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Checkbox(value: simValue, onChanged: (_) => onSim()),
+              const Text('Sim')
+            ]),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Checkbox(value: naoValue, onChanged: (_) => onNao()),
+              const Text('Não')
+            ]),
+          ],
+        );
+      },
+    );
+  }
+
+Future<void> _save() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _isSaving = true);
+
+  try {
+    // Prepara os dados de forma segura
+    String? dataIso;
+    if (_dataTextController.text.isNotEmpty) {
+      try {
+        final parsedDate = DateFormat('dd/MM/yyyy').parse(_dataTextController.text);
+        dataIso = DateFormat('yyyy-MM-dd').format(parsedDate);
+      } catch (e) {
+        print('⚠️ Data inválida, mantendo valor do GET: ${_dataTextController.text}');
+        dataIso = widget.nota?['data']?.toString();
+      }
+    } else {
+      dataIso = widget.nota?['data']?.toString();
     }
 
-    if (!_fornecedores.contains(_favorecidoController.text.trim())) {
-      showCustomSnackbar(context, 'O favorecido deve ser um fornecedor válido!', isError: true);
-      return;
-    }
-
-    if (!_itens.contains(_itemController.text.trim())) {
-      showCustomSnackbar(context, 'O item deve ser válido!', isError: true);
-      return;
-    }
-
-    final data = {
-      'NE': _neController.text,
-      'data': _data.toIso8601String(),
-      'favorecido': _favorecidoController.text,
-      'dias': _diasController.text.isNotEmpty ? int.tryParse(_diasController.text) : null,
-      'saldo': _saldoController.text.isNotEmpty ? double.tryParse(_saldoController.text) : null,
-      'processo_adm': _processoController.text,
-      'material_recebido': _materialController.text,
-      'nf_entregue_no_almox': _nfController.text,
-      'justificativa_atraso': _justificativaController.text,
-      'enviado_para_liquidar': _enviadoController.text,
-      'item': _itemController.text,
+    final dados = <String, dynamic>{
+      'NE': _neController.text.isNotEmpty ? _neController.text : widget.nota?['NE'],
+      'data': dataIso,
+      'favorecido': _favorecidoController.text.isNotEmpty ? _favorecidoController.text : widget.nota?['favorecido'],
+      'dias': _diasController.text.isNotEmpty ? int.tryParse(_diasController.text) : widget.nota?['dias'],
+      'saldo': _saldoController.text.isNotEmpty ? int.tryParse(_saldoController.text) : widget.nota?['saldo'],
+      'processo_adm': processoAdmSim ? 'Sim' : (processoAdmNao ? 'Não' : widget.nota?['processo_adm']),
+      'material_recebido': materialRecebidoSim ? 'Sim' : (materialRecebidoNao ? 'Não' : widget.nota?['material_recebido']),
+      'nf_entregue_no_almox': nfEntregueSim ? 'Sim' : (nfEntregueNao ? 'Não' : widget.nota?['nf_entregue_no_almox']),
+      'justificativa_atraso': _justificativaController.text.isNotEmpty ? _justificativaController.text : widget.nota?['justificativa_atraso'],
+      'enviado_para_liquidar': enviadoLiquidarSim ? 'Sim' : (enviadoLiquidarNao ? 'Não' : widget.nota?['enviado_para_liquidar']),
+      'item': _itemController.text.isNotEmpty ? _itemController.text : widget.nota?['item'],
     };
 
-    if (widget.nota == null) {
-      await _service.createNota(data);
-      showCustomSnackbar(context, 'Nota criada com sucesso!');
+    // 🔹 DEBUG: imprime todos os dados que serão enviados
+    print('💾 Dados preparados para salvar:');
+    dados.forEach((k, v) => print('  - $k: $v'));
+
+    final supabase = Supabase.instance.client;
+
+    if (widget.nota != null && widget.nota!['id'] != null) {
+      print('🔁 Atualizando nota id=${widget.nota!['id']}...');
+      await supabase.from('nota_empenho').update(dados).eq('id', widget.nota!['id']);
+      print('✅ Nota atualizada com sucesso!');
     } else {
-      await _service.updateNota(widget.nota!['id'], data);
-      showCustomSnackbar(context, 'Nota atualizada com sucesso!');
+      print('➕ Inserindo nova nota...');
+      await supabase.from('nota_empenho').insert(dados);
+      print('✅ Nova nota inserida com sucesso!');
     }
 
-    Navigator.pop(context);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Nota salva com sucesso!')));
+      Navigator.pop(context, true);
+    }
+  } catch (e, s) {
+    print('❌ Erro ao salvar nota: $e');
+    print(s);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar nota: $e')));
+    }
+  } finally {
+    if (mounted) setState(() => _isSaving = false);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.nota == null ? 'Nova Nota de Empenho' : 'Editar Nota')),
+      appBar: AppBar(title: Text(widget.nota != null ? 'Editar Nota de Empenho' : 'Nova Nota de Empenho')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(controller: _neController, decoration: const InputDecoration(labelText: 'NE')),
-
-            Autocomplete<String>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
-                return _fornecedores.where((f) =>
-                    f.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-              },
-              onSelected: (String selection) {
-                _favorecidoController.text = selection;
-              },
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                controller.text = _favorecidoController.text;
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: const InputDecoration(labelText: 'Favorecido'),
-                  onChanged: (value) => _favorecidoController.text = value,
-                );
-              },
-            ),
-
-            TextField(controller: _processoController, decoration: const InputDecoration(labelText: 'Processo Adm')),
-            TextField(controller: _materialController, decoration: const InputDecoration(labelText: 'Material Recebido')),
-            TextField(controller: _nfController, decoration: const InputDecoration(labelText: 'NF Entregue no Almox')),
-            TextField(controller: _justificativaController, decoration: const InputDecoration(labelText: 'Justificativa de Atraso')),
-            TextField(controller: _enviadoController, decoration: const InputDecoration(labelText: 'Enviado para Liquidar')),
-
-            /// --- Autocomplete para item ---
-            Autocomplete<String>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
-                return _itens.where((i) =>
-                    i.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-              },
-              onSelected: (String selection) {
-                _itemController.text = selection;
-              },
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                controller.text = _itemController.text;
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'Item',
-                    hintText: 'Digite ou selecione um item existente',
+        child: Form(
+          key: _formKey,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 700;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _neController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'NE',
+                      labelStyle: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                    ),
                   ),
-                  onChanged: (value) => _itemController.text = value,
-                );
-              },
-            ),
-
-            TextField(
-              controller: _diasController,
-              decoration: const InputDecoration(labelText: 'Dias'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _saldoController,
-              decoration: const InputDecoration(labelText: 'Saldo'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
-
-            TextField(
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Data',
-                hintText: '${_data.day}/${_data.month}/${_data.year}',
-              ),
-              onTap: () async {
-                final pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: _data,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null) {
-                  setState(() {
-                    _data = pickedDate;
-                  });
-                }
-              },
-            ),
-
-            const SizedBox(height: 20),
-            CustomButton(text: 'Salvar', icon: Icons.save, onPressed: _save),
-          ],
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _favorecidoController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Favorecido',
+                      labelStyle: TextStyle(
+                        color: Colors.grey[600], // label mais cinza
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[200], // fundo levemente cinza para indicar readonly
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _itemController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Item',
+                      labelStyle: TextStyle(
+                        color: Colors.grey[600], // label mais cinza
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[200], // fundo levemente cinza para indicar readonly
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _dataTextController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Item',
+                      labelStyle: TextStyle(
+                        color: Colors.grey[600], // label mais cinza
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[200], // fundo levemente cinza para indicar readonly
+                    ),),                  
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: isWide ? 1 : 2,
+                        child: TextFormField(
+                          controller: _diasController,
+                          decoration: const InputDecoration(labelText: 'Dias para entrega', border: OutlineInputBorder()),
+                          keyboardType: TextInputType.number,
+                          onChanged: (_) => setState(_atualizarSaldo),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 1,
+                        child: TextFormField(
+                          controller: _saldoController,
+                          readOnly: true,
+                          decoration: const InputDecoration(labelText: 'Saldo (dias)', border: OutlineInputBorder()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildCheckRow('Processo Adm:', processoAdmSim, processoAdmNao, () => setState(() { processoAdmSim = true; processoAdmNao = false; }), () => setState(() { processoAdmSim = false; processoAdmNao = true; })),
+                  const SizedBox(height: 8),
+                  _buildCheckRow('Material Recebido:', materialRecebidoSim, materialRecebidoNao, () => setState(() { materialRecebidoSim = true; materialRecebidoNao = false; }), () => setState(() { materialRecebidoSim = false; materialRecebidoNao = true; })),
+                  const SizedBox(height: 8),
+                  _buildCheckRow('NF Entregue no Almox:', nfEntregueSim, nfEntregueNao, () => setState(() { nfEntregueSim = true; nfEntregueNao = false; }), () => setState(() { nfEntregueSim = false; nfEntregueNao = true; })),
+                  const SizedBox(height: 8),
+                  _buildCheckRow('Enviado para Liquidar:', enviadoLiquidarSim, enviadoLiquidarNao, () => setState(() { enviadoLiquidarSim = true; enviadoLiquidarNao = false; }), () => setState(() { enviadoLiquidarSim = false; enviadoLiquidarNao = true; })),
+                  const SizedBox(height: 12),
+                  TextFormField(controller: _justificativaController, decoration: const InputDecoration(labelText: 'Justificativa de atraso', border: OutlineInputBorder()), maxLines: 3),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: _isSaving
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton.icon(
+                            onPressed: _save,
+                            icon: const Icon(Icons.save),
+                            label: const Text('Salvar'),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(horizontal: isWide ? 40 : 20, vertical: 14),
+                            ),
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
-  } 
+  }
 }
