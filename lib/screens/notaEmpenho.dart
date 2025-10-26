@@ -8,6 +8,7 @@ import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'notaEmpenhoFormsScreen.dart';
+import 'package:sistema_almox/services/donwload_NE/download_nota.dart';
 class NotaEmpenhoScreen extends StatefulWidget {
   const NotaEmpenhoScreen({super.key});
 
@@ -140,13 +141,14 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
                             icon: const Icon(Icons.picture_as_pdf, color: Colors.orange),
                             onPressed: () async {
                               try {
-                                await _notaService.downloadNota(nota['NE'].toString());
+                                await downloadNota(nota['NE'].toString()); // chama função correta por plataforma
                                 showCustomSnackbar(context, 'Download iniciado para ${nota['NE']}');
                               } catch (e) {
                                 showCustomSnackbar(context, 'Erro ao baixar PDF: $e');
                               }
                             },
                           ),
+
                         ],
                       )),
                     ]);

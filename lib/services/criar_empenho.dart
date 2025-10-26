@@ -1,9 +1,9 @@
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sistema_almox/services/donwload_NE/download_nota.dart' as download_nota;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'dart:html' as html;
+import 'package:open_file/open_file.dart';
 
 class NotaEmpenhoService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -26,46 +26,14 @@ class NotaEmpenhoService {
   Future<void> deleteNota(int id, String ne) async {
     try {
       await _client.from(_table).delete().eq('id', id);
-
       final filePath = 'uploads/$ne.pdf';
       await _client.storage.from(STORAGE_BUCKET).remove([filePath]);
-
-      print('✅ Nota e PDF apagados com sucesso: $filePath');
     } catch (e) {
-      print('❌ Erro ao deletar nota ou PDF: $e');
       rethrow;
     }
   }
 
   Future<void> downloadNota(String ne) async {
-  try {
-    final filePath = 'uploads/$ne.pdf';
-    final Uint8List? bytes = await _client.storage.from(STORAGE_BUCKET).download(filePath);
-
-    if (bytes == null || bytes.isEmpty) {
-      print('❌ Arquivo não encontrado: $filePath');
-      return;
-    }
-
-    if (kIsWeb) {
-      final blob = html.Blob([bytes], 'application/pdf');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', '$ne.pdf')
-        ..click();
-
-      html.Url.revokeObjectUrl(url);
-    } else {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$ne.pdf');
-      await file.writeAsBytes(bytes);
-      print('✅ PDF salvo em: ${file.path}');
-    }
-  } catch (e) {
-    print('❌ Erro ao baixar PDF: $e');
-    rethrow;
+    await download_nota.downloadNota(ne);
   }
-}
-
 }

@@ -107,7 +107,7 @@ static Future<void> uploadMultiplePdfs(
 
   static Map<String, dynamic> _extractDataFromPdf(String text) {
     final regexNE = RegExp(
-      r'(?<=\bNúmero\s*)\n?\s*([0-9]{3,})',
+    r'(?<=NE\s)([\s\S]*?)(?=Natureza da Despesa)',
       multiLine: true,
     );
 
