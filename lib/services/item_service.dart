@@ -71,6 +71,16 @@ class ItemService {
     }
   }
 
+Future<List<String>> fetchItensNomes() async {
+  try {
+    final response = await supabase.from('item').select('it_nome');
+    return response.map<String>((row) => row['it_nome'].toString()).toList();
+  } catch (e) {
+    print('Erro ao buscar nomes dos itens: $e');
+    return [];
+  }
+}
+
   Future<PaginatedResponse> fetchLotesByItemId({
     required int itemId,
     int? page,

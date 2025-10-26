@@ -7,14 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/modal/detalhe_card_modal.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as syncfusion_pdf;
-
+import 'package:share_plus/share_plus.dart';
 class PdfPreviewContent extends StatefulWidget {
   final Uint8List pdfBytes;
   final String fileName;

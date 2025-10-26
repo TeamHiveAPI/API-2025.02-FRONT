@@ -4,6 +4,7 @@ import 'package:sistema_almox/screens/fornecedor.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
 import 'package:sistema_almox/screens/grupo.dart';
+import 'package:sistema_almox/screens/notaEmpenho.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -43,6 +44,21 @@ class AdminScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => GroupsScreen()),
                 );
               },
+            ),
+            
+            ManagementCard(
+              iconPath: "assets/icons/groups.svg",
+              name: 'Grupos',
+              description: 'Gerencie os grupos de itens de cada setor',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotaEmpenhoScreen(),
+                ),
+              );
+            },
+
             ),
             const SizedBox(height: 16),
 
