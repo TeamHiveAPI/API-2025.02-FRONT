@@ -225,7 +225,9 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
 
             final result = await _showMotivoCancelamentoFlow(currentPedidoData);
 
-            if (result == null) showPedidoModal();
+            if (result == null) {
+              showPedidoModal();
+            }
           },
         ),
       );
@@ -245,7 +247,6 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         child: MotivoCancelamentoModal(
           motivo:
               pedidoData[PedidoFields.motivoCancelamento] ?? 'Não especificado',
-          responsavelNome: 'Dados do responsável',
           responsavelId: pedidoData[PedidoFields.responsavelCancelamentoId],
           onViewResponsavelDetails: (userId) {
             Navigator.of(context).pop(userId);
@@ -260,7 +261,8 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
           child: DetalhesUsuarioModal(idUsuario: resultFromModal),
         );
       }
-    } while (resultFromModal is int);
+    } while (resultFromModal
+        is int);
 
     return resultFromModal;
   }

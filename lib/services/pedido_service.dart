@@ -36,7 +36,7 @@ class PedidoService {
             ${PedidoFields.setorId},
             ${PedidoFields.usuarioId},
             ${PedidoFields.motivoCancelamento},
-            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome}),
+            ${PedidoFields.responsavelCancelamentoId},
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
             ${SupabaseTables.itemPedido}!inner(
               ${ItemPedidoFields.itemId},
@@ -69,7 +69,10 @@ class PedidoService {
           ascending: sortParams.isAscending,
         );
       } else {
-        dataQuery = dataQuery.order(PedidoFields.dataSolicitada, ascending: false);
+        dataQuery = dataQuery.order(
+          PedidoFields.dataSolicitada,
+          ascending: false,
+        );
       }
 
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
@@ -98,7 +101,7 @@ class PedidoService {
             ${PedidoFields.setorId},
             ${PedidoFields.usuarioId},
             ${PedidoFields.motivoCancelamento},
-            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome}),
+            ${PedidoFields.responsavelCancelamentoId},            
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
             ${SupabaseTables.itemPedido}!inner(
               ${ItemPedidoFields.itemId},
@@ -225,7 +228,9 @@ class PedidoService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAvailableItems({String searchQuery = ''}) async {
+  Future<List<Map<String, dynamic>>> getAvailableItems({
+    String searchQuery = '',
+  }) async {
     try {
       final viewingSectorId = UserService.instance.viewingSectorId;
 
@@ -234,7 +239,7 @@ class PedidoService {
         return [];
       }
       print('Buscando itens para o setor: $viewingSectorId');
-      
+
       final response = await supabase.rpc(
         'buscar_itens_com_lote_por_setor',
         params: {
@@ -247,8 +252,12 @@ class PedidoService {
       }
       final items = List<Map<String, dynamic>>.from(response ?? const []);
       return items.where((it) {
-        final disponivel = it['disponivel'] ?? ((it['qtd_atual'] ?? 0) - (it['qtd_reservada'] ?? 0));
-        final numDisp = (disponivel is num) ? disponivel : int.tryParse(disponivel.toString()) ?? 0;
+        final disponivel =
+            it['disponivel'] ??
+            ((it['qtd_atual'] ?? 0) - (it['qtd_reservada'] ?? 0));
+        final numDisp = (disponivel is num)
+            ? disponivel
+            : int.tryParse(disponivel.toString()) ?? 0;
         return numDisp > 0;
       }).toList();
     } on PostgrestException {
@@ -303,7 +312,8 @@ class PedidoService {
       final filter = supabase
           .from(SupabaseTables.lote)
           .select(
-              'id, codigo_lote:${LoteFields.codigo}, data_validade:${LoteFields.dataValidade}, qtd_atual:${LoteFields.qtdAtual}, qtd_reservada:${LoteFields.qtdReservada}, data_entrada:${LoteFields.dataEntrada}')
+            'id, codigo_lote:${LoteFields.codigo}, data_validade:${LoteFields.dataValidade}, qtd_atual:${LoteFields.qtdAtual}, qtd_reservada:${LoteFields.qtdReservada}, data_entrada:${LoteFields.dataEntrada}',
+          )
           .eq(LoteFields.itemId, itemId)
           .eq('lot_ativo', true);
 
