@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/data_table/content/last_order_summary.dart';
@@ -44,10 +45,14 @@ class HomeScreen extends StatelessWidget {
                     color: text40,
                   ),
                 ),
-                VerTudoButton(onPressed: () {}),
+                VerTudoButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.allMovements);
+                  },
+                ),
               ],
             ),
-            RecentMovementsTable(),
+            MovimentationLogTable(isRecentView: true),
             SizedBox(height: 24.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

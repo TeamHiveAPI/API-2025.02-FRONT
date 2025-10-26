@@ -94,9 +94,9 @@ class _LotManagementSectionState extends State<LotManagementSection> {
         const Text(
           'O ITEM É PERECÍVEL?',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: text80,
+            color: text60,
           ),
         ),
         const SizedBox(height: 12.0),

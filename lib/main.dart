@@ -10,10 +10,11 @@ import 'package:sistema_almox/widgets/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_routes.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+
   await dotenv.load(fileName: ".env");
   final url = dotenv.env['SUPABASE_URL'] ?? '';
   final anonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Almox',
+      navigatorObservers: [routeObserver],
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         textTheme: boldedTextTheme,

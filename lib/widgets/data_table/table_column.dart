@@ -14,6 +14,8 @@ class TableColumn {
   final String Function(dynamic)? formatter;
   final Widget Function(dynamic)? cellBuilder;
   
+  final Widget Function(dynamic value, Map<String, dynamic> rowData)? advancedCellBuilder;
+  
   final String? primarySortValue;
   final String? secondarySortValue;
 
@@ -24,7 +26,10 @@ class TableColumn {
     this.sortType,
     this.formatter,
     this.cellBuilder,
+    this.advancedCellBuilder,
     this.primarySortValue,
     this.secondarySortValue,
-  });
+  }) : assert(
+         cellBuilder == null || advancedCellBuilder == null,
+       );
 }

@@ -8,14 +8,13 @@ Future<bool?> showCustomDialog({
   required Widget child,
   required String primaryButtonText,
   bool primaryButtonDanger = false,
+  bool oneButtonOnly = false,
 }) {
   return showGeneralDialog<bool>(
     context: context,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-
     transitionDuration: const Duration(milliseconds: 300),
-
     pageBuilder: (context, animation, secondaryAnimation) {
       return Dialog(
         backgroundColor: Colors.white,
@@ -23,7 +22,6 @@ Future<bool?> showCustomDialog({
         insetPadding: const EdgeInsets.symmetric(
           horizontal: 20.0,
         ),
-
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -52,14 +50,17 @@ Future<bool?> showCustomDialog({
                       onPressed: () => Navigator.of(context).pop(true),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: CustomButton(
-                      text: 'Cancelar',
-                      secondary: true,
-                      onPressed: () => Navigator.of(context).pop(false),
+
+                  if (!oneButtonOnly) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Cancelar',
+                        secondary: true,
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
                     ),
-                  ),
+                  ]
                 ],
               ),
             ],
@@ -67,7 +68,6 @@ Future<bool?> showCustomDialog({
         ),
       );
     },
-
     transitionBuilder: (context, animation, secondaryAnimation, child) {
       final tween = Tween<Offset>(
         begin: const Offset(0, 0.5),

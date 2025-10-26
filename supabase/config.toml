@@ -1,0 +1,33 @@
+
+[functions.create-user-soldier]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-user-soldier/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/create-user-soldier/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/create-user-soldier/*.html" ]
+
+[functions.create-signed-avatar-url]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-signed-avatar-url/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/create-signed-avatar-url/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/create-signed-avatar-url/*.html" ]
+
+[functions.update-user]
+enabled = true
+verify_jwt = true
+import_map = "./functions/update-user/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/update-user/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/update-user/*.html" ]

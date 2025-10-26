@@ -10,6 +10,7 @@ import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/debug_login_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -85,29 +86,32 @@ class _LoginState extends State<Login> {
     });
 
     try {
-      final bool loginSuccess = await AuthService.instance.login(
-        email: email,
-        password: password,
-      );
+      await AuthService.instance.login(email: email, password: password);
 
-      if (loginSuccess && mounted) {
+      if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.home,
           (route) => false,
         );
-      } else if (mounted) {
+      }
+    } on UserInactiveException catch (e) {
+      if (mounted) {
         showCustomSnackbar(
           context,
-          'Usuário ou senha inválidos.',
+          e.message,
           isError: true,
         );
+      }
+    } on AuthException {
+      if (mounted) {
+        showCustomSnackbar(context, 'Email ou senha inválidos.', isError: true);
       }
     } catch (e) {
       if (mounted) {
         showCustomSnackbar(
           context,
-          'Ocorreu um erro inesperado. Tente novamente.',
+          e.toString(),
           isError: true,
         );
       }
