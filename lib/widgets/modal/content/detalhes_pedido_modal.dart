@@ -12,6 +12,7 @@ class DetalhesPedidoModal extends StatefulWidget {
   final Future<void> Function(int pedidoId) onFinalizar;
   final void Function(int idItem)? onViewItemDetails;
   final void Function(int userId)? onViewUserDetails;
+  final VoidCallback? onViewOrderedItemsDetails;
   final VoidCallback? onShowCancelModal;
   final void Function(Map<String, dynamic> pedidoData)? onViewCancelDetails;
 
@@ -20,6 +21,7 @@ class DetalhesPedidoModal extends StatefulWidget {
     required this.pedidoId,
     required this.onFinalizar,
     this.onViewItemDetails,
+    this.onViewOrderedItemsDetails,
     this.onViewUserDetails,
     this.onShowCancelModal,
     this.onViewCancelDetails,
@@ -57,13 +59,15 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       );
     }
 
-  final nomeUsuario = _pedidoData?[SupabaseTables.usuario]?[UsuarioFields.nome] ?? '';
+    final nomeUsuario =
+        _pedidoData?[SupabaseTables.usuario]?[UsuarioFields.nome] ?? '';
     final idPedido = _pedidoData?[PedidoFields.id]?.toString() ?? '';
     final idUsuario = _pedidoData?[PedidoFields.usuarioId] ?? 0;
-    final dataRet = _pedidoData?[PedidoFields.dataRetirada]?.toString() ?? 'Em aberto';
+    final dataRet =
+        _pedidoData?[PedidoFields.dataRetirada]?.toString() ?? 'Em aberto';
     final status = _pedidoData?[PedidoFields.status] ?? 1;
-  final List<dynamic> itensPedido =
-    (_pedidoData?[SupabaseTables.itemPedido] as List?) ?? const [];
+    final List<dynamic> itensPedido =
+        (_pedidoData?[SupabaseTables.itemPedido] as List?) ?? const [];
 
     final isPendente = status == PedidoConstants.statusPendente;
     final isCancelado = status == PedidoConstants.statusCancelado;
@@ -85,40 +89,19 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (_isLoadingInitialContent)
-          const DetailItemCard(
-            isLoading: true,
-            label: "ITENS",
-            value: '',
-          )
-        else ...[
-          const Text(
-            'Itens do pedido',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          ...itensPedido.map((it) {
-            final itemId = it[ItemPedidoFields.itemId] ?? 0;
-            final itemNome = it[SupabaseTables.item]?[ItemFields.nome] ?? '';
-            final unidade = it[SupabaseTables.item]?[ItemFields.unidade] ?? '';
-            final qtd = (it[ItemPedidoFields.qtdSolicitada] ?? 0).toString();
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: DetailItemCard(
-                isLoading: false,
-                label: unidade?.toString().isNotEmpty == true
-                    ? 'ITEM REQUISITADO (${unidade})'
-                    : 'ITEM REQUISITADO',
-                value: '$itemNome — Qtd: $qtd',
-                onPressed: () {
-                  if (widget.onViewItemDetails != null) {
-                    widget.onViewItemDetails!(itemId);
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "ITENS PEDIDOS",
+          value: _isLoadingInitialContent ? '' : itensPedido.length.toString(),
+          onPressed: _isLoadingInitialContent
+              ? null
+              : () {
+                  if (widget.onViewOrderedItemsDetails != null) {
+                    widget.onViewOrderedItemsDetails!();
                   }
                 },
-              ),
-            );
-          }).toList(),
-        ],
+        ),
+
         const SizedBox(height: 12),
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
@@ -127,8 +110,9 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
           onPressed: _isLoadingInitialContent
               ? null
               : () {
-                  if (widget.onViewUserDetails != null)
+                  if (widget.onViewUserDetails != null) {
                     widget.onViewUserDetails!(idUsuario);
+                  }
                 },
         ),
         const SizedBox(height: 12),
@@ -165,52 +149,8 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
           value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
         ),
         const SizedBox(height: 12),
-        if (!_isLoadingInitialContent && itensPedido.isNotEmpty) ...[
-          const Text(
-            'Lotes reservados/retirados',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          ...itensPedido.map((it) {
-            final itemNome = it[SupabaseTables.item]?[ItemFields.nome] ?? '';
-            final List<dynamic> lotes = (it['iped_lotes'] as List?) ?? const [];
-            if (lotes.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text('- $itemNome: (sem lotes informados)'),
-              );
-            }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('- $itemNome'),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: lotes.map<Widget>((l) {
-                      final dynamic codigo = l['codigo'] ?? l['codigo_lote'] ?? l['lote_id'];
-                      final qL = l['quantidade'];
-                      final unidade = it[SupabaseTables.item]?[ItemFields.unidade]?.toString() ?? '';
-                      final unidadeSuffix = unidade.isNotEmpty ? ' $unidade' : '';
-                      return Chip(
-                        label: Text('${codigo?.toString() ?? ''} • Qtd: $qL$unidadeSuffix'),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-          const SizedBox(height: 12),
-        ],
 
         if (isPendente) ...[
-          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

@@ -75,11 +75,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
             Builder(
               builder: (context) {
-                final sectorId = userService.viewingSectorId;
-                String sectorSuffix = '';
-                if (sectorId == 1) sectorSuffix = ' do Almoxarifado';
-                if (sectorId == 2) sectorSuffix = ' da Farmácia';
-                final title = 'Listagem de Pedidos$sectorSuffix';
+                final title = 'Listagem de Pedidos';
                 return Text(
                   title,
                   style: const TextStyle(
