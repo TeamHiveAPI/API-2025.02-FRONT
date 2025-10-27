@@ -10,10 +10,12 @@ abstract class SupabaseTables {
   static const String pedidoCompra = 'pedido_compra';
   static const String setor = 'setor';
   static const String usuario = 'usuario';
+  static const String exame = 'exame';
+  static const String consultaMedica = 'consulta_medica';
 }
 
 const String fornTable = 'fornecedor';
-const String fornId = 'id';  
+const String fornId = 'id';
 const String fornNome = 'frn_nome';
 const String fornCnpj = 'frn_cnpj';
 const String fornTelefone = 'frn_telefone';
@@ -112,4 +114,34 @@ abstract class UsuarioFields {
   static const String ativo = 'usr_ativo';
   static const String primeiroLogin = 'usr_primeiro_login';
   static const String dataCriacao = 'usr_data_criacao';
+  static const String telefone = 'usr_telefone';
+  static const String horarioInicio = 'usr_horario_inicio';
+  static const String horarioFim = 'usr_horario_fim';
+}
+
+abstract class ExameFields {
+  static const String id = 'id';
+  static const String nome = 'exa_nome';
+  static const String preparoNecessario = 'exa_preparo_necessario';
+  static const String documentosExigidos = 'exa_documentos_exigidos';
+  static const String ativo = 'exa_ativo';
+  static const String dataCriacao = 'exa_data_criacao';
+  static const String dataAtualizacao = 'exa_data_atualizacao';
+  static const String duracaoMinutos = 'exa_duracao_minutos';
+  static const String setorId = 'exa_setor_id';
+  static const String requerJejum = 'exa_requer_jejum';
+  static const String requerAgendamento = 'exa_requer_agendamento';
+}
+
+abstract class ConsultaMedicaFields {
+  static const String id = 'id';
+  static const String pacienteId = 'con_paciente_id';
+  static const String exameId = 'con_exame_id';
+  static const String dataAgendamento = 'con_data_agendamento';
+  static const String dataRealizacao = 'con_data_realizacao';
+  static const String status = 'con_status';
+  static const String observacoes = 'con_observacoes';
+  static const String medicoResponsavelId = 'con_medico_responsavel_id';
+  static const String dataCriacao = 'con_data_criacao';
+  static const String dataAtualizacao = 'con_data_atualizacao';
 }

@@ -9,6 +9,8 @@ import 'package:sistema_almox/widgets/main_scaffold/header.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/screens/admin.dart';
+import 'package:sistema_almox/screens/consultas/index.dart';
+import 'package:sistema_almox/screens/consultas_medico/index.dart';
 import 'package:sistema_almox/screens/estoque.dart';
 import 'package:sistema_almox/screens/home.dart';
 import 'package:sistema_almox/screens/pedidos.dart';
@@ -26,9 +28,8 @@ class MainScaffold extends StatefulWidget {
 
 class MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-
-  late final List<Widget> _pages;
-  late final List<NavBarItemInfo> _navBarItemsInfo;
+  List<Widget> _pages = [];
+  List<NavBarItemInfo> _navBarItemsInfo = [];
 
   @override
   void initState() {
@@ -40,6 +41,17 @@ class MainScaffoldState extends State<MainScaffold> {
     });
   }
 
+  @override
+  void didUpdateWidget(MainScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _buildNavigationLists();
+
+    // Se o índice selecionado for inválido, resetar para 0
+    if (_selectedIndex >= _pages.length) {
+      _selectedIndex = 0;
+    }
+  }
+
   void _checkFirstLogin() {
     final userService = Provider.of<UserService>(context, listen: false);
 
@@ -47,8 +59,7 @@ class MainScaffoldState extends State<MainScaffold> {
       showCustomBottomSheet(
         context: context,
         title: 'Redefina Sua Senha',
-        child:
-            const ChangePasswordForm(),
+        child: const ChangePasswordForm(),
       );
     }
   }
@@ -78,6 +89,9 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
+    final currentUser = UserService.instance.currentUser;
+    final isMedico = currentUser?.idSetor == 4;
+
     if (UserService.instance.can(AppPermission.accessAdminScreen)) {
       pages.add(const AdminScreen());
       navBarItemsInfo.add(
@@ -89,6 +103,8 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
+    // Pedidos não aparece para médicos
+    if (!isMedico) {
       pages.add(const OrderScreen());
       navBarItemsInfo.add(
         NavBarItemInfo(
@@ -97,13 +113,34 @@ class MainScaffoldState extends State<MainScaffold> {
           navBarItemsInfo.length,
         ),
       );
+    }
 
-    if (UserService.instance.can(AppPermission.viewStockItems)){
+    if (UserService.instance.can(AppPermission.viewStockItems)) {
       pages.add(const NotaEmpenhoScreen());
       navBarItemsInfo.add(
+        NavBarItemInfo('assets/icons/list.svg', 'NE', navBarItemsInfo.length),
+      );
+    }
+
+    // Consultas só aparece para pacientes (não médicos)
+    if (!isMedico) {
+      pages.add(const ConsultasScreen());
+      navBarItemsInfo.add(
         NavBarItemInfo(
-          'assets/icons/list.svg',
-          'NE',
+          'assets/icons/calendar.svg',
+          'Consultas',
+          navBarItemsInfo.length,
+        ),
+      );
+    }
+
+    // Minhas Consultas só aparece para médicos
+    if (isMedico) {
+      pages.add(const ConsultasMedicoScreen());
+      navBarItemsInfo.add(
+        NavBarItemInfo(
+          'assets/icons/calendar.svg',
+          'Minhas Consultas',
           navBarItemsInfo.length,
         ),
       );
@@ -129,7 +166,9 @@ class MainScaffoldState extends State<MainScaffold> {
 
   void onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      if (index >= 0 && index < _pages.length) {
+        _selectedIndex = index;
+      }
     });
   }
 
@@ -157,7 +196,12 @@ class MainScaffoldState extends State<MainScaffold> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _pages.elementAt(_selectedIndex),
+              child: IndexedStack(
+                index: _pages.isEmpty || _selectedIndex >= _pages.length
+                    ? 0
+                    : _selectedIndex,
+                children: _pages.isEmpty ? [const HomeScreen()] : _pages,
+              ),
             ),
 
             Positioned(
