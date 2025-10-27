@@ -45,21 +45,7 @@ class AdminScreen extends StatelessWidget {
                 );
               },
             ),
-            
-            ManagementCard(
-              iconPath: "assets/icons/groups.svg",
-              name: 'Grupos',
-              description: 'Gerencie os grupos de itens de cada setor',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NotaEmpenhoScreen(),
-                ),
-              );
-            },
 
-            ),
             const SizedBox(height: 16),
 
             ManagementCard(
