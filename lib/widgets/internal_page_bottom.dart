@@ -9,6 +9,10 @@ class InternalPageBottom extends StatelessWidget {
   final bool isEditMode;
   final bool isLoading;
 
+  final bool showSecondaryButton;
+  final String? secondaryButtonIcon;
+  final VoidCallback? onSecondaryButtonPressed;
+
   const InternalPageBottom({
     super.key,
     required this.buttonText,
@@ -16,6 +20,9 @@ class InternalPageBottom extends StatelessWidget {
     this.onDeletePressed,
     this.isEditMode = false,
     this.isLoading = false,
+    this.showSecondaryButton = false,
+    this.secondaryButtonIcon,
+    this.onSecondaryButtonPressed,
   });
 
   @override
@@ -30,16 +37,8 @@ class InternalPageBottom extends StatelessWidget {
       borderRadius: 8.0,
     );
 
-    final deleteButton = CustomButton(
-      squareMode: true,
-      danger: true,
-      onPressed: isLoading ? null : onDeletePressed,
-      borderRadius: 8.0,
-      customIcon: "assets/icons/trash.svg",
-    );
-
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -50,16 +49,32 @@ class InternalPageBottom extends StatelessWidget {
           ),
         ],
       ),
+      child: Row(
+        children: [
+          Expanded(child: mainButton),
 
-      child: isEditMode
-          ? Row(
-              children: [
-                Expanded(child: mainButton),
-                const SizedBox(width: 20),
-                deleteButton,
-              ],
-            )
-          : mainButton,
+          if (!isEditMode && showSecondaryButton && secondaryButtonIcon != null) ...[
+            const SizedBox(width: 20),
+            CustomButton(
+              squareMode: true,
+              onPressed: isLoading ? null : onSecondaryButtonPressed,
+              borderRadius: 8.0,
+              customIcon: secondaryButtonIcon,
+            ),
+          ],
+
+          if (isEditMode) ...[
+            const SizedBox(width: 16),
+            CustomButton(
+              squareMode: true,
+              danger: true,
+              onPressed: isLoading ? null : onDeletePressed,
+              borderRadius: 8.0,
+              customIcon: "assets/icons/trash.svg",
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

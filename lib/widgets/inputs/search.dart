@@ -183,7 +183,7 @@ class _GenericSearchInputState extends State<GenericSearchInput> {
           Text(
             widget.upperLabel!,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF606060),
             ),

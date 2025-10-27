@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-
 import 'package:sistema_almox/screens/novo_item/form_handler.dart';
+import 'package:sistema_almox/screens/novo_item/lote_section.dart';
 import 'package:sistema_almox/services/group_service.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
@@ -12,11 +12,15 @@ import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/lot_input_row.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/item_multi_cadastro.dart';
 import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NewItemScreen extends StatefulWidget {
   final Map<String, dynamic>? itemToEdit;
@@ -31,6 +35,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
   final _groupService = GroupService();
 
   bool get isEditMode => widget.itemToEdit != null;
+  final viewingSectorId = UserService.instance.viewingSectorId;
 
   bool _isLoadingGroups = true;
   bool _isSaving = false;
@@ -52,30 +57,171 @@ class _NewItemScreenState extends State<NewItemScreen> {
     super.dispose();
   }
 
+  void _updateTotalQuantity() {
+    if (!_formHandler.isPerishable) {
+      return;
+    }
+
+    int total = 0;
+    for (final lot in _formHandler.lotControllers) {
+      total += int.tryParse(lot.quantityController.text) ?? 0;
+    }
+    _formHandler.initialQuantityController.text = total.toString();
+  }
+
+  Future<int> _getOrCreateSemGrupoId() async {
+    if (viewingSectorId == null) {
+      throw Exception('ID do setor não encontrado.');
+    }
+
+    final existingGroup = await _groupService.fetchGroupByName(
+      'Sem Grupo',
+      viewingSectorId!,
+    );
+
+    if (existingGroup != null && existingGroup['id_grupo'] != null) {
+      return existingGroup['id_grupo'] as int;
+    } else {
+      final newGroupId = await _groupService.createGroup(
+        name: 'Sem Grupo',
+        sectorId: viewingSectorId!,
+      );
+      return newGroupId;
+    }
+  }
+
   void _populateFormForEdit() {
     final item = widget.itemToEdit!;
     _formHandler.nameController.text = item['nome']?.toString() ?? '';
     _formHandler.recordNumberController.text =
         item['num_ficha']?.toString() ?? '';
-
-    final unidade = item['unidade']?.toString() ?? '';
-    if (unidade.startsWith('Lote')) {
-      final match = RegExp(r'\((\d+)\s*un\.\)').firstMatch(unidade);
-      _formHandler.unitOfMeasureController.text = match?.group(1) ?? '';
-    } else {
-      _formHandler.unitOfMeasureController.text = unidade;
-    }
-
-    _formHandler.initialQuantityController.text =
-        item['qtd_atual']?.toString() ?? '0';
+    _formHandler.unitOfMeasureController.text =
+        item['unidade']?.toString() ?? '';
     _formHandler.minStockController.text =
         item['min_estoque']?.toString() ?? '0';
     _formHandler.selectedGroupId = item['id_grupo'];
+    _formHandler.isPerishable = item['perecivel'] ?? false;
+    _formHandler.isControlled = item['controlado'] ?? false;
 
-    if (item['data_validade'] != null) {
-      _formHandler.expirationDateController.text = item['data_validade']
-          .toString();
-      _formHandler.isControlled = item['controlado'] ?? false;
+    final lotesData = item['lotes'];
+    if (_formHandler.isPerishable &&
+        lotesData is List &&
+        lotesData.isNotEmpty) {
+      _formHandler.lotControllers.clear();
+
+      for (final lote in lotesData) {
+        final lotController = LotController(
+          id: lote['id'],
+          codigoLote: lote['codigo'],
+          initialQuantity: lote['qtd_atual']?.toString() ?? '0',
+          initialDate: lote['data_validade']?.toString() ?? '',
+        );
+        _formHandler.lotControllers.add(lotController);
+      }
+      _updateTotalQuantity();
+    } else if (!(_formHandler.isPerishable) &&
+        lotesData is List &&
+        lotesData.isNotEmpty) {
+      _formHandler.initialQuantityController.text =
+          lotesData[0]?['qtd_atual']?.toString() ?? '0';
+    }
+  }
+
+  Map<String, dynamic> _buildItemPayload() {
+    final payload = {
+      'nome': _formHandler.nameController.text.trim(),
+      'num_ficha': _formHandler.recordNumberController.text.trim(),
+      'unidade': _formHandler.unitOfMeasureController.text.trim(),
+      'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
+      'id_grupo': _formHandler.selectedGroupId,
+      'perecivel': _formHandler.isPerishable,
+      'ativo': true,
+    };
+
+    if (viewingSectorId == 2) {
+      payload['controlado'] = _formHandler.isControlled;
+    }
+
+    if (_formHandler.isPerishable) {
+      payload['lotes'] = _formHandler.lotControllers.map((
+        LotController loteCtrl,
+      ) {
+        return {
+          'id': loteCtrl.id,
+          'qtd_atual': int.tryParse(loteCtrl.quantityController.text) ?? 0,
+          'data_validade': loteCtrl.dateController.text,
+          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+        };
+      }).toList();
+    } else {
+      payload['lotes'] = [
+        {
+          'qtd_atual':
+              int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
+          'data_validade': null,
+          'data_entrada': DateTime.now().toIso8601String().substring(0, 10),
+        },
+      ];
+    }
+    return payload;
+  }
+
+  void _showMultiRegisterModal() async {
+    final result = await showCustomBottomSheet(
+      context: context,
+      title: "Multicadastramento",
+      child: MultiRegisterModal(
+        onSuccess: () {
+          Navigator.of(context).pop(true);
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  Future<void> _registerItem() async {
+    FocusScope.of(context).unfocus();
+    setState(() => _formHandler.hasSubmitted = true);
+
+    if (!(_formHandler.formKey.currentState?.validate() ?? false)) {
+      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      if (_formHandler.selectedGroupId == null) {
+        final defaultGroupId = await _getOrCreateSemGrupoId();
+        _formHandler.selectedGroupId = defaultGroupId;
+      }
+
+      final itemPayload = _buildItemPayload();
+
+      await ItemService.instance.createItemWithLots(itemPayload);
+      showCustomSnackbar(context, 'Item cadastrado com sucesso!');
+      if (mounted) Navigator.of(context).pop(true);
+    } on PostgrestException catch (e) {
+      if (e.message.contains('item_it_num_ficha_key')) {
+        showCustomSnackbar(
+          context,
+          'O Nº de Ficha informado já está em uso.',
+          isError: true,
+        );
+      } else {
+        showCustomSnackbar(
+          context,
+          'Erro no banco de dados: ${e.message}',
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (mounted) showCustomSnackbar(context, e.toString(), isError: true);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -92,20 +238,32 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
     try {
       final itemPayload = _buildItemPayload();
-
       final item = widget.itemToEdit;
-      if (item == null || item['id_item'] == null) {
+      if (item == null || item[ItemFields.id] == null) {
         throw Exception('ID do item para edição não foi encontrado.');
       }
-      final itemId = item['id_item'] as int;
+      final itemId = item[ItemFields.id] as int;
 
       await ItemService.instance.updateItem(itemId, itemPayload);
 
       showCustomSnackbar(context, 'Item atualizado com sucesso!');
       if (mounted) Navigator.of(context).pop(true);
+    } on PostgrestException catch (e) {
+      if (e.message.contains('item_it_num_ficha_key')) {
+        showCustomSnackbar(
+          context,
+          'O Nº de Ficha informado já está em uso.',
+          isError: true,
+        );
+      } else {
+        showCustomSnackbar(
+          context,
+          'Erro no banco de dados: ${e.message}',
+          isError: true,
+        );
+      }
     } catch (e) {
       print('Erro detalhado ao atualizar item: $e');
-
       if (mounted) {
         showCustomSnackbar(
           context,
@@ -119,7 +277,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   Future<void> _deactivateItem() async {
-    final itemId = widget.itemToEdit?['id_item'];
+    final itemId = widget.itemToEdit?[ItemFields.id];
     if (itemId == null) {
       if (mounted) {
         showCustomSnackbar(
@@ -179,7 +337,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
   Future<void> _loadGroups() async {
     try {
-      final int? viewingSectorId = UserService.instance.viewingSectorId;
       if (viewingSectorId == null) {
         setState(() {
           _loadingError = 'ID do setor de visualização não encontrado.';
@@ -189,12 +346,15 @@ class _NewItemScreenState extends State<NewItemScreen> {
       }
 
       final groupsData = await _groupService.fetchGroupsBySector(
-        viewingSectorId,
+        viewingSectorId!,
       );
 
       setState(() {
         _formHandler.groupOptions = groupsData
-            .map((g) => ItemGroup(id: g['id_grupo'], nome: g['nome']))
+            .map(
+              (g) =>
+                  ItemGroup(id: g[GrupoFields.id], nome: g[GrupoFields.nome]),
+            )
             .toList();
         _isLoadingGroups = false;
       });
@@ -203,76 +363,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
         _loadingError = 'Falha ao carregar grupos.';
         _isLoadingGroups = false;
       });
-    }
-  }
-
-  Map<String, dynamic> _buildItemPayload() {
-    final viewingSectorId = UserService.instance.viewingSectorId;
-    final isPharmacyView = viewingSectorId == 2;
-
-    final String unidadeDeMedida;
-
-    if (isPharmacyView) {
-      final unidadesPorLote = _formHandler.unitOfMeasureController.text;
-      unidadeDeMedida = 'Lote ($unidadesPorLote un.)';
-    } else {
-      unidadeDeMedida = _formHandler.unitOfMeasureController.text;
-    }
-
-    final payload = {
-      'nome': _formHandler.nameController.text,
-      'num_ficha': _formHandler.recordNumberController.text,
-      'unidade': unidadeDeMedida,
-      'qtd_atual':
-          int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
-      'min_estoque': int.tryParse(_formHandler.minStockController.text) ?? 0,
-      'id_grupo': _formHandler.selectedGroupId,
-      'id_setor': viewingSectorId,
-    };
-
-    if (isPharmacyView) {
-      payload['data_validade'] = _formHandler.expirationDateController.text;
-      payload['controlado'] = _formHandler.isControlled;
-    }
-
-    return payload;
-  }
-
-  Future<void> _registerItem() async {
-    FocusScope.of(context).unfocus();
-    setState(() => _formHandler.hasSubmitted = true);
-
-    if (!(_formHandler.formKey.currentState?.validate() ?? false)) {
-      showCustomSnackbar(context, 'O formulário contém erros.', isError: true);
-      return;
-    }
-
-    setState(() => _isSaving = true);
-
-    try {
-      final itemPayload = _buildItemPayload();
-
-      await ItemService.instance.createItem(itemPayload);
-      showCustomSnackbar(context, 'Item cadastrado com sucesso!');
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (e) {
-      if (mounted) showCustomSnackbar(context, e.toString(), isError: true);
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
-    }
-  }
-
-  Future<void> _selectDate() async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null) {
-      String formattedDate =
-          "${pickedDate.year.toString().padLeft(4, '0')}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-      _formHandler.expirationDateController.text = formattedDate;
     }
   }
 
@@ -289,9 +379,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewingSectorId = UserService.instance.viewingSectorId;
-    final isPharmacyView = viewingSectorId == 2;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -319,7 +406,6 @@ class _NewItemScreenState extends State<NewItemScreen> {
                             _formHandler.validateRequired(value, 'Nome'),
                       ),
                       const SizedBox(height: 24),
-
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -335,33 +421,24 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: isPharmacyView
-                                  ? 'UNID. POR LOTE'
-                                  : 'UNIDADE DE MEDIDA',
-                              hintText: isPharmacyView
-                                  ? 'Número'
-                                  : 'Digite aqui',
+                              upperLabel: 'UNIDADE DE MEDIDA',
+                              hintText: 'Digite aqui',
                               controller: _formHandler.unitOfMeasureController,
-                              keyboardType: isPharmacyView
-                                  ? TextInputType.number
-                                  : TextInputType.text,
-                              inputFormatters: isPharmacyView
-                                  ? [FilteringTextInputFormatter.digitsOnly]
-                                  : [],
                               validator: (value) => _formHandler
-                                  .validateRequired(value, 'Unidade de Medida'),
+                                  .validateRequired(value, 'Unidade'),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
-
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: 'QTD. INICIAL',
+                              upperLabel: _formHandler.isPerishable
+                                  ? 'QTD. INICIAL TOTAL'
+                                  : 'QTD. INICIAL',
                               hintText: 'Número',
                               controller:
                                   _formHandler.initialQuantityController,
@@ -369,8 +446,16 @@ class _NewItemScreenState extends State<NewItemScreen> {
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
-                              validator: (value) => _formHandler
-                                  .validateRequired(value, 'Qtd. Inicial'),
+                              readOnly: _formHandler.isPerishable,
+                              validator: (value) {
+                                if (!_formHandler.isPerishable) {
+                                  return _formHandler.validateRequired(
+                                    value,
+                                    'Qtd. Inicial',
+                                  );
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -390,7 +475,43 @@ class _NewItemScreenState extends State<NewItemScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
+                      if (viewingSectorId == 2) ...[
+                        const Text(
+                          'É CONTROLADO?',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: text80,
+                          ),
+                        ),
+                        const SizedBox(height: 12.0),
+                        Row(
+                          children: [
+                            CustomRadioButton<bool>(
+                              value: true,
+                              groupValue: _formHandler.isControlled,
+                              label: 'Sim',
+                              onChanged: (value) {
+                                setState(() {
+                                  _formHandler.isControlled = value ?? false;
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 24),
+                            CustomRadioButton<bool>(
+                              value: false,
+                              groupValue: _formHandler.isControlled,
+                              label: 'Não',
+                              onChanged: (value) {
+                                setState(() {
+                                  _formHandler.isControlled = value ?? false;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                      SizedBox(height: viewingSectorId == 2 ? 24.0 : 0.0),
                       if (_isLoadingGroups)
                         const ShimmerPlaceholder(height: 64)
                       else if (_loadingError != null)
@@ -429,66 +550,36 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           ],
                         ),
                       const SizedBox(height: 24),
+                      LotManagementSection(
+                        initialIsPerishable: _formHandler.isPerishable,
+                        initialLotes: isEditMode
+                            ? _formHandler.lotControllers
+                            : null,
+                        onChanged: (isPerishable, lotControllers) {
+                          setState(() {
+                            _formHandler.isPerishable = isPerishable;
 
-                      if (isPharmacyView) ...[
-                        CustomTextFormField(
-                          upperLabel: 'DATA DE VALIDADE',
-                          hintText: 'Selecione a data',
-                          controller: _formHandler.expirationDateController,
-                          readOnly: true,
-                          onTap: _selectDate,
-                          validator: (value) => _formHandler
-                              .validateExpirationDate(value, viewingSectorId),
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: SvgPicture.asset(
-                              'assets/icons/calendar.svg',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'É CONTROLADO?',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: text80,
-                              ),
-                            ),
-                            const SizedBox(height: 12.0),
-                            Row(
-                              children: [
-                                CustomRadioButton<bool>(
-                                  value: true,
-                                  groupValue: _formHandler.isControlled,
-                                  label: 'Sim',
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _formHandler.isControlled =
-                                          value ?? false;
-                                    });
-                                  },
-                                ),
-                                const SizedBox(width: 24),
-                                CustomRadioButton<bool>(
-                                  value: false,
-                                  groupValue: _formHandler.isControlled,
-                                  label: 'Não',
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _formHandler.isControlled =
-                                          value ?? false;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
+                            for (var lot in _formHandler.lotControllers) {
+                              lot.quantityController.removeListener(
+                                _updateTotalQuantity,
+                              );
+                            }
+                            _formHandler.lotControllers = lotControllers;
+                            for (var lot in _formHandler.lotControllers) {
+                              lot.quantityController.addListener(
+                                _updateTotalQuantity,
+                              );
+                            }
+
+                            _updateTotalQuantity();
+
+                            if (!_formHandler.isPerishable) {
+                              _formHandler.initialQuantityController.clear();
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -499,6 +590,9 @@ class _NewItemScreenState extends State<NewItemScreen> {
               onButtonPressed: _isSaving
                   ? null
                   : (isEditMode ? _updateItem : _registerItem),
+              showSecondaryButton: true,
+              secondaryButtonIcon: 'assets/icons/multi-register.svg',
+              onSecondaryButtonPressed: _showMultiRegisterModal,
               isEditMode: isEditMode,
               onDeletePressed: _isSaving ? null : _deactivateItem,
               isLoading: _isSaving,

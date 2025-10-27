@@ -13,10 +13,13 @@ class CustomTextFormField extends StatelessWidget {
   final VoidCallback? onTap;
   final bool readOnly;
   final Widget? prefixIcon;
+  final Widget? suffixIcon;
   final List<TextInputFormatter>? inputFormatters;
   final bool obscureText;
   final AutovalidateMode? autovalidateMode;
   final bool textarea;
+  final void Function(String)? onSubmitted;
+
 
   const CustomTextFormField({
     super.key,
@@ -30,17 +33,24 @@ class CustomTextFormField extends StatelessWidget {
     this.onTap,
     this.readOnly = false,
     this.prefixIcon,
+    this.suffixIcon,
     this.inputFormatters,
     this.obscureText = false,
     this.autovalidateMode,
     this.textarea = false,
+    this.onSubmitted,
   }) : assert(
-         label != null || upperLabel != null,
-         'Você deve fornecer um Label ou UpperLabel.',
-       );
+          label != null || upperLabel != null,
+          'Você deve fornecer um Label ou UpperLabel.',
+        );
 
   @override
   Widget build(BuildContext context) {
+    final readOnlyBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: BorderSide.none,
+    );
+
     final textField = TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -53,12 +63,24 @@ class CustomTextFormField extends StatelessWidget {
       autovalidateMode: autovalidateMode,
       minLines: textarea ? 3 : 1,
       maxLines: textarea ? null : 1,
+      style: TextStyle(
+        color: readOnly ? text60: text40,
+        fontSize: 16.0
+      ),
       decoration: InputDecoration(
         labelText: upperLabel == null ? label : null,
         labelStyle: const TextStyle(color: text80, fontSize: 14),
         hintText: hintText,
         hintStyle: const TextStyle(color: text80, fontSize: 14),
+
+        filled: readOnly,
+        fillColor: brightGray,
+        border: readOnly ? readOnlyBorder : null,
+        enabledBorder: readOnly ? readOnlyBorder : null,
+        focusedBorder: readOnly ? readOnlyBorder : null,
+
         prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
         prefix: SizedBox(
           width: prefixIcon != null || label != null ? 0.0 : 10.0,
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/constants/pedido_constants.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
 import 'package:sistema_almox/utils/formatters.dart';
@@ -11,6 +12,7 @@ class DetalhesPedidoModal extends StatefulWidget {
   final Future<void> Function(int pedidoId) onFinalizar;
   final void Function(int idItem)? onViewItemDetails;
   final void Function(int userId)? onViewUserDetails;
+  final VoidCallback? onViewOrderedItemsDetails;
   final VoidCallback? onShowCancelModal;
   final void Function(Map<String, dynamic> pedidoData)? onViewCancelDetails;
 
@@ -19,6 +21,7 @@ class DetalhesPedidoModal extends StatefulWidget {
     required this.pedidoId,
     required this.onFinalizar,
     this.onViewItemDetails,
+    this.onViewOrderedItemsDetails,
     this.onViewUserDetails,
     this.onShowCancelModal,
     this.onViewCancelDetails,
@@ -56,14 +59,15 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       );
     }
 
-    final itemNome = _pedidoData?['item']?['nome'] ?? '';
-    final nomeUsuario = _pedidoData?['usuario']?['nome'] ?? '';
-    final idPedido = _pedidoData?['id_pedido']?.toString() ?? '';
-    final idItem = _pedidoData?['id_item'] ?? 0;
-    final idUsuario = _pedidoData?['id_usuario'] ?? 0;
-    final dataRet = _pedidoData?['data_ret']?.toString() ?? 'Em aberto';
-    final qtdSolicitada = _pedidoData?['qtd_solicitada']?.toString() ?? '';
-    final status = _pedidoData?['status'] ?? 0;
+    final nomeUsuario =
+        _pedidoData?[SupabaseTables.usuario]?[UsuarioFields.nome] ?? '';
+    final idPedido = _pedidoData?[PedidoFields.id]?.toString() ?? '';
+    final idUsuario = _pedidoData?[PedidoFields.usuarioId] ?? 0;
+    final dataRet =
+        _pedidoData?[PedidoFields.dataRetirada]?.toString() ?? 'Em aberto';
+    final status = _pedidoData?[PedidoFields.status] ?? 1;
+    final List<dynamic> itensPedido =
+        (_pedidoData?[SupabaseTables.itemPedido] as List?) ?? const [];
 
     final isPendente = status == PedidoConstants.statusPendente;
     final isCancelado = status == PedidoConstants.statusCancelado;
@@ -87,15 +91,17 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
       children: [
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
-          label: "ITEM REQUISITADO",
-          value: itemNome,
+          label: "ITENS PEDIDOS",
+          value: _isLoadingInitialContent ? '' : itensPedido.length.toString(),
           onPressed: _isLoadingInitialContent
               ? null
               : () {
-                  if (widget.onViewItemDetails != null)
-                    widget.onViewItemDetails!(idItem);
+                  if (widget.onViewOrderedItemsDetails != null) {
+                    widget.onViewOrderedItemsDetails!();
+                  }
                 },
         ),
+
         const SizedBox(height: 12),
         DetailItemCard(
           isLoading: _isLoadingInitialContent,
@@ -104,8 +110,9 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
           onPressed: _isLoadingInitialContent
               ? null
               : () {
-                  if (widget.onViewUserDetails != null)
+                  if (widget.onViewUserDetails != null) {
                     widget.onViewUserDetails!(idUsuario);
+                  }
                 },
         ),
         const SizedBox(height: 12),
@@ -136,28 +143,14 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
           ],
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: DetailItemCard(
-                isLoading: _isLoadingInitialContent,
-                label: "DATA DE RETIRADA",
-                value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DetailItemCard(
-                isLoading: _isLoadingInitialContent,
-                label: "QTD. SOLICITADA",
-                value: qtdSolicitada,
-              ),
-            ),
-          ],
+        DetailItemCard(
+          isLoading: _isLoadingInitialContent,
+          label: "DATA DE RETIRADA",
+          value: dataRet == 'Em aberto' ? dataRet : formatDate(dataRet),
         ),
+        const SizedBox(height: 12),
 
         if (isPendente) ...[
-          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -179,7 +172,7 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: CustomButton(
                   isLoadingInitialContent: _isLoadingInitialContent,

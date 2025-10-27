@@ -5,6 +5,7 @@ Future<T?> showCustomBottomSheet<T>({
   required BuildContext context,
   required Widget child,
   required String title,
+  bool removeRightPadding = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -23,7 +24,7 @@ Future<T?> showCustomBottomSheet<T>({
           padding: EdgeInsets.fromLTRB(
             20,
             20,
-            20,
+            removeRightPadding ? 0 : 20,
             MediaQuery.of(context).viewInsets.bottom +
                 MediaQuery.of(context).padding.bottom +
                 20,
@@ -62,6 +63,6 @@ Future<T?> showCustomBottomSheet<T>({
           ),
         ),
       );
-      },
+    },
   );
 }

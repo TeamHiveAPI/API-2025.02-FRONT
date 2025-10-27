@@ -10,6 +10,7 @@ import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/debug_login_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -32,7 +33,7 @@ class _LoginState extends State<Login> {
       'password': '123456',
     },
     'Tenente Farmácia': {
-      'email': 'tenentefarmacia@eb.mil.br',
+      'email': 'mariana@eb.mil.br',
       'password': '123456',
     },
     'Soldado Estoque': {
@@ -42,6 +43,10 @@ class _LoginState extends State<Login> {
     'Soldado Farmácia': {
       'email': 'soldadofarmacia@eb.mil.br',
       'password': '123456',
+    },
+    'Médico': {
+      'email': 'medico@eb.mil.br',
+      'password': 'Medico0!',
     },
   };
 
@@ -85,31 +90,26 @@ class _LoginState extends State<Login> {
     });
 
     try {
-      final bool loginSuccess = await AuthService.instance.login(
-        email: email,
-        password: password,
-      );
+      await AuthService.instance.login(email: email, password: password);
 
-      if (loginSuccess && mounted) {
+      if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.home,
           (route) => false,
         );
-      } else if (mounted) {
-        showCustomSnackbar(
-          context,
-          'Usuário ou senha inválidos.',
-          isError: true,
-        );
+      }
+    } on UserInactiveException catch (e) {
+      if (mounted) {
+        showCustomSnackbar(context, e.message, isError: true);
+      }
+    } on AuthException {
+      if (mounted) {
+        showCustomSnackbar(context, 'Email ou senha inválidos.', isError: true);
       }
     } catch (e) {
       if (mounted) {
-        showCustomSnackbar(
-          context,
-          'Ocorreu um erro inesperado. Tente novamente.',
-          isError: true,
-        );
+        showCustomSnackbar(context, e.toString(), isError: true);
       }
     } finally {
       if (mounted) {

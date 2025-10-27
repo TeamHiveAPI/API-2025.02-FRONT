@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/widgets/lot_input_row.dart';
 
 class ItemGroup {
   final int id;
@@ -13,37 +14,32 @@ class RegisterItemFormHandler {
   final nameController = TextEditingController();
   final recordNumberController = TextEditingController();
   final unitOfMeasureController = TextEditingController();
-  final initialQuantityController = TextEditingController();
   final minStockController = TextEditingController();
 
-  final expirationDateController = TextEditingController();
-  bool isControlled = false;
+  final initialQuantityController = TextEditingController();
 
   List<ItemGroup> groupOptions = [];
   int? selectedGroupId;
+  bool isControlled = false;
+  bool isPerishable = false;
+  List<LotController> lotControllers = [];
+
+  void dispose() {
+    nameController.dispose();
+    recordNumberController.dispose();
+    unitOfMeasureController.dispose();
+    minStockController.dispose();
+    initialQuantityController.dispose();
+
+    for (final controller in lotControllers) {
+      controller.dispose();
+    }
+  }
 
   String? validateRequired(String? value, String fieldName) {
     if (value == null || value.trim().isEmpty) {
       return 'Campo obrigatório';
     }
     return null;
-  }
-
-String? validateExpirationDate(String? value, int? viewingSectorId) {
-    final bool isPharmacyView = viewingSectorId == 2;
-
-    if (isPharmacyView && (value == null || value.isEmpty)) {
-      return 'Campo obrigatório';
-    }
-    return null;
-  }
-
-  void dispose() {
-    nameController.dispose();
-    recordNumberController.dispose();
-    unitOfMeasureController.dispose();
-    initialQuantityController.dispose();
-    minStockController.dispose();
-    expirationDateController.dispose();
   }
 }

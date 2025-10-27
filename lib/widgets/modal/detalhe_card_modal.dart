@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sistema_almox/core/constants/system_constants.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 
-class DetailItemCard extends StatelessWidget {
+class DetailItemCard extends StatefulWidget {
   final String label;
   final String value;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final Color? valueColor;
+  final Widget? icon;
+  final bool copyButton;
+  final bool hideLabel;
 
   const DetailItemCard({
     super.key,
@@ -15,36 +20,148 @@ class DetailItemCard extends StatelessWidget {
     required this.value,
     this.onPressed,
     this.isLoading = false,
+    this.valueColor,
+    this.icon,
+    this.copyButton = false,
+    this.hideLabel = false,
   });
 
   @override
+  State<DetailItemCard> createState() => _DetailItemCardState();
+}
+
+class _DetailItemCardState extends State<DetailItemCard> {
+  bool _isCopied = false;
+
+  void _handleCopyToClipboard() {
+    Clipboard.setData(ClipboardData(text: widget.value));
+
+    setState(() {
+      _isCopied = true;
+    });
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _isCopied = false;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return ShimmerPlaceholder(
         height: SystemConstants.alturaCardModal.toDouble(),
       );
     }
 
-    final bool isClickable = onPressed != null;
+    final bool isSimpleClickable =
+        widget.onPressed != null && !widget.copyButton;
 
-    final content = Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: _buildRealContent(isClickable),
-    );
+    final double horizontalPadding = widget.hideLabel ? 20.0 : 12.0;
 
-    if (isClickable) {
-      return InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: content,
+    final mainContent = _buildRealContent(isSimpleClickable);
+
+    if (widget.copyButton) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.fromLTRB(
+              12,
+              horizontalPadding,
+              40,
+              horizontalPadding,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBFBFB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: mainContent,
+          ),
+
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: _handleCopyToClipboard,
+                splashColor: const Color.fromARGB(16, 0, 0, 0),
+                highlightColor: const Color.fromARGB(16, 0, 0, 0),
+              ),
+            ),
+          ),
+
+          Positioned(
+            right: 16,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: _isCopied
+                  ? const Icon(
+                      key: ValueKey('check_icon'),
+                      Icons.check,
+                      color: successGreen,
+                      size: 20,
+                    )
+                  : const Icon(
+                      key: ValueKey('copy_icon'),
+                      Icons.copy_rounded,
+                      color: text60,
+                      size: 18,
+                    ),
+            ),
+          ),
+        ],
       );
     }
 
-    return content;
+    if (isSimpleClickable) {
+      return Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 10,
+              horizontal: horizontalPadding,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBFBFB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: mainContent,
+          ),
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: widget.onPressed,
+                splashColor: const Color.fromARGB(16, 0, 0, 0),
+                highlightColor: const Color.fromARGB(16, 0, 0, 0),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: 10,
+        horizontal: horizontalPadding,
+      ),
+      decoration: BoxDecoration(
+        color: brightGray,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: mainContent,
+    );
   }
 
   Widget _buildRealContent(bool isClickable) {
@@ -53,23 +170,35 @@ class DetailItemCard extends StatelessWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: text80,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              if (!widget.hideLabel) ...[
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    color: text80,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: text40,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                const SizedBox(height: 4),
+              ],
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.value,
+                    style: TextStyle(
+                      color: widget.valueColor ?? text40,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (widget.icon != null) ...[
+                    const SizedBox(width: 6),
+                    widget.icon!,
+                  ],
+                ],
               ),
             ],
           ),
@@ -77,11 +206,7 @@ class DetailItemCard extends StatelessWidget {
         if (isClickable)
           const Padding(
             padding: EdgeInsets.only(left: 8.0),
-            child: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: text40,
-            ),
+            child: Icon(Icons.arrow_forward_ios, size: 16, color: text40),
           ),
       ],
     );

@@ -73,13 +73,18 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             const SizedBox(height: 24),
 
-            const Text(
-              'Listagem de Pedidos',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: text40,
-              ),
+            Builder(
+              builder: (context) {
+                final title = 'Listagem de Pedidos';
+                return Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: text40,
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 16),
