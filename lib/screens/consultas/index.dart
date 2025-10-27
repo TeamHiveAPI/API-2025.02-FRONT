@@ -4,7 +4,6 @@ import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/consulta_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
-import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'agendar_consulta/index.dart';
 
 class ConsultasScreen extends StatefulWidget {
@@ -48,7 +47,22 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            InternalPageHeader(title: 'Minhas Consultas'),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 12.0,
+              ),
+              child: Center(
+                child: Text(
+                  'Minhas Consultas',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: brandBlue,
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
