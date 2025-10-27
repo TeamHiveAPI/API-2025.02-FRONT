@@ -19,7 +19,6 @@ class SectorDropdown extends StatelessWidget {
     final userService = UserService.instance;
     final currentUser = userService.currentUser;
 
-    // Lista de setores disponíveis
     final List<Map<String, dynamic>> availableSectors = [
       {'id': 1, 'name': 'Almoxarifado'},
       {'id': 2, 'name': 'Farmácia'},
@@ -28,7 +27,6 @@ class SectorDropdown extends StatelessWidget {
       {'id': 5, 'name': 'Comum'},
     ];
 
-    // Se não for coronel, filtrar apenas o setor atual
     List<Map<String, dynamic>> sectorsToShow = availableSectors;
     if (currentUser?.nivelAcesso != 3) {
       sectorsToShow = availableSectors

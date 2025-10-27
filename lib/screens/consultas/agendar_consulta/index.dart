@@ -47,7 +47,6 @@ class _AgendarConsultaScreenState extends State<AgendarConsultaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Só mostra campo de telefone se o usuário não tiver telefone
                       if (_formHandler.needsPhoneInput)
                         TextFormField(
                           controller: _formHandler.telefoneController,
@@ -123,7 +122,6 @@ class _AgendarConsultaScreenState extends State<AgendarConsultaScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Mostrar horários disponíveis
                       if (_formHandler.selectedDoctorId != null &&
                           _formHandler.selectedDate != null) ...[
                         const Text(

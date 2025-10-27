@@ -48,10 +48,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Center(
                 child: Text(
                   'Minhas Consultas',
@@ -89,7 +86,6 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(20),
                       itemCount: _appointments.length,
                       itemBuilder: (context, index) {
                         final apt = _appointments[index];
@@ -105,6 +101,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 16),
+                          color: brightGray,
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
@@ -174,16 +171,20 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AgendarConsultaScreen()),
-        ).then((_) => _loadAppointments()),
-        backgroundColor: brandBlue,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Agendar Consulta',
-          style: TextStyle(color: Colors.white),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 60, bottom: 3.0),
+        child: FloatingActionButton.extended(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AgendarConsultaScreen()),
+          ).then((_) => _loadAppointments()),
+          backgroundColor: brandBlue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            'Agendar Consulta',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ),
     );

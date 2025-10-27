@@ -205,17 +205,16 @@ class UserService with ChangeNotifier {
   }
 
   void toggleViewingSector() {
-  if (_currentUser?.nivelAcesso == 3) {
-    if (_viewingSectorId == null || _viewingSectorId == 2) {
-      _viewingSectorId = 1;
-    } else {
-      _viewingSectorId = 2;
+    if (_currentUser?.nivelAcesso == 3) {
+      if (_viewingSectorId == null || _viewingSectorId == 2) {
+        _viewingSectorId = 1;
+      } else {
+        _viewingSectorId = 2;
+      }
+      print('Setor de visualização alterado para: $_viewingSectorId');
+      notifyListeners();
     }
-    print('Setor de visualização alterado para: $_viewingSectorId');
-    notifyListeners();
   }
-}
-
 
   bool can(AppPermission permission) {
     if (_currentUser == null) return false;
@@ -335,11 +334,11 @@ class UserService with ChangeNotifier {
           case 2:
             return UserRole.soldadoFarmacia;
           case 3:
-            return UserRole.soldadoComum; // Odontologia
+            return UserRole.soldadoComum;
           case 4:
-            return UserRole.soldadoComum; // Médico
+            return UserRole.soldadoComum;
           case 5:
-            return UserRole.soldadoComum; // Comum
+            return UserRole.soldadoComum;
           default:
             return UserRole.soldadoComum;
         }
@@ -350,11 +349,11 @@ class UserService with ChangeNotifier {
           case 2:
             return UserRole.tenenteFarmacia;
           case 3:
-            return UserRole.soldadoComum; // Odontologia
+            return UserRole.soldadoComum;
           case 4:
-            return UserRole.soldadoComum; // Médico
+            return UserRole.soldadoComum;
           case 5:
-            return UserRole.soldadoComum; // Comum
+            return UserRole.soldadoComum;
           default:
             return UserRole.soldadoComum;
         }

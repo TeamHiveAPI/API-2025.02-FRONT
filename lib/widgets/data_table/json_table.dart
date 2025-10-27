@@ -258,11 +258,7 @@ class DynamicJsonTable extends StatelessWidget {
 
               return Expanded(
                 flex: (column.widthFactor * 100).toInt(),
-                child: Padding(
-                  // Aplica o padding definido
-                  padding: cellPadding,
-                  child: cellContent,
-                ),
+                child: Padding(padding: cellPadding, child: cellContent),
               );
             }).toList(),
           ),

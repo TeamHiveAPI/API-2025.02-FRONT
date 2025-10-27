@@ -122,10 +122,9 @@ class ConsultaFormHandler with ChangeNotifier {
 
   void selectDate(DateTime date) async {
     selectedDate = date;
-    selectedTime = null; // Reset time when date changes
+    selectedTime = null;
     _ocupiedTimeSlots.clear();
 
-    // Recarregar horário de trabalho do médico se houver
     if (selectedDoctorId != null) {
       _doctorWorkSchedule = await getDoctorWorkSchedule();
       loadAvailableSlots();
@@ -144,7 +143,6 @@ class ConsultaFormHandler with ChangeNotifier {
     _ocupiedTimeSlots.clear();
     print('Médico selecionado: $doctorId');
 
-    // Buscar horário de trabalho do médico
     if (doctorId != null) {
       _doctorWorkSchedule = await getDoctorWorkSchedule();
       print('Horário carregado: $_doctorWorkSchedule');
@@ -167,7 +165,6 @@ class ConsultaFormHandler with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Buscar consultas ocupadas
       final response = await _userService.supabase
           .from('consulta_medica')
           .select('con_data_agendamento')
@@ -232,22 +229,18 @@ class ConsultaFormHandler with ChangeNotifier {
 
     final availableSlots = <TimeOfDay>[];
 
-    // Buscar horário de trabalho do médico
     TimeOfDay startTime = const TimeOfDay(hour: 8, minute: 0);
     TimeOfDay endTime = const TimeOfDay(hour: 17, minute: 0);
 
     if (_doctorWorkSchedule != null) {
-      // Parse do horário de início
       final inicioStr = (_doctorWorkSchedule!['horarioInicio'] ?? '08:00')
           .toString();
       final inicioParts = inicioStr.split(':');
 
-      // Converter para 24h se necessário
       int horaInicio = int.tryParse(inicioParts[0]) ?? 8;
       if (horaInicio < 8 &&
           !inicioStr.toUpperCase().contains('AM') &&
           !inicioStr.toUpperCase().contains('PM')) {
-        // Se a hora for menor que 8, provavelmente é PM (ex: 3:25 = 15:25)
         horaInicio = horaInicio + 12;
       }
 
@@ -255,12 +248,11 @@ class ConsultaFormHandler with ChangeNotifier {
 
       startTime = TimeOfDay(hour: horaInicio, minute: minutoInicio);
 
-      // Parse do horário de fim
       final fimStr = (_doctorWorkSchedule!['horarioFim'] ?? '17:00').toString();
       final fimParts = fimStr.split(':');
 
       int horaFim = int.tryParse(fimParts[0]) ?? 17;
-      // Se for formato 3:25 (sem AM/PM), assume PM
+
       if (horaFim < 8 &&
           !fimStr.toUpperCase().contains('AM') &&
           !fimStr.toUpperCase().contains('PM')) {
@@ -278,7 +270,6 @@ class ConsultaFormHandler with ChangeNotifier {
       print('Não há horário de trabalho configurado para este médico');
     }
 
-    // Se for hoje, só mostrar horários futuros
     if (isToday) {
       final nextTime = TimeOfDay(
         hour: now.hour,
@@ -291,14 +282,9 @@ class ConsultaFormHandler with ChangeNotifier {
       }
     }
 
-    // Gerar slots apenas dentro do horário de trabalho
-    // Converter para minutos totais para facilitar comparação
     int startTotalMinutes = startTime.hour * 60 + startTime.minute;
     int endTotalMinutes = endTime.hour * 60 + endTime.minute;
 
-    // Arredondar o início para o próximo slot de 30 minutos
-    // Se já está em múltiplo de 30, pega o próximo
-    // Ex: 07:25 vira 07:30, 08:00 vira 08:00
     int currentTotalMinutes = startTotalMinutes;
     if (currentTotalMinutes % 30 != 0) {
       currentTotalMinutes = ((currentTotalMinutes ~/ 30) + 1) * 30;
@@ -336,7 +322,6 @@ class ConsultaFormHandler with ChangeNotifier {
         availableSlots.add(currentTime);
       }
 
-      // Próximo slot (30 minutos depois)
       currentTotalMinutes += 30;
     }
 
@@ -409,7 +394,6 @@ class ConsultaFormHandler with ChangeNotifier {
         throw Exception('Médicos não podem marcar consultas para si mesmos');
       }
 
-      // Só salva telefone se for necessário (usuário preencheu ou não tinha)
       if (_needsPhoneInput ||
           (!_hasPhone && telefoneController.text.isNotEmpty)) {
         final unmaskedTelefone = telefoneMaskFormatter.getUnmaskedText();
@@ -460,7 +444,6 @@ class ConsultaFormHandler with ChangeNotifier {
   }
 
   String? validateTelefone(String? value) {
-    // Só valida se o usuário precisa preencher
     if (!_needsPhoneInput) return null;
 
     if (value == null || value.trim().isEmpty) {

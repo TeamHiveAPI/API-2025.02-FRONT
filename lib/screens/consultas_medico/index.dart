@@ -113,8 +113,8 @@ class _ConsultasMedicoScreenState extends State<ConsultasMedicoScreen> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
+                horizontal: 0.0,
+                vertical: 0.0,
               ),
               child: Center(
                 child: Text(
@@ -127,7 +127,7 @@ class _ConsultasMedicoScreenState extends State<ConsultasMedicoScreen> {
                 ),
               ),
             ),
-            // Filtros
+
             if (!_isLoading && _appointments.isNotEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -214,7 +214,6 @@ class _ConsultasMedicoScreenState extends State<ConsultasMedicoScreen> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(20),
                       itemCount:
                           (_showCompleted
                                   ? _completedAppointments
@@ -236,6 +235,7 @@ class _ConsultasMedicoScreenState extends State<ConsultasMedicoScreen> {
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 16),
+                          color: brightGray,
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
@@ -323,7 +323,7 @@ class _ConsultasMedicoScreenState extends State<ConsultasMedicoScreen> {
                                     ],
                                   ),
                                 ],
-                                // Botões de ação apenas para consultas pendentes
+
                                 if (!_showCompleted &&
                                     apt[ConsultaMedicaFields.status] !=
                                         'realizada' &&

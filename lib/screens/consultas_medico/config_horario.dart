@@ -36,7 +36,6 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
 
   TimeOfDay _parseTimeFromString(String timeStr) {
     try {
-      // Parse "HH:MM AM/PM" para TimeOfDay
       final parts = timeStr.split(' ');
       final timePart = parts[0];
       final isPM = parts.length > 1 && parts[1].toUpperCase().contains('PM');
@@ -53,13 +52,11 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
 
       return TimeOfDay(hour: hour, minute: minute);
     } catch (e) {
-      // Se der erro, retorna hora atual
       return TimeOfDay.now();
     }
   }
 
   TimeOfDay _roundToNearestHalfHour(TimeOfDay time) {
-    // Arredondar para o próximo múltiplo de 30 minutos
     int minute = time.minute;
     if (minute % 30 != 0) {
       minute = ((minute ~/ 30) + 1) * 30;
@@ -80,11 +77,9 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
       final schedule = await _service.getWorkSchedule(currentUser.idUsuario);
 
       if (schedule != null) {
-        // Carregar horários salvos
         _horarioInicioController.text = schedule['horarioInicio'] ?? '08:00';
         _horarioFimController.text = schedule['horarioFim'] ?? '17:00';
       } else {
-        // Valores padrão
         _horarioInicioController.text = '08:00';
         _horarioFimController.text = '17:00';
       }
@@ -98,10 +93,9 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
   }
 
   String _convertTimeOfDayToHHMM(String timeFormatted) {
-    // timeFormatted vem como "HH:MM AM/PM" ou "HH:MM"
     try {
       final parts = timeFormatted.split(' ');
-      final timeStr = parts[0]; // Pega "HH:MM"
+      final timeStr = parts[0];
       return timeStr;
     } catch (e) {
       return timeFormatted;
@@ -114,7 +108,6 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
       final currentUser = _userService.currentUser;
       if (currentUser == null) return;
 
-      // Converter formato do time picker para HH:MM
       final horarioInicio = _convertTimeOfDayToHHMM(
         _horarioInicioController.text,
       );
@@ -183,7 +176,6 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
                               );
 
                               if (time != null && mounted) {
-                                // Arredondar para o próximo múltiplo de 30 minutos
                                 final roundedTime = _roundToNearestHalfHour(
                                   time,
                                 );
@@ -242,7 +234,6 @@ class _ConfigHorarioScreenState extends State<ConfigHorarioScreen> {
                               );
 
                               if (time != null && mounted) {
-                                // Arredondar para o próximo múltiplo de 30 minutos
                                 final roundedTime = _roundToNearestHalfHour(
                                   time,
                                 );

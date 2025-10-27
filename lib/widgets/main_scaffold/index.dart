@@ -45,7 +45,6 @@ class MainScaffoldState extends State<MainScaffold> {
     super.didUpdateWidget(oldWidget);
     _buildNavigationLists();
 
-    // Se o índice selecionado for inválido, resetar para 0
     if (_selectedIndex >= _pages.length) {
       _selectedIndex = 0;
     }
@@ -102,7 +101,6 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
-    // Pedidos não aparece para médicos
     if (!isMedico) {
       pages.add(const OrderScreen());
       navBarItemsInfo.add(
@@ -114,7 +112,6 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
-    // Consultas só aparece para pacientes (não médicos)
     if (!isMedico) {
       pages.add(const ConsultasScreen());
       navBarItemsInfo.add(
@@ -126,7 +123,6 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
-    // Minhas Consultas só aparece para médicos
     if (isMedico) {
       pages.add(const ConsultasMedicoScreen());
       navBarItemsInfo.add(
