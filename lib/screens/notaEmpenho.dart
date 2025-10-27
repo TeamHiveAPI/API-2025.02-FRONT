@@ -75,9 +75,18 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredNotas = _notas.where((n) {
-      final ne = n['NE']?.toString().toLowerCase() ?? '';
-      return ne.contains(_searchQuery.toLowerCase());
-    }).toList();
+    final query = _searchQuery.toLowerCase();
+    final ne = n['NE']?.toString().toLowerCase() ?? '';
+    final item = n['item']?.toString().toLowerCase() ?? '';
+    final favorecido = n['favorecido']?.toString().toLowerCase() ?? '';
+    final saldo = n['saldo']?.toString().toLowerCase() ?? '';
+
+    return ne.contains(query) ||
+          item.contains(query) ||
+          favorecido.contains(query) ||
+          saldo.contains(query);
+  }).toList();
+
 
     return Scaffold(
       backgroundColor: Colors.white,

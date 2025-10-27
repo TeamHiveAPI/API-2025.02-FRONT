@@ -41,70 +41,79 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
     super.initState();
     final nota = widget.nota;
 
-    if (nota != null) {
+    try {
+      if (nota != null) {
+        _neController.text = nota['NE']?.toString() ?? '';
+        _favorecidoController.text = nota['favorecido']?.toString() ?? '';
+        _itemController.text = nota['item']?.toString() ?? '';
+        _diasController.text = nota['dias']?.toString() ?? '';
+        _saldoController.text = nota['saldo']?.toString() ?? '';
+        _justificativaController.text = nota['justificativa_atraso']?.toString() ?? '';
 
-      _neController.text = nota['NE']?.toString() ?? '';
-      _favorecidoController.text = nota['favorecido']?.toString() ?? '';
-      _itemController.text = nota['item']?.toString() ?? '';
-      _diasController.text = nota['dias']?.toString() ?? '';
-      _saldoController.text = nota['saldo']?.toString() ?? '';
-      _justificativaController.text = nota['justificativa_atraso']?.toString() ?? '';
-
-      if (nota['data'] != null && nota['data'] is String && nota['data'].toString().trim().isNotEmpty) {
-        final dataStr = nota['data'].toString().trim();
-        _dataTextController.text = dataStr;
-        try {
-          final parts = dataStr.split('/');
-          if (parts.length == 3) {
-            _dataController = DateTime(
-              int.parse(parts[2]),
-              int.parse(parts[1]),
-              int.parse(parts[0]),
+        if (nota['data'] != null && nota['data'] is String && nota['data'].toString().trim().isNotEmpty) {
+          final dataStr = nota['data'].toString().trim();
+          _dataTextController.text = dataStr;
+          try {
+            final parts = dataStr.split('/');
+            if (parts.length == 3) {
+              _dataController = DateTime(
+                int.parse(parts[2]),
+                int.parse(parts[1]),
+                int.parse(parts[0]),
+              );
+            } else {
+              try {
+                _dataController = DateTime.parse(dataStr);
+              } catch (_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Formato de data inválido.')),
+                );
+              }
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao processar a data: $e')),
             );
-          } else {
-            try {
-              _dataController = DateTime.parse(dataStr);
-            } catch (_) {}
           }
-        } catch (e) {
-          print('⚠️ Falha ao converter data da nota em edição: $e');
+        } else {
+          _dataTextController.text = '';
         }
+
+        processoAdmSim = (nota['processo_adm']?.toString().toLowerCase() == 'sim');
+        processoAdmNao = !processoAdmSim;
+        materialRecebidoSim = (nota['material_recebido']?.toString().toLowerCase() == 'sim');
+        materialRecebidoNao = !materialRecebidoSim;
+        nfEntregueSim = (nota['nf_entregue_no_almox']?.toString().toLowerCase() == 'sim');
+        nfEntregueNao = !nfEntregueSim;
+        enviadoLiquidarSim = (nota['enviado_para_liquidar']?.toString().toLowerCase() == 'sim');
+        enviadoLiquidarNao = !enviadoLiquidarSim;
+
+        _atualizarSaldo();
       } else {
-        _dataTextController.text = '';
+        _neController.text = '';
+        _favorecidoController.text = '';
+        _itemController.text = '';
+        _diasController.text = '';
+        _saldoController.text = '';
+        _justificativaController.text = '';
+        _dataController = DateTime.now();
+        _dataTextController.text = DateFormat('dd/MM/yyyy').format(_dataController);
+
+        processoAdmSim = false;
+        processoAdmNao = true;
+        materialRecebidoSim = false;
+        materialRecebidoNao = true;
+        nfEntregueSim = false;
+        nfEntregueNao = true;
+        enviadoLiquidarSim = false;
+        enviadoLiquidarNao = true;
+
+        _atualizarSaldo();
       }
-
-      processoAdmSim = (nota['processo_adm']?.toString().toLowerCase() == 'sim');
-      processoAdmNao = !processoAdmSim;
-      materialRecebidoSim = (nota['material_recebido']?.toString().toLowerCase() == 'sim');
-      materialRecebidoNao = !materialRecebidoSim;
-      nfEntregueSim = (nota['nf_entregue_no_almox']?.toString().toLowerCase() == 'sim');
-      nfEntregueNao = !nfEntregueSim;
-      enviadoLiquidarSim = (nota['enviado_para_liquidar']?.toString().toLowerCase() == 'sim');
-      enviadoLiquidarNao = !enviadoLiquidarSim;
-
-      _atualizarSaldo();
-    } else {
-
-
-      _neController.text = '';
-      _favorecidoController.text = '';
-      _itemController.text = '';
-      _diasController.text = '';
-      _saldoController.text = '';
-      _justificativaController.text = '';
-      _dataController = DateTime.now();
-      _dataTextController.text = DateFormat('dd/MM/yyyy').format(_dataController);
-
-      processoAdmSim = false;
-      processoAdmNao = true;
-      materialRecebidoSim = false;
-      materialRecebidoNao = true;
-      nfEntregueSim = false;
-      nfEntregueNao = true;
-      enviadoLiquidarSim = false;
-      enviadoLiquidarNao = true;
-
-      _atualizarSaldo();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao inicializar os campos: $e')),
+      );
     }
   }
 
@@ -121,15 +130,21 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   }
 
   void _atualizarSaldo() {
-    if (_diasController.text.isEmpty) {
-      _saldoController.text = _saldoController.text.isNotEmpty ? _saldoController.text : '';
-      return;
-    }
+    try {
+      if (_diasController.text.isEmpty) {
+        _saldoController.text = _saldoController.text.isNotEmpty ? _saldoController.text : '';
+        return;
+      }
 
-    final dias = int.tryParse(_diasController.text) ?? 0;
-    final agora = DateTime.now();
-    final diferenca = _dataController.difference(agora).inDays + dias;
-    _saldoController.text = diferenca.toString();
+      final dias = int.tryParse(_diasController.text) ?? 0;
+      final agora = DateTime.now();
+      final diferenca = _dataController.difference(agora).inDays + dias;
+      _saldoController.text = diferenca.toString();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar saldo: $e')),
+      );
+    }
   }
 
   Widget _buildCheckRow(
@@ -160,19 +175,34 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
     );
   }
 
-Future<void> _save() async {
+  Future<void> _save() async {
   if (!_formKey.currentState!.validate()) return;
 
   setState(() => _isSaving = true);
 
   try {
+    final supabase = Supabase.instance.client;
+
+    final fornecedorNome = _favorecidoController.text;
+    final fornecedorCheck = await supabase
+        .from('fornecedor')
+        .select('frn_nome')
+        .eq('frn_nome', fornecedorNome)
+        .maybeSingle();
+    if (fornecedorCheck == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fornecedor "$fornecedorNome" não encontrado na tabela fornecedor.')),
+      );
+      setState(() => _isSaving = false);
+      return;
+    }
+
     String? dataIso;
     if (_dataTextController.text.isNotEmpty) {
       try {
         final parsedDate = DateFormat('dd/MM/yyyy').parse(_dataTextController.text);
         dataIso = DateFormat('yyyy-MM-dd').format(parsedDate);
-      } catch (e) {
-        print('⚠️ Data inválida, mantendo valor do GET: ${_dataTextController.text}');
+      } catch (_) {
         dataIso = widget.nota?['data']?.toString();
       }
     } else {
@@ -182,7 +212,7 @@ Future<void> _save() async {
     final dados = <String, dynamic>{
       'NE': _neController.text.isNotEmpty ? _neController.text : widget.nota?['NE'],
       'data': dataIso,
-      'favorecido': _favorecidoController.text.isNotEmpty ? _favorecidoController.text : widget.nota?['favorecido'],
+      'favorecido': fornecedorNome,
       'dias': _diasController.text.isNotEmpty ? int.tryParse(_diasController.text) : widget.nota?['dias'],
       'saldo': _saldoController.text.isNotEmpty ? int.tryParse(_saldoController.text) : widget.nota?['saldo'],
       'processo_adm': processoAdmSim ? 'Sim' : (processoAdmNao ? 'Não' : widget.nota?['processo_adm']),
@@ -193,29 +223,22 @@ Future<void> _save() async {
       'item': _itemController.text.isNotEmpty ? _itemController.text : widget.nota?['item'],
     };
 
-    dados.forEach((k, v) => print('  - $k: $v'));
-
-    final supabase = Supabase.instance.client;
-
+    // 4️⃣ Salvar
     if (widget.nota != null && widget.nota!['id'] != null) {
-      print('🔁 Atualizando nota id=${widget.nota!['id']}...');
       await supabase.from('nota_empenho').update(dados).eq('id', widget.nota!['id']);
-      print('✅ Nota atualizada com sucesso!');
     } else {
-      print('➕ Inserindo nova nota...');
       await supabase.from('nota_empenho').insert(dados);
-      print('✅ Nova nota inserida com sucesso!');
     }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Nota salva com sucesso!')));
       Navigator.pop(context, true);
     }
-  } catch (e, s) {
-    print('❌ Erro ao salvar nota: $e');
-    print(s);
+  } catch (e) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar nota: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar nota: $e')),
+      );
     }
   } finally {
     if (mounted) setState(() => _isSaving = false);
@@ -286,7 +309,7 @@ Future<void> _save() async {
                     controller: _dataTextController,
                     readOnly: true,
                     decoration: InputDecoration(
-                      labelText: 'Item',
+                      labelText: 'Data',
                       labelStyle: TextStyle(
                         color: Colors.grey[600], 
                         fontWeight: FontWeight.w400,
@@ -294,7 +317,8 @@ Future<void> _save() async {
                       border: OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.grey[200], 
-                    ),),                  
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
