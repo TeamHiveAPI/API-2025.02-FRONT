@@ -135,7 +135,7 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
                             icon: const Icon(Icons.picture_as_pdf, color: Colors.orange),
                             onPressed: () async {
                               try {
-                                await downloadNota(nota['NE'].toString()); // chama função correta por plataforma
+                                await downloadNota(nota['NE'].toString());
                                 showCustomSnackbar(context, 'Download iniciado para ${nota['NE']}');
                               } catch (e) {
                                 showCustomSnackbar(context, 'Erro ao baixar PDF: $e');
