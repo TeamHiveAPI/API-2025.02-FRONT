@@ -13,6 +13,7 @@ class CustomTextFormField extends StatelessWidget {
   final VoidCallback? onTap;
   final bool readOnly;
   final Widget? prefixIcon;
+  final Widget? suffixIcon;
   final List<TextInputFormatter>? inputFormatters;
   final bool obscureText;
   final AutovalidateMode? autovalidateMode;
@@ -32,6 +33,7 @@ class CustomTextFormField extends StatelessWidget {
     this.onTap,
     this.readOnly = false,
     this.prefixIcon,
+    this.suffixIcon,
     this.inputFormatters,
     this.obscureText = false,
     this.autovalidateMode,
@@ -78,6 +80,7 @@ class CustomTextFormField extends StatelessWidget {
         focusedBorder: readOnly ? readOnlyBorder : null,
 
         prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
         prefix: SizedBox(
           width: prefixIcon != null || label != null ? 0.0 : 10.0,
         ),

@@ -168,7 +168,6 @@ class _MultiRegisterModalState extends State<MultiRegisterModal> {
               '1',
             ].contains(row['controlado'].toString().toLowerCase()),
             'ativo': true,
-            'qtd_reservada': 0,
             'lotes': [],
           };
         }

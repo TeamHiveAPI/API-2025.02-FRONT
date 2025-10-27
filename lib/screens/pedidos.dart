@@ -5,7 +5,6 @@ import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/pedidos_list.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
-import 'package:sistema_almox/services/subirEmpenho.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -74,13 +73,18 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             const SizedBox(height: 24),
 
-            const Text(
-              'Listagem de Pedidos',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: text40,
-              ),
+            Builder(
+              builder: (context) {
+                final title = 'Listagem de Pedidos';
+                return Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: text40,
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 16),

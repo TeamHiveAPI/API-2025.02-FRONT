@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
-import 'package:sistema_almox/screens/notaEmpenho.dart';
 import 'package:sistema_almox/widgets/main_scaffold/header.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
 import 'package:sistema_almox/config/permissions.dart';
@@ -112,13 +111,6 @@ class MainScaffoldState extends State<MainScaffold> {
           'Pedidos',
           navBarItemsInfo.length,
         ),
-      );
-    }
-
-    if (UserService.instance.can(AppPermission.viewStockItems)) {
-      pages.add(const NotaEmpenhoScreen());
-      navBarItemsInfo.add(
-        NavBarItemInfo('assets/icons/list.svg', 'NE', navBarItemsInfo.length),
       );
     }
 

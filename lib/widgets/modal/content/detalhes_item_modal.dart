@@ -64,7 +64,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
   }
 
   void _showLotesModal() {
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
 
     showCustomBottomSheet(
       context: context,

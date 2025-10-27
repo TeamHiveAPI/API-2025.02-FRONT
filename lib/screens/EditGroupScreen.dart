@@ -56,7 +56,6 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
 
     try {
       final nome = _nomeController.text.trim();
-
       await _groupService.updateGroup(
         id: widget.groupId,
         newName: nome,

@@ -97,12 +97,25 @@ class DetalhesMovimentacaoModal extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        Text(
-          'Lotes envolvidos (${detalhesLotes.length})',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
-          ),
+        Row(
+          children: [
+            Text(
+              'Lotes envolvidos',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            CustomBadge(
+              text: detalhesLotes.length.toString().padLeft(2, '0'),
+              backgroundColor: coolGray,
+              textColor: text60,
+              small: true,
+            ),
+          ],
         ),
 
         const SizedBox(height: 16),
