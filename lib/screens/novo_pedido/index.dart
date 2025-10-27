@@ -327,16 +327,13 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                           ],
                         ),
                       ] else ...[
-                        // --- 2. NOVO BLOCO 'ELSE' (LISTA VAZIA) ---
                         Container(
-                          width: double.infinity, // Ocupa toda a largura
+                          width: double.infinity,
                           padding: const EdgeInsets.symmetric(
                             vertical: 32.0,
                             horizontal: 16.0,
                           ),
                           decoration: BoxDecoration(
-                            // TODO: Defina a cor 'coolGray' no seu tema.
-                            // Estou usando 'grey.shade100' como substituto.
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(4.0),
                           ),
@@ -348,7 +345,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                                 'assets/icons/box.svg',
                                 width: 40,
                                 height: 40,
-                                color: Colors.grey.shade600
+                                color: Colors.grey.shade600,
                               ),
                               const SizedBox(height: 12),
                               Text(

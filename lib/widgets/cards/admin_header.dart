@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:sistema_almox/core/theme/colors.dart'; // Verifique o caminho do import
+import 'package:sistema_almox/core/theme/colors.dart';
 
 class AdminHeaderCard extends StatelessWidget {
   const AdminHeaderCard({super.key});

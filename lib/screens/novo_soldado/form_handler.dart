@@ -63,13 +63,10 @@ class RegisterSoldierFormHandler with ChangeNotifier {
         _loadInitialImageFromUrl(photoUrl);
       }
     } else {
-      // Para criação de novo soldado, definir setor padrão baseado no usuário atual
       final currentUser = _userService.currentUser;
       if (currentUser?.nivelAcesso == 3) {
-        // Coronel pode escolher qualquer setor, começar com Almoxarifado
         _selectedSectorId = 1;
       } else {
-        // Outros usuários usam o setor atual
         _selectedSectorId = _userService.viewingSectorId;
       }
     }

@@ -33,7 +33,7 @@ class _LoginState extends State<Login> {
       'password': '123456',
     },
     'Tenente Farmácia': {
-      'email': 'tenentefarmacia@eb.mil.br',
+      'email': 'mariana@eb.mil.br',
       'password': '123456',
     },
     'Soldado Estoque': {
@@ -43,6 +43,10 @@ class _LoginState extends State<Login> {
     'Soldado Farmácia': {
       'email': 'soldadofarmacia@eb.mil.br',
       'password': '123456',
+    },
+    'Médico': {
+      'email': 'medico@eb.mil.br',
+      'password': 'Medico0!',
     },
   };
 
@@ -97,11 +101,7 @@ class _LoginState extends State<Login> {
       }
     } on UserInactiveException catch (e) {
       if (mounted) {
-        showCustomSnackbar(
-          context,
-          e.message,
-          isError: true,
-        );
+        showCustomSnackbar(context, e.message, isError: true);
       }
     } on AuthException {
       if (mounted) {
@@ -109,11 +109,7 @@ class _LoginState extends State<Login> {
       }
     } catch (e) {
       if (mounted) {
-        showCustomSnackbar(
-          context,
-          e.toString(),
-          isError: true,
-        );
+        showCustomSnackbar(context, e.toString(), isError: true);
       }
     } finally {
       if (mounted) {

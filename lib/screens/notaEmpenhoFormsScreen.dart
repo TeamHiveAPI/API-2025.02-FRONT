@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotaEmpenhoFormScreen extends StatefulWidget {
-  final Map<String, dynamic>? nota; 
+  final Map<String, dynamic>? nota;
 
   const NotaEmpenhoFormScreen({super.key, this.nota});
 
@@ -47,9 +47,12 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
         _itemController.text = nota['item']?.toString() ?? '';
         _diasController.text = nota['dias']?.toString() ?? '';
         _saldoController.text = nota['saldo']?.toString() ?? '';
-        _justificativaController.text = nota['justificativa_atraso']?.toString() ?? '';
+        _justificativaController.text =
+            nota['justificativa_atraso']?.toString() ?? '';
 
-        if (nota['data'] != null && nota['data'] is String && nota['data'].toString().trim().isNotEmpty) {
+        if (nota['data'] != null &&
+            nota['data'] is String &&
+            nota['data'].toString().trim().isNotEmpty) {
           final dataStr = nota['data'].toString().trim();
           _dataTextController.text = dataStr;
           try {
@@ -78,13 +81,17 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
           _dataTextController.text = '';
         }
 
-        processoAdmSim = (nota['processo_adm']?.toString().toLowerCase() == 'sim');
+        processoAdmSim =
+            (nota['processo_adm']?.toString().toLowerCase() == 'sim');
         processoAdmNao = !processoAdmSim;
-        materialRecebidoSim = (nota['material_recebido']?.toString().toLowerCase() == 'sim');
+        materialRecebidoSim =
+            (nota['material_recebido']?.toString().toLowerCase() == 'sim');
         materialRecebidoNao = !materialRecebidoSim;
-        nfEntregueSim = (nota['nf_entregue_no_almox']?.toString().toLowerCase() == 'sim');
+        nfEntregueSim =
+            (nota['nf_entregue_no_almox']?.toString().toLowerCase() == 'sim');
         nfEntregueNao = !nfEntregueSim;
-        enviadoLiquidarSim = (nota['enviado_para_liquidar']?.toString().toLowerCase() == 'sim');
+        enviadoLiquidarSim =
+            (nota['enviado_para_liquidar']?.toString().toLowerCase() == 'sim');
         enviadoLiquidarNao = !enviadoLiquidarSim;
 
         _atualizarSaldo();
@@ -96,7 +103,9 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
         _saldoController.text = '';
         _justificativaController.text = '';
         _dataController = DateTime.now();
-        _dataTextController.text = DateFormat('dd/MM/yyyy').format(_dataController);
+        _dataTextController.text = DateFormat(
+          'dd/MM/yyyy',
+        ).format(_dataController);
 
         processoAdmSim = false;
         processoAdmNao = true;
@@ -131,7 +140,9 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   void _atualizarSaldo() {
     try {
       if (_diasController.text.isEmpty) {
-        _saldoController.text = _saldoController.text.isNotEmpty ? _saldoController.text : '';
+        _saldoController.text = _saldoController.text.isNotEmpty
+            ? _saldoController.text
+            : '';
         return;
       }
 
@@ -140,14 +151,19 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
       final diferenca = _dataController.difference(agora).inDays + dias;
       _saldoController.text = diferenca.toString();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao atualizar saldo: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao atualizar saldo: $e')));
     }
   }
 
   Widget _buildCheckRow(
-      String label, bool simValue, bool naoValue, void Function() onSim, void Function() onNao) {
+    String label,
+    bool simValue,
+    bool naoValue,
+    void Function() onSim,
+    void Function() onNao,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Wrap(
@@ -157,17 +173,25 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
           spacing: 8,
           children: [
             SizedBox(
-              width: constraints.maxWidth > 600 ? 220 : constraints.maxWidth * 0.45,
+              width: constraints.maxWidth > 600
+                  ? 220
+                  : constraints.maxWidth * 0.45,
               child: Text(label, style: const TextStyle(fontSize: 16)),
             ),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Checkbox(value: simValue, onChanged: (_) => onSim()),
-              const Text('Sim')
-            ]),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Checkbox(value: naoValue, onChanged: (_) => onNao()),
-              const Text('Não')
-            ]),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(value: simValue, onChanged: (_) => onSim()),
+                const Text('Sim'),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(value: naoValue, onChanged: (_) => onNao()),
+                const Text('Não'),
+              ],
+            ),
           ],
         );
       },
@@ -175,80 +199,115 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   }
 
   Future<void> _save() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isSaving = true);
+    setState(() => _isSaving = true);
 
-  try {
-    final supabase = Supabase.instance.client;
+    try {
+      final supabase = Supabase.instance.client;
 
-    final fornecedorNome = _favorecidoController.text;
-    final fornecedorCheck = await supabase
-        .from('fornecedor')
-        .select('frn_nome')
-        .eq('frn_nome', fornecedorNome)
-        .maybeSingle();
-    if (fornecedorCheck == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fornecedor "$fornecedorNome" não encontrado na tabela fornecedor.')),
-      );
-      setState(() => _isSaving = false);
-      return;
-    }
+      final fornecedorNome = _favorecidoController.text;
+      final fornecedorCheck = await supabase
+          .from('fornecedor')
+          .select('frn_nome')
+          .eq('frn_nome', fornecedorNome)
+          .maybeSingle();
+      if (fornecedorCheck == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Fornecedor "$fornecedorNome" não encontrado na tabela fornecedor.',
+            ),
+          ),
+        );
+        setState(() => _isSaving = false);
+        return;
+      }
 
-    String? dataIso;
-    if (_dataTextController.text.isNotEmpty) {
-      try {
-        final parsedDate = DateFormat('dd/MM/yyyy').parse(_dataTextController.text);
-        dataIso = DateFormat('yyyy-MM-dd').format(parsedDate);
-      } catch (_) {
+      String? dataIso;
+      if (_dataTextController.text.isNotEmpty) {
+        try {
+          final parsedDate = DateFormat(
+            'dd/MM/yyyy',
+          ).parse(_dataTextController.text);
+          dataIso = DateFormat('yyyy-MM-dd').format(parsedDate);
+        } catch (_) {
+          dataIso = widget.nota?['data']?.toString();
+        }
+      } else {
         dataIso = widget.nota?['data']?.toString();
       }
-    } else {
-      dataIso = widget.nota?['data']?.toString();
-    }
 
-    final dados = <String, dynamic>{
-      'NE': _neController.text.isNotEmpty ? _neController.text : widget.nota?['NE'],
-      'data': dataIso,
-      'favorecido': fornecedorNome,
-      'dias': _diasController.text.isNotEmpty ? int.tryParse(_diasController.text) : widget.nota?['dias'],
-      'saldo': _saldoController.text.isNotEmpty ? int.tryParse(_saldoController.text) : widget.nota?['saldo'],
-      'processo_adm': processoAdmSim ? 'Sim' : (processoAdmNao ? 'Não' : widget.nota?['processo_adm']),
-      'material_recebido': materialRecebidoSim ? 'Sim' : (materialRecebidoNao ? 'Não' : widget.nota?['material_recebido']),
-      'nf_entregue_no_almox': nfEntregueSim ? 'Sim' : (nfEntregueNao ? 'Não' : widget.nota?['nf_entregue_no_almox']),
-      'justificativa_atraso': _justificativaController.text.isNotEmpty ? _justificativaController.text : widget.nota?['justificativa_atraso'],
-      'enviado_para_liquidar': enviadoLiquidarSim ? 'Sim' : (enviadoLiquidarNao ? 'Não' : widget.nota?['enviado_para_liquidar']),
-      'item': _itemController.text.isNotEmpty ? _itemController.text : widget.nota?['item'],
-    };
+      final dados = <String, dynamic>{
+        'NE': _neController.text.isNotEmpty
+            ? _neController.text
+            : widget.nota?['NE'],
+        'data': dataIso,
+        'favorecido': fornecedorNome,
+        'dias': _diasController.text.isNotEmpty
+            ? int.tryParse(_diasController.text)
+            : widget.nota?['dias'],
+        'saldo': _saldoController.text.isNotEmpty
+            ? int.tryParse(_saldoController.text)
+            : widget.nota?['saldo'],
+        'processo_adm': processoAdmSim
+            ? 'Sim'
+            : (processoAdmNao ? 'Não' : widget.nota?['processo_adm']),
+        'material_recebido': materialRecebidoSim
+            ? 'Sim'
+            : (materialRecebidoNao ? 'Não' : widget.nota?['material_recebido']),
+        'nf_entregue_no_almox': nfEntregueSim
+            ? 'Sim'
+            : (nfEntregueNao ? 'Não' : widget.nota?['nf_entregue_no_almox']),
+        'justificativa_atraso': _justificativaController.text.isNotEmpty
+            ? _justificativaController.text
+            : widget.nota?['justificativa_atraso'],
+        'enviado_para_liquidar': enviadoLiquidarSim
+            ? 'Sim'
+            : (enviadoLiquidarNao
+                  ? 'Não'
+                  : widget.nota?['enviado_para_liquidar']),
+        'item': _itemController.text.isNotEmpty
+            ? _itemController.text
+            : widget.nota?['item'],
+      };
 
-    // 4️⃣ Salvar
-    if (widget.nota != null && widget.nota!['id'] != null) {
-      await supabase.from('nota_empenho').update(dados).eq('id', widget.nota!['id']);
-    } else {
-      await supabase.from('nota_empenho').insert(dados);
-    }
+      if (widget.nota != null && widget.nota!['id'] != null) {
+        await supabase
+            .from('nota_empenho')
+            .update(dados)
+            .eq('id', widget.nota!['id']);
+      } else {
+        await supabase.from('nota_empenho').insert(dados);
+      }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Nota salva com sucesso!')));
-      Navigator.pop(context, true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Nota salva com sucesso!')),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao salvar nota: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar nota: $e')),
-      );
-    }
-  } finally {
-    if (mounted) setState(() => _isSaving = false);
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.nota != null ? 'Editar Nota de Empenho' : 'Nova Nota de Empenho')),
+      appBar: AppBar(
+        title: Text(
+          widget.nota != null
+              ? 'Editar Nota de Empenho'
+              : 'Nova Nota de Empenho',
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -285,7 +344,7 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                       ),
                       border: OutlineInputBorder(),
                       filled: true,
-                      fillColor: Colors.grey[200], 
+                      fillColor: Colors.grey[200],
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -295,12 +354,12 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                     decoration: InputDecoration(
                       labelText: 'Item',
                       labelStyle: TextStyle(
-                        color: Colors.grey[600], 
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w400,
                       ),
                       border: OutlineInputBorder(),
                       filled: true,
-                      fillColor: Colors.grey[200], 
+                      fillColor: Colors.grey[200],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -310,12 +369,12 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                     decoration: InputDecoration(
                       labelText: 'Data',
                       labelStyle: TextStyle(
-                        color: Colors.grey[600], 
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w400,
                       ),
                       border: OutlineInputBorder(),
                       filled: true,
-                      fillColor: Colors.grey[200], 
+                      fillColor: Colors.grey[200],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -325,7 +384,10 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                         flex: isWide ? 1 : 2,
                         child: TextFormField(
                           controller: _diasController,
-                          decoration: const InputDecoration(labelText: 'Dias para entrega', border: OutlineInputBorder()),
+                          decoration: const InputDecoration(
+                            labelText: 'Dias para entrega',
+                            border: OutlineInputBorder(),
+                          ),
                           keyboardType: TextInputType.number,
                           onChanged: (_) => setState(_atualizarSaldo),
                         ),
@@ -336,21 +398,79 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                         child: TextFormField(
                           controller: _saldoController,
                           readOnly: true,
-                          decoration: const InputDecoration(labelText: 'Saldo (dias)', border: OutlineInputBorder()),
+                          decoration: const InputDecoration(
+                            labelText: 'Saldo (dias)',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildCheckRow('Processo Adm:', processoAdmSim, processoAdmNao, () => setState(() { processoAdmSim = true; processoAdmNao = false; }), () => setState(() { processoAdmSim = false; processoAdmNao = true; })),
+                  _buildCheckRow(
+                    'Processo Adm:',
+                    processoAdmSim,
+                    processoAdmNao,
+                    () => setState(() {
+                      processoAdmSim = true;
+                      processoAdmNao = false;
+                    }),
+                    () => setState(() {
+                      processoAdmSim = false;
+                      processoAdmNao = true;
+                    }),
+                  ),
                   const SizedBox(height: 8),
-                  _buildCheckRow('Material Recebido:', materialRecebidoSim, materialRecebidoNao, () => setState(() { materialRecebidoSim = true; materialRecebidoNao = false; }), () => setState(() { materialRecebidoSim = false; materialRecebidoNao = true; })),
+                  _buildCheckRow(
+                    'Material Recebido:',
+                    materialRecebidoSim,
+                    materialRecebidoNao,
+                    () => setState(() {
+                      materialRecebidoSim = true;
+                      materialRecebidoNao = false;
+                    }),
+                    () => setState(() {
+                      materialRecebidoSim = false;
+                      materialRecebidoNao = true;
+                    }),
+                  ),
                   const SizedBox(height: 8),
-                  _buildCheckRow('NF Entregue no Almox:', nfEntregueSim, nfEntregueNao, () => setState(() { nfEntregueSim = true; nfEntregueNao = false; }), () => setState(() { nfEntregueSim = false; nfEntregueNao = true; })),
+                  _buildCheckRow(
+                    'NF Entregue no Almox:',
+                    nfEntregueSim,
+                    nfEntregueNao,
+                    () => setState(() {
+                      nfEntregueSim = true;
+                      nfEntregueNao = false;
+                    }),
+                    () => setState(() {
+                      nfEntregueSim = false;
+                      nfEntregueNao = true;
+                    }),
+                  ),
                   const SizedBox(height: 8),
-                  _buildCheckRow('Enviado para Liquidar:', enviadoLiquidarSim, enviadoLiquidarNao, () => setState(() { enviadoLiquidarSim = true; enviadoLiquidarNao = false; }), () => setState(() { enviadoLiquidarSim = false; enviadoLiquidarNao = true; })),
+                  _buildCheckRow(
+                    'Enviado para Liquidar:',
+                    enviadoLiquidarSim,
+                    enviadoLiquidarNao,
+                    () => setState(() {
+                      enviadoLiquidarSim = true;
+                      enviadoLiquidarNao = false;
+                    }),
+                    () => setState(() {
+                      enviadoLiquidarSim = false;
+                      enviadoLiquidarNao = true;
+                    }),
+                  ),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _justificativaController, decoration: const InputDecoration(labelText: 'Justificativa de atraso', border: OutlineInputBorder()), maxLines: 3),
+                  TextFormField(
+                    controller: _justificativaController,
+                    decoration: const InputDecoration(
+                      labelText: 'Justificativa de atraso',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
                   const SizedBox(height: 20),
                   Center(
                     child: _isSaving
@@ -360,7 +480,10 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                             icon: const Icon(Icons.save),
                             label: const Text('Salvar'),
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(horizontal: isWide ? 40 : 20, vertical: 14),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isWide ? 40 : 20,
+                                vertical: 14,
+                              ),
                             ),
                           ),
                   ),

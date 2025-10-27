@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/screens/consultas/index.dart';
+import 'package:sistema_almox/screens/consultas/agendar_consulta/index.dart';
+import 'package:sistema_almox/screens/consultas_medico/index.dart';
+import 'package:sistema_almox/screens/consultas_medico/config_horario.dart';
 import 'package:sistema_almox/screens/historico_item.dart';
 import 'package:sistema_almox/screens/historico_mov.dart';
 import 'package:sistema_almox/screens/novo_grupo/index.dart';
@@ -20,6 +24,10 @@ class AppRoutes {
   static const String newGroup = '/novo-grupo';
   static const String allMovements = '/movimentacoes';
   static const String itemMovements = '/movimentacoes-item';
+  static const String consultas = '/consultas';
+  static const String agendarConsulta = '/agendar-consulta';
+  static const String consultasMedico = '/consultas-medico';
+  static const String configHorario = '/config-horario';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -73,6 +81,18 @@ class AppRoutes {
 
       case newGroup:
         return MaterialPageRoute(builder: (_) => NewGroupScreen());
+
+      case consultas:
+        return MaterialPageRoute(builder: (_) => const ConsultasScreen());
+
+      case agendarConsulta:
+        return MaterialPageRoute(builder: (_) => const AgendarConsultaScreen());
+
+      case consultasMedico:
+        return MaterialPageRoute(builder: (_) => const ConsultasMedicoScreen());
+
+      case configHorario:
+        return MaterialPageRoute(builder: (_) => const ConfigHorarioScreen());
 
       default:
         return MaterialPageRoute(

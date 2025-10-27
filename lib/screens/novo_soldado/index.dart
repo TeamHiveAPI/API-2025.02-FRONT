@@ -85,19 +85,16 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
     bool isLieutenant =
         isEditMode && widget.soldierToEdit?['usr_nivel_acesso'] == 2;
 
-    // Definir o setor selecionado baseado no contexto
     if (isEditMode) {
       final tenantSectorId = widget.soldierToEdit?['usr_setor_id'];
       _formHandler.setSelectedSector(tenantSectorId ?? 1);
     } else {
       final currentUser = UserService.instance.currentUser;
       if (currentUser?.nivelAcesso == 3) {
-        // Coronel pode escolher qualquer setor
         if (_formHandler.selectedSectorId == null) {
-          _formHandler.setSelectedSector(1); // Padrão: Almoxarifado
+          _formHandler.setSelectedSector(1);
         }
       } else {
-        // Outros usuários usam o setor atual
         final viewingSectorId = UserService.instance.viewingSectorId ?? 1;
         _formHandler.setSelectedSector(viewingSectorId);
       }

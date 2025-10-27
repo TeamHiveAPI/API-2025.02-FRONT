@@ -153,7 +153,7 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
 
   void close() {
     if (mounted) {
-      _progressController.stop(); // Para a animação de progresso
+      _progressController.stop();
       _moveController.reverse();
     }
   }
@@ -183,12 +183,9 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
     ).animate(curve);
 
     _moveController.forward();
-    _progressController.reverse(
-      from: 1.0,
-    ); // Inicia a contagem regressiva de 1 a 0
+    _progressController.reverse(from: 1.0);
 
     _progressController.addStatusListener((status) {
-      // 6. Quando a barra de progresso chega ao fim, inicia o fechamento
       if (status == AnimationStatus.dismissed) {
         close();
       }
