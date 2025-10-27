@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/internal_page_bottom.dart';
@@ -11,8 +12,6 @@ import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
 import 'package:sistema_almox/widgets/modal/content/item_picker_modal.dart';
 import 'package:sistema_almox/screens/novo_pedido/form_handler.dart';
-import 'package:sistema_almox/services/user_service.dart';
-import 'package:sistema_almox/services/sector_service.dart';
 
 class NewOrderScreen extends StatefulWidget {
   final UserRole userRole;
@@ -25,7 +24,7 @@ class NewOrderScreen extends StatefulWidget {
 class NewOrderScreenState extends State<NewOrderScreen> {
   late final NewOrderFormHandler _formHandler;
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _isSubmitting = false;
   List<SelectedItem> _selectedItems = [];
 
@@ -42,7 +41,10 @@ class NewOrderScreenState extends State<NewOrderScreen> {
   }
 
   Future<void> _openItemPicker() async {
-    final result = await ItemPickerModal.show(context, initialSelection: _selectedItems);
+    final result = await ItemPickerModal.show(
+      context,
+      initialSelection: _selectedItems,
+    );
     if (result != null && mounted) {
       setState(() {
         _selectedItems = result.items;
@@ -57,7 +59,11 @@ class NewOrderScreenState extends State<NewOrderScreen> {
     setState(() => _formHandler.hasSubmitted = true);
 
     if (_selectedItems.isEmpty) {
-      showCustomSnackbar(context, 'Selecione ao menos um item no botão "Selecionar Itens".', isError: true);
+      showCustomSnackbar(
+        context,
+        'Selecione ao menos um item no botão "Selecionar Itens".',
+        isError: true,
+      );
       return;
     }
 
@@ -66,60 +72,73 @@ class NewOrderScreenState extends State<NewOrderScreen> {
     try {
       String? dataRetirada;
       if (_formHandler.selectedDate != null) {
-        dataRetirada = DateFormat('yyyy-MM-dd').format(_formHandler.selectedDate!);
+        dataRetirada = DateFormat(
+          'yyyy-MM-dd',
+        ).format(_formHandler.selectedDate!);
       }
 
-      final itens = _selectedItems.map((s) {
-        List<Map<String, dynamic>> lotes;
-        int total;
-        if (s.lotes.length > 1) {
-          lotes = s.lotes
-              .where((l) => l.quantidade > 0)
-              .map((l) => {
-                    'lote_id': l.loteId,
-                    'codigo': l.codigo,
-                    'quantidade': l.quantidade,
-                  })
-              .toList();
-          total = s.lotes.fold<int>(0, (acc, l) => acc + l.quantidade);
-        } else if (s.lotes.length == 1) {
-          final unico = s.lotes.first;
-          final q = s.quantidadeTotal;
-          final dynamic codigo = unico.codigo;
-          lotes = q > 0
-              ? [
-                  {
-                    'lote_id': unico.loteId,
-                    'codigo': codigo,
-                    'quantidade': q,
-                  }
-                ]
-              : [];
-          total = q;
-        } else {
-          total = s.quantidadeTotal;
-          lotes = const [];
-        }
-        return {
-          'item_id': s.itemId,
-          'quantidade': total,
-          'lotes': lotes,
-        };
-      }).where((e) => (e['quantidade'] as int) > 0).toList();
+      final itens = _selectedItems
+          .map((s) {
+            List<Map<String, dynamic>> lotes;
+            int total;
+            if (s.lotes.length > 1) {
+              lotes = s.lotes
+                  .where((l) => l.quantidade > 0)
+                  .map(
+                    (l) => {
+                      'lote_id': l.loteId,
+                      'codigo': l.codigo,
+                      'quantidade': l.quantidade,
+                    },
+                  )
+                  .toList();
+              total = s.lotes.fold<int>(0, (acc, l) => acc + l.quantidade);
+            } else if (s.lotes.length == 1) {
+              final unico = s.lotes.first;
+              final q = s.quantidadeTotal;
+              final dynamic codigo = unico.codigo;
+              lotes = q > 0
+                  ? [
+                      {
+                        'lote_id': unico.loteId,
+                        'codigo': codigo,
+                        'quantidade': q,
+                      },
+                    ]
+                  : [];
+              total = q;
+            } else {
+              total = s.quantidadeTotal;
+              lotes = const [];
+            }
+            return {'item_id': s.itemId, 'quantidade': total, 'lotes': lotes};
+          })
+          .where((e) => (e['quantidade'] as int) > 0)
+          .toList();
 
       if (itens.isEmpty) {
-        showCustomSnackbar(context, 'Selecione quantidades válidas.', isError: true);
+        showCustomSnackbar(
+          context,
+          'Selecione quantidades válidas.',
+          isError: true,
+        );
         setState(() => _isSubmitting = false);
         return;
       }
 
-      await PedidoService.instance.createPedidoMulti(itens: itens, dataRetirada: dataRetirada);
+      await PedidoService.instance.createPedidoMulti(
+        itens: itens,
+        dataRetirada: dataRetirada,
+      );
 
       if (mounted) {
         showCustomSnackbar(context, 'Pedido registrado com sucesso!');
-        final mainScaffoldState = context.findAncestorStateOfType<MainScaffoldState>();
+        final mainScaffoldState = context
+            .findAncestorStateOfType<MainScaffoldState>();
         if (mainScaffoldState != null) {
-          final ordersPageIndex = mainScaffoldState.findPageIndexByName('Pedidos');
+          final ordersPageIndex = mainScaffoldState.findPageIndexByName(
+            'Pedidos',
+          );
           mainScaffoldState.onItemTapped(ordersPageIndex);
         }
         Navigator.of(context).pop();
@@ -135,7 +154,7 @@ class NewOrderScreenState extends State<NewOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-   if (_isLoading) {
+    if (_isLoading) {
       return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(child: CircularProgressIndicator()),
@@ -158,46 +177,11 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Builder(
-                        builder: (context) {
-                          final int? sectorId = UserService.instance.viewingSectorId;
-                          if (sectorId == null) {
-                            return const SizedBox.shrink();
-                          }
-                          return FutureBuilder<String?>(
-                            future: SectorService().getSectorNameById(sectorId),
-                            builder: (context, snapshot) {
-                              final name = snapshot.data;
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Padding(
-                                  padding: EdgeInsets.only(bottom: 12.0),
-                                  child: SizedBox(height: 16, width: 120, child: LinearProgressIndicator(minHeight: 4)),
-                                );
-                              }
-                              if (name == null || name.isEmpty) {
-                                return const SizedBox.shrink();
-                              }
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12.0),
-                                child: Text(
-                                  'Setor: $name',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: ElevatedButton.icon(
-                          onPressed: _isSubmitting ? null : _openItemPicker,
-                          icon: const Icon(Icons.playlist_add),
-                          label: const Text('Selecionar Itens'),
-                        ),
+                      CustomButton(
+                        text: 'Selecionar Itens',
+                        icon: Icons.add,
+                        onPressed: _isSubmitting ? null : _openItemPicker,
+                        widthPercent: 1.0,
                       ),
                       if (_selectedItems.isNotEmpty) ...[
                         const SizedBox(height: 12),
@@ -210,22 +194,36 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Itens selecionados', style: TextStyle(fontWeight: FontWeight.w700)),
+                              const Text(
+                                'Itens selecionados',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
                               const SizedBox(height: 8),
                               ..._selectedItems.map((s) {
                                 final total = s.lotes.length > 1
-                                    ? s.lotes.fold<int>(0, (acc, l) => acc + l.quantidade)
+                                    ? s.lotes.fold<int>(
+                                        0,
+                                        (acc, l) => acc + l.quantidade,
+                                      )
                                     : s.quantidadeTotal;
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
                                   child: Row(
                                     children: [
                                       Expanded(
                                         child: InkWell(
-                                          onTap: _isSubmitting ? null : _openItemPicker,
+                                          onTap: _isSubmitting
+                                              ? null
+                                              : _openItemPicker,
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                            child: Text('${s.nome} (${s.unidade})'),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 4.0,
+                                            ),
+                                            child: Text(
+                                              '${s.nome} (${s.unidade})',
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -238,14 +236,17 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                                             ? null
                                             : () {
                                                 setState(() {
-                                                  _selectedItems.removeWhere((it) => it.itemId == s.itemId);
+                                                  _selectedItems.removeWhere(
+                                                    (it) =>
+                                                        it.itemId == s.itemId,
+                                                  );
                                                 });
                                               },
                                       ),
                                     ],
                                   ),
                                 );
-                              }).toList(),
+                              }),
                             ],
                           ),
                         ),
@@ -264,7 +265,9 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                           padding: const EdgeInsets.all(12.0),
                           child: SvgPicture.asset('assets/icons/calendar.svg'),
                         ),
-                        suffixIcon: (_formHandler.selectedDate != null && !_isSubmitting)
+                        suffixIcon:
+                            (_formHandler.selectedDate != null &&
+                                !_isSubmitting)
                             ? IconButton(
                                 tooltip: 'Limpar data',
                                 icon: const Icon(Icons.clear),

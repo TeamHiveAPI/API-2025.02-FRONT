@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sistema_almox/core/constants/database.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
+import 'package:sistema_almox/widgets/badge.dart';
+import 'package:sistema_almox/widgets/button.dart';
 
 class ItemPickerResult {
   final List<SelectedItem> items;
@@ -13,7 +16,10 @@ class _MaxValueTextInputFormatter extends TextInputFormatter {
   const _MaxValueTextInputFormatter(this.max);
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final text = newValue.text;
     if (text.isEmpty) return newValue.copyWith(text: '');
     final value = int.tryParse(text);
@@ -35,7 +41,13 @@ class SelectedLot {
   final int disponivel;
   final String? codigo;
   final String? validade;
-  SelectedLot({required this.loteId, required this.quantidade, required this.disponivel, this.codigo, this.validade});
+  SelectedLot({
+    required this.loteId,
+    required this.quantidade,
+    required this.disponivel,
+    this.codigo,
+    this.validade,
+  });
 }
 
 class SelectedItem {
@@ -57,7 +69,10 @@ class ItemPickerModal extends StatefulWidget {
   final List<SelectedItem>? initialSelection;
   const ItemPickerModal({super.key, this.initialSelection});
 
-  static Future<ItemPickerResult?> show(BuildContext context, {List<SelectedItem>? initialSelection}) async {
+  static Future<ItemPickerResult?> show(
+    BuildContext context, {
+    List<SelectedItem>? initialSelection,
+  }) async {
     return await showModalBottomSheet<ItemPickerResult>(
       context: context,
       isScrollControlled: true,
@@ -84,7 +99,8 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
   void initState() {
     super.initState();
     _searchCtrl.addListener(_onSearchChanged);
-    if (widget.initialSelection != null && widget.initialSelection!.isNotEmpty) {
+    if (widget.initialSelection != null &&
+        widget.initialSelection!.isNotEmpty) {
       for (final sel in widget.initialSelection!) {
         _selected[sel.itemId] = SelectedItem(
           itemId: sel.itemId,
@@ -92,13 +108,15 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
           unidade: sel.unidade,
           quantidadeTotal: sel.quantidadeTotal,
           lotes: sel.lotes
-              .map((l) => SelectedLot(
-                    loteId: l.loteId,
-                    quantidade: l.quantidade,
-                    disponivel: l.disponivel,
-                    codigo: l.codigo,
-                    validade: l.validade,
-                  ))
+              .map(
+                (l) => SelectedLot(
+                  loteId: l.loteId,
+                  quantidade: l.quantidade,
+                  disponivel: l.disponivel,
+                  codigo: l.codigo,
+                  validade: l.validade,
+                ),
+              )
               .toList(),
         );
       }
@@ -164,46 +182,342 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
     setState(() => _loadingLots[id] = false);
 
     if (lotes.length > 1) {
-      sel.lotes.addAll(lotes.map((l) => SelectedLot(
+      sel.lotes.addAll(
+        lotes.map(
+          (l) => SelectedLot(
             loteId: l['id'] as int,
             quantidade: 0,
-            disponivel: ((l['disponivel'] ?? (((l['qtd_atual'] ?? 0) as num).toInt() - ((l['qtd_reservada'] ?? 0) as num).toInt())) as num).toInt(),
+            disponivel:
+                ((l['disponivel'] ??
+                            (((l['qtd_atual'] ?? 0) as num).toInt() -
+                                ((l['qtd_reservada'] ?? 0) as num).toInt()))
+                        as num)
+                    .toInt(),
             codigo: l['codigo_lote']?.toString(),
             validade: l['data_validade']?.toString(),
-          )));
+          ),
+        ),
+      );
     } else if (lotes.length == 1) {
       final l = lotes.first;
-      sel.lotes.add(SelectedLot(
-        loteId: l['id'] as int,
-        quantidade: 0,
-        disponivel: ((l['disponivel'] ?? (((l['qtd_atual'] ?? 0) as num).toInt() - ((l['qtd_reservada'] ?? 0) as num).toInt())) as num).toInt(),
-        codigo: l['codigo_lote']?.toString(),
-        validade: l['data_validade']?.toString(),
-      ));
+      sel.lotes.add(
+        SelectedLot(
+          loteId: l['id'] as int,
+          quantidade: 0,
+          disponivel:
+              ((l['disponivel'] ??
+                          (((l['qtd_atual'] ?? 0) as num).toInt() -
+                              ((l['qtd_reservada'] ?? 0) as num).toInt()))
+                      as num)
+                  .toInt(),
+          codigo: l['codigo_lote']?.toString(),
+          validade: l['data_validade']?.toString(),
+        ),
+      );
     }
 
     setState(() => _selected[id] = sel);
+  }
+
+  Widget _buildItemCard(Map<String, dynamic> it) {
+    final String nome = (it['nome'] ?? it[ItemFields.nome]).toString();
+    final int id = it['id'] as int;
+    final bool selected = _selected.containsKey(id);
+    final bool loadingLots = _loadingLots[id] == true;
+    final sel = _selected[id];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+        color: brandBlueLight,
+        elevation: 0,
+        clipBehavior: Clip.antiAlias,
+        margin: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: const EdgeInsets.only(left: 16.0, right: 16.0),
+              visualDensity: VisualDensity.compact,
+              title: Text(nome),
+              subtitle: Text(
+                (it['unidade'] ?? it[ItemFields.unidade]).toString(),
+              ),
+              trailing: Checkbox(
+                value: selected,
+                onChanged: (_) => _toggleItem(it),
+                activeColor: brandBlue,
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onTap: () => _toggleItem(it),
+            ),
+            if (selected) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
+                child: loadingLots
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildQuantitySelectors(sel!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantitySelectors(SelectedItem sel) {
+    if (sel.lotes.length > 1) {
+      final int enabledCount = _enabledLotsCount(sel);
+      int totalLotesVisiveis;
+
+      if (enabledCount < sel.lotes.length) {
+        totalLotesVisiveis = enabledCount + 1;
+      } else {
+        totalLotesVisiveis = sel.lotes.length;
+      }
+
+      return Column(
+        children: List.generate(
+          totalLotesVisiveis,
+          (idx) => _buildMultiLoteRow(sel, idx),
+        ),
+      );
+    } else if (sel.lotes.length == 1) {
+      return _buildSingleLoteRow(sel);
+    } else {
+      return _buildNoLoteRow(sel);
+    }
+  }
+
+  Widget _buildLoteRowUI({
+    required Key key,
+    required String codigo,
+    required int disponivel,
+    required String? validade,
+    required bool isEnabled,
+    required int max,
+    required ValueChanged<String> onChanged,
+    required String initialValue,
+    String? warningText,
+  }) {
+    const double minInputHeight = 32.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: !isEnabled
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
+              children: [
+                if (isEnabled) ...[
+                  Row(
+                    children: [
+                      CustomBadge(
+                        text: codigo,
+                        backgroundColor: text40,
+                        textColor: Colors.white,
+                        big: true,
+                      ),
+                      const SizedBox(width: 8),
+                      CustomBadge(
+                        text: 'DISP: $disponivel',
+                        backgroundColor: brandBlue,
+                        textColor: Colors.white,
+                        big: true,
+                      ),
+                    ],
+                  ),
+                  if (validade != null && validade.toString().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        'Val: $validade',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                ],
+
+                if (warningText != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: isEnabled ? 8.0 : 0.0),
+                    child: CustomBadge(
+                      text: warningText,
+                      backgroundColor: Color(0xFFE8E8E8),
+                      textColor: text60,
+                      big: true,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 72,
+            child: isEnabled
+                ? TextFormField(
+                    key: key,
+                    enabled: true,
+                    keyboardType: TextInputType.number,
+                    initialValue: initialValue,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'QTD',
+                      hintStyle: const TextStyle(fontSize: 14.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 6.0,
+                        horizontal: 4.0,
+                      ),
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      _MaxValueTextInputFormatter(max),
+                    ],
+                    onChanged: onChanged,
+                  )
+                : Container(
+                    constraints: const BoxConstraints(
+                      minHeight: minInputHeight,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE8E8E8),
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6.0,
+                      horizontal: 4.0,
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.lock, size: 18.0, color: text80),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMultiLoteRow(SelectedItem sel, int idx) {
+    final lotSel = sel.lotes[idx];
+    final disp = lotSel.disponivel;
+    final enabledCount = _enabledLotsCount(sel);
+    final isEnabled = idx < enabledCount;
+
+    return _buildLoteRowUI(
+      key: ValueKey(lotSel.loteId),
+      codigo: lotSel.codigo ?? 'Lote',
+      disponivel: disp,
+      validade: lotSel.validade,
+      isEnabled: isEnabled,
+      max: disp,
+      initialValue: lotSel.quantidade == 0 ? "" : lotSel.quantidade.toString(),
+      warningText: !isEnabled ? 'Preencha o lote acima' : null,
+      onChanged: (v) {
+        final q = int.tryParse(v) ?? 0;
+        setState(() {
+          lotSel.quantidade = q.clamp(0, disp);
+          final newEnabled = _enabledLotsCount(sel);
+          for (int j = newEnabled; j < sel.lotes.length; j++) {
+            if (sel.lotes[j].quantidade != 0) {
+              sel.lotes[j].quantidade = 0;
+            }
+          }
+        });
+      },
+    );
+  }
+
+  Widget _buildSingleLoteRow(SelectedItem sel) {
+    final lot = sel.lotes.first;
+    final disp = lot.disponivel;
+
+    return Column(
+      children: [
+        _buildLoteRowUI(
+          key: ValueKey(lot.loteId),
+          codigo: lot.codigo ?? 'Lote',
+          disponivel: disp,
+          validade: lot.validade,
+          isEnabled: true,
+          initialValue: sel.quantidadeTotal == 0
+              ? ""
+              : sel.quantidadeTotal.toString(),
+          max: disp,
+          warningText: null,
+          onChanged: (v) {
+            final q = int.tryParse(v) ?? 0;
+            setState(() {
+              sel.quantidadeTotal = q.clamp(0, disp);
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNoLoteRow(SelectedItem sel) {
+    return Row(
+      children: [
+        const Text('Quantidade:'),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 100,
+          child: TextFormField(
+            initialValue: sel.quantidadeTotal.toString(),
+            keyboardType: TextInputType.number,
+            onChanged: (v) {
+              final q = int.tryParse(v) ?? 0;
+              setState(() => sel.quantidadeTotal = q.clamp(0, 100000));
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.85,
           child: Column(
             children: [
-              const SizedBox(height: 8),
-              Container(height: 4, width: 48, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4))),
-              const SizedBox(height: 12),
-              const Text('Selecionar Itens', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              Container(
+                height: 5,
+                width: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Selecionar Itens',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextField(
                   controller: _searchCtrl,
-                  decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Buscar item...'),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Pesquisar',
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
@@ -215,8 +529,10 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
                         builder: (context) {
                           final query = _searchCtrl.text.toLowerCase();
                           final visibleItems = _items.where((it) {
-                            final String nome = (it['nome'] ?? it[ItemFields.nome]).toString();
-                            return query.isEmpty || nome.toLowerCase().contains(query);
+                            final String nome =
+                                (it['nome'] ?? it[ItemFields.nome]).toString();
+                            return query.isEmpty ||
+                                nome.toLowerCase().contains(query);
                           }).toList();
 
                           if (visibleItems.isEmpty) {
@@ -236,173 +552,14 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
                           }
 
                           return ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 8.0,
+                            ),
                             itemCount: visibleItems.length,
                             itemBuilder: (context, index) {
                               final it = visibleItems[index];
-                              final String nome = (it['nome'] ?? it[ItemFields.nome]).toString();
-                              final int id = it['id'] as int;
-                              final bool selected = _selected.containsKey(id);
-                              final loadingLots = _loadingLots[id] == true;
-                              final sel = _selected[id];
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ListTile(
-                                    title: Text(nome),
-                                    subtitle: Text((it['unidade'] ?? it[ItemFields.unidade]).toString()),
-                                    trailing: Checkbox(value: selected, onChanged: (_) => _toggleItem(it)),
-                                    onTap: () => _toggleItem(it),
-                                  ),
-                                  if (selected)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      child: loadingLots
-                                          ? const Center(child: CircularProgressIndicator())
-                                          : Column(
-                                              children: [
-                                                if (sel!.lotes.length > 1) ...List.generate(sel.lotes.length, (idx) {
-                                                  final lotSel = sel.lotes[idx];
-                                                  final disp = lotSel.disponivel;
-                                                  final enabledCount = _enabledLotsCount(sel);
-                                                  final isEnabled = idx < enabledCount;
-                                                  return Padding(
-                                                    padding: const EdgeInsets.only(bottom: 10.0),
-                                                    child: Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Expanded(
-                                                          child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              Text('${lotSel.codigo ?? 'Lote'} • Disp: $disp'),
-                                                              if ((lotSel.validade != null) && lotSel.validade!.toString().isNotEmpty)
-                                                                Padding(
-                                                                  padding: const EdgeInsets.only(top: 2.0),
-                                                                  child: Text(
-                                                                    'Val: ${lotSel.validade}',
-                                                                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                                                                  ),
-                                                                ),
-                                                              if (!isEnabled)
-                                                                const Padding(
-                                                                  padding: EdgeInsets.only(top: 2.0),
-                                                                  child: Text(
-                                                                    'Preencha o lote anterior primeiro',
-                                                                    style: TextStyle(fontSize: 11, color: Colors.black45),
-                                                                  ),
-                                                                ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: 90,
-                                                          child: TextFormField(
-                                                            initialValue: lotSel.quantidade.toString(),
-                                                            enabled: isEnabled,
-                                                            keyboardType: TextInputType.number,
-                                                            decoration: const InputDecoration(isDense: true, labelText: 'Qtd'),
-                                                            inputFormatters: isEnabled
-                                                                ? [
-                                                                    FilteringTextInputFormatter.digitsOnly,
-                                                                    _MaxValueTextInputFormatter(disp),
-                                                                  ]
-                                                                : [FilteringTextInputFormatter.digitsOnly],
-                                                            onChanged: (v) {
-                                                              final q = int.tryParse(v) ?? 0;
-                                                              setState(() {
-                                                                lotSel.quantidade = q.clamp(0, disp);
-                                                                final newEnabled = _enabledLotsCount(sel);
-                                                                for (int j = newEnabled; j < sel.lotes.length; j++) {
-                                                                  if (sel.lotes[j].quantidade != 0) {
-                                                                    sel.lotes[j].quantidade = 0;
-                                                                  }
-                                                                }
-                                                              });
-                                                            },
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                }),
-                                                if (sel.lotes.length == 1) ...[
-                                                  Align(
-                                                    alignment: Alignment.centerLeft,
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.only(bottom: 8.0),
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(
-                                                            '${sel.lotes.first.codigo ?? 'Lote'} • Disp: ${sel.lotes.first.disponivel}',
-                                                          ),
-                                                          if ((sel.lotes.first.validade != null) && sel.lotes.first.validade!.toString().isNotEmpty)
-                                                            const SizedBox(height: 2),
-                                                          if ((sel.lotes.first.validade != null) && sel.lotes.first.validade!.toString().isNotEmpty)
-                                                            const Text(
-                                                              // The validity value itself is shown below with styling
-                                                              '',
-                                                            ),
-                                                          if ((sel.lotes.first.validade != null) && sel.lotes.first.validade!.toString().isNotEmpty)
-                                                            Text(
-                                                              'Val: ${sel.lotes.first.validade}',
-                                                              style: const TextStyle(fontSize: 12, color: Colors.black54),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      const Text('Quantidade:'),
-                                                      const SizedBox(width: 8),
-                                                      SizedBox(
-                                                        width: 120,
-                                                        child: TextFormField(
-                                                          initialValue: sel.quantidadeTotal.toString(),
-                                                          keyboardType: TextInputType.number,
-                                                          decoration: InputDecoration(
-                                                            isDense: true,
-                                                            labelText: 'Qtd',
-                                                            suffixText: 'max ${sel.lotes.first.disponivel}',
-                                                          ),
-                                                          inputFormatters: [
-                                                            FilteringTextInputFormatter.digitsOnly,
-                                                            _MaxValueTextInputFormatter(sel.lotes.first.disponivel),
-                                                          ],
-                                                          onChanged: (v) {
-                                                            final q = int.tryParse(v) ?? 0;
-                                                            final max = sel.lotes.first.disponivel;
-                                                            setState(() => sel.quantidadeTotal = q.clamp(0, max));
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ]
-                                                else if (sel.lotes.isEmpty) Row(
-                                                  children: [
-                                                    const Text('Quantidade:'),
-                                                    const SizedBox(width: 8),
-                                                    SizedBox(
-                                                      width: 100,
-                                                      child: TextFormField(
-                                                        initialValue: sel.quantidadeTotal.toString(),
-                                                        keyboardType: TextInputType.number,
-                                                        onChanged: (v) {
-                                                          final q = int.tryParse(v) ?? 0;
-                                                          setState(() => sel.quantidadeTotal = q.clamp(0, 100000));
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                    ),
-                                  const Divider(height: 1),
-                                ],
-                              );
+                              return _buildItemCard(it);
                             },
                           );
                         },
@@ -413,28 +570,27 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancelar'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
+                      child: CustomButton(
+                        isLoadingInitialContent: false,
+                        text: 'Adicionar',
                         onPressed: _selected.isEmpty
                             ? null
                             : () {
                                 final list = _selected.values
                                     .where((s) {
                                       if (s.lotes.length > 1) {
-                                        final total = s.lotes.fold<int>(0, (acc, l) => acc + l.quantidade);
+                                        final total = s.lotes.fold<int>(
+                                          0,
+                                          (acc, l) => acc + l.quantidade,
+                                        );
                                         return total > 0;
                                       }
                                       return s.quantidadeTotal > 0;
                                     })
                                     .map((s) {
                                       if (s.lotes.length == 1) {
-                                        s.lotes.first.quantidade = s.quantidadeTotal;
+                                        s.lotes.first.quantidade =
+                                            s.quantidadeTotal;
                                       }
                                       return s;
                                     })
@@ -442,14 +598,24 @@ class _ItemPickerModalState extends State<ItemPickerModal> {
                                 if (list.isEmpty) {
                                   return;
                                 }
-                                Navigator.of(context).pop(ItemPickerResult(list));
+                                Navigator.of(
+                                  context,
+                                ).pop(ItemPickerResult(list));
                               },
-                        child: const Text('Adicionar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomButton(
+                        isLoadingInitialContent: false,
+                        text: 'Fechar',
+                        secondary: true,
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

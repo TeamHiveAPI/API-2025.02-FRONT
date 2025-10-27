@@ -172,7 +172,7 @@ class _DetalhesPedidoModalState extends State<DetalhesPedidoModal> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: CustomButton(
                   isLoadingInitialContent: _isLoadingInitialContent,
