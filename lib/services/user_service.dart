@@ -205,23 +205,17 @@ class UserService with ChangeNotifier {
   }
 
   void toggleViewingSector() {
-    if (_currentUser?.nivelAcesso == 3) {
-      // Coronel pode alternar entre todos os setores
-      if (_viewingSectorId == null || _viewingSectorId == 5) {
-        _viewingSectorId = 1; // Almoxarifado
-      } else if (_viewingSectorId == 1) {
-        _viewingSectorId = 2; // Farmácia
-      } else if (_viewingSectorId == 2) {
-        _viewingSectorId = 3; // Odontologia
-      } else if (_viewingSectorId == 3) {
-        _viewingSectorId = 4; // Médico
-      } else if (_viewingSectorId == 4) {
-        _viewingSectorId = 5; // Comum
-      }
-      print('Setor de visualização alterado para: $_viewingSectorId');
-      notifyListeners();
+  if (_currentUser?.nivelAcesso == 3) {
+    if (_viewingSectorId == null || _viewingSectorId == 2) {
+      _viewingSectorId = 1;
+    } else {
+      _viewingSectorId = 2;
     }
+    print('Setor de visualização alterado para: $_viewingSectorId');
+    notifyListeners();
   }
+}
+
 
   bool can(AppPermission permission) {
     if (_currentUser == null) return false;

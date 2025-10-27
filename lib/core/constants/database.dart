@@ -37,14 +37,13 @@ abstract class ItemFields {
   static const String grupoId = 'it_grupo_id';
   static const String ativo = 'it_ativo';
   static const String perecivel = 'it_perecivel';
-  static const String qtdReservada = 'it_qtd_reservada';
 }
 
 abstract class ItemPedidoFields {
   static const String pedidoId = 'iped_pedido_id';
   static const String itemId = 'iped_item_id';
   static const String qtdSolicitada = 'iped_qtd_solicitada';
-  static const String loteRetiradoId = 'iped_lote_retirado_id';
+  static const String lotes = 'iped_lotes';
 }
 
 abstract class ItemPedidoCompraFields {
@@ -61,8 +60,9 @@ abstract class LoteFields {
   static const String dataValidade = 'lot_data_validade';
   static const String fornecedorId = 'lot_fornecedor_id';
   static const String qtdAtual = 'lot_qtd_atual';
+  static const String qtdReservada = 'lot_qtd_reservada';
 }
-
+  
 abstract class MovEstoqueFields {
   static const String id = 'id';
   static const String itemId = 'mve_item_id';
@@ -79,7 +79,6 @@ abstract class PedidoFields {
   static const String setorId = 'ped_setor_id';
   static const String motivoCancelamento = 'ped_motivo_cancelamento';
   static const String status = 'ped_status';
-  static const String dados = 'ped_dados';
   static const String dataRetirada = 'ped_data_retirada';
   static const String dataSolicitada = 'ped_data_solicitada';
   static const String responsavelCancelamentoId =

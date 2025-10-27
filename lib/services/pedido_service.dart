@@ -29,10 +29,21 @@ class PedidoService {
       var baseQuery = supabase
           .from(SupabaseTables.pedido)
           .select('''
-            *,
-            ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade}),
+            ${PedidoFields.id},
+            ${PedidoFields.status},
+            ${PedidoFields.dataSolicitada},
+            ${PedidoFields.dataRetirada},
+            ${PedidoFields.setorId},
+            ${PedidoFields.usuarioId},
+            ${PedidoFields.motivoCancelamento},
+            ${PedidoFields.responsavelCancelamentoId},
             ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
-            responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})
+            ${SupabaseTables.itemPedido}!inner(
+              ${ItemPedidoFields.itemId},
+              ${ItemPedidoFields.qtdSolicitada},
+              iped_lotes,
+              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})
+            )
           ''')
           .eq(PedidoFields.setorId, viewingSectorId);
 
@@ -42,7 +53,8 @@ class PedidoService {
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery.or(
-          '${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
+          '${SupabaseTables.itemPedido}.${SupabaseTables.item}.${ItemFields.nome}.ilike.%$searchQuery%,'
+          '${SupabaseTables.usuario}.${UsuarioFields.nome}.ilike.%$searchQuery%',
         );
       }
 
@@ -50,13 +62,17 @@ class PedidoService {
       final totalCount = countResponse.count;
 
       PostgrestTransformBuilder<PostgrestList> dataQuery = baseQuery;
+
       if (sortParams.activeSortColumnDataField != null) {
         dataQuery = dataQuery.order(
           sortParams.activeSortColumnDataField!,
           ascending: sortParams.isAscending,
         );
       } else {
-        dataQuery = dataQuery.order(PedidoFields.dataSolicitada, ascending: false);
+        dataQuery = dataQuery.order(
+          PedidoFields.dataSolicitada,
+          ascending: false,
+        );
       }
 
       final int startIndex = (page - 1) * SystemConstants.itemsPorPagina;
@@ -73,80 +89,33 @@ class PedidoService {
     }
   }
 
-    Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
+  Future<Map<String, dynamic>?> fetchPedidoById(int pedidoId) async {
     try {
       final response = await supabase
           .from(SupabaseTables.pedido)
-          .select(
-            '*, ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}), ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}), responsavel_cancelamento:${PedidoFields.responsavelCancelamentoId}(${UsuarioFields.nome})',
-          )
+          .select('''
+            ${PedidoFields.id},
+            ${PedidoFields.status},
+            ${PedidoFields.dataSolicitada},
+            ${PedidoFields.dataRetirada},
+            ${PedidoFields.setorId},
+            ${PedidoFields.usuarioId},
+            ${PedidoFields.motivoCancelamento},
+            ${PedidoFields.responsavelCancelamentoId},            
+            ${SupabaseTables.usuario}:${PedidoFields.usuarioId}(${UsuarioFields.nome}),
+            ${SupabaseTables.itemPedido}!inner(
+              ${ItemPedidoFields.itemId},
+              ${ItemPedidoFields.qtdSolicitada},
+              iped_lotes,
+              ${SupabaseTables.item}:${ItemPedidoFields.itemId}(${ItemFields.nome}, ${ItemFields.unidade})
+            )
+          ''')
           .eq(PedidoFields.id, pedidoId)
           .single();
       return response;
     } catch (e) {
       print('Erro ao buscar detalhes do pedido: $e');
       return null;
-    }
-  }
-
-  Future<void> createPedido({
-    required int itemId,
-    required int quantidade,
-    String? dataRetirada,
-  }) async {
-    try {
-      final currentUser = UserService.instance.currentUser;
-      final viewingSectorId = UserService.instance.viewingSectorId;
-
-      if (currentUser == null || viewingSectorId == null) {
-        throw 'Usuário não identificado';
-      }
-
-      final itemResponse = await supabase
-          .from('item')
-          .select('id_setor, qtd_atual, qtd_reservada, nome')
-          .eq('id_item', itemId)
-          .eq('ativo', true)
-          .single();
-
-      if (itemResponse['id_setor'] != viewingSectorId) {
-        throw PedidoConstants.erroItemSetorDiferente;
-      }
-
-      if (quantidade <= 0) {
-        throw PedidoConstants.erroQuantidadeInvalida;
-      }
-
-      final qtdAtual = itemResponse['qtd_atual'] as int;
-      if (quantidade > qtdAtual) {
-        throw PedidoConstants.erroQuantidadeInsuficiente;
-      }
-
-      final bool temDataRetirada =
-          dataRetirada != null && dataRetirada.isNotEmpty;
-      final status = temDataRetirada
-          ? PedidoConstants.statusConcluido
-          : PedidoConstants.statusPendente;
-
-      await supabase.rpc(
-        'create_pedido_transaction',
-        params: {
-          'p_id_item': itemId,
-          'p_id_usuario': currentUser.idUsuario,
-          'p_id_setor': viewingSectorId,
-          'p_qtd_solicitada': quantidade,
-          'p_data_ret': temDataRetirada ? dataRetirada : null,
-          'p_status': status,
-        },
-      );
-    } on PostgrestException catch (e) {
-      print('Erro do Supabase ao criar pedido: ${e.message}');
-      throw 'Falha ao criar pedido: ${e.message}';
-    } catch (e) {
-      print('Erro desconhecido ao criar pedido: $e');
-      throw e.toString().contains('Falha')
-          ? e.toString()
-          : 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
 
@@ -162,13 +131,13 @@ class PedidoService {
       }
 
       final pedidoResponse = await supabase
-          .from('pedido')
-          .select('id_usuario, status, qtd_solicitada, id_item')
-          .eq('id_pedido', pedidoId)
+          .from(SupabaseTables.pedido)
+          .select('${PedidoFields.usuarioId}, ${PedidoFields.status}')
+          .eq(PedidoFields.id, pedidoId)
           .single();
 
-      final status = pedidoResponse['status'] as int;
-      final idUsuarioPedido = pedidoResponse['id_usuario'] as int;
+      final status = pedidoResponse[PedidoFields.status] as int;
+      final idUsuarioPedido = pedidoResponse[PedidoFields.usuarioId] as int;
 
       if (status == PedidoConstants.statusCancelado) {
         throw PedidoConstants.erroPedidoJaCancelado;
@@ -222,16 +191,16 @@ class PedidoService {
       }
 
       final pedidoResponse = await supabase
-          .from('pedido')
-          .select('status, qtd_solicitada, id_item')
-          .eq('id_pedido', pedidoId)
+          .from(SupabaseTables.pedido)
+          .select(PedidoFields.status)
+          .eq(PedidoFields.id, pedidoId)
           .single();
 
       if (pedidoResponse.isEmpty) {
         throw 'Pedido não encontrado';
       }
 
-      final status = pedidoResponse['status'] as int;
+      final status = pedidoResponse[PedidoFields.status] as int;
 
       if (status == PedidoConstants.statusCancelado) {
         throw 'Não é possível finalizar um pedido cancelado';
@@ -259,48 +228,127 @@ class PedidoService {
     }
   }
 
-  Future<Map<String, dynamic>> getPedidoDetails(int pedidoId) async {
-    try {
-      final response = await supabase
-          .from('pedido')
-          .select('''
-            *,
-            item:id_item(nome, unidade, qtd_atual, qtd_reservada),
-            usuario:id_usuario(nome, nivel_acesso),
-            responsavel_cancelamento:id_responsavel_cancelamento(nome)
-          ''')
-          .eq('id_pedido', pedidoId)
-          .single();
-      return response;
-    } on PostgrestException catch (e) {
-      print('Erro do Supabase ao buscar detalhes do pedido: ${e.message}');
-      throw 'Falha ao carregar detalhes do pedido: ${e.message}';
-    } catch (e) {
-      print('Erro desconhecido ao buscar detalhes do pedido: $e');
-      throw 'Ocorreu um erro inesperado. Tente novamente.';
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getAvailableItems() async {
+  Future<List<Map<String, dynamic>>> getAvailableItems({
+    String searchQuery = '',
+  }) async {
     try {
       final viewingSectorId = UserService.instance.viewingSectorId;
 
       if (viewingSectorId == null) {
+        print('Setor de visualização não encontrado');
         return [];
       }
+      print('Buscando itens para o setor: $viewingSectorId');
 
-      final response = await supabase
-          .from('item')
-          .select('id_item, nome, unidade, qtd_atual, min_estoque')
-          .eq('ativo', true)
-          .eq('id_setor', viewingSectorId)
-          .gt('qtd_atual', 0)
-          .order('nome', ascending: true);
-
-      return List<Map<String, dynamic>>.from(response);
+      final response = await supabase.rpc(
+        'buscar_itens_com_lote_por_setor',
+        params: {
+          'id_setor_param': viewingSectorId,
+          'search_query_param': searchQuery,
+        },
+      );
+      if (response == null) {
+        return [];
+      }
+      final items = List<Map<String, dynamic>>.from(response ?? const []);
+      return items.where((it) {
+        final disponivel =
+            it['disponivel'] ??
+            ((it['qtd_atual'] ?? 0) - (it['qtd_reservada'] ?? 0));
+        final numDisp = (disponivel is num)
+            ? disponivel
+            : int.tryParse(disponivel.toString()) ?? 0;
+        return numDisp > 0;
+      }).toList();
+    } on PostgrestException {
+      rethrow;
     } catch (e) {
-      print('Erro ao buscar itens disponíveis: $e');
-      return [];
+      print('Erro genérico ao buscar itens disponíveis: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> createPedidoMulti({
+    required List<Map<String, dynamic>> itens,
+    String? dataRetirada,
+  }) async {
+    try {
+      final currentUser = UserService.instance.currentUser;
+      final viewingSectorId = UserService.instance.viewingSectorId;
+      if (currentUser == null || viewingSectorId == null) {
+        throw 'Usuário não identificado';
+      }
+      final payload = {
+        'p_id_usuario': currentUser.idUsuario,
+        'p_id_setor': viewingSectorId,
+        'p_data_ret': dataRetirada,
+        'itens': itens,
+      };
+
+      await supabase.rpc('create_pedido_transaction_multi', params: payload);
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao criar pedido multi: ${e.message}');
+      throw 'Falha ao criar pedido: ${e.message}';
+    } catch (e) {
+      print('Erro desconhecido ao criar pedido multi: $e');
+      throw e.toString().contains('Falha')
+          ? e.toString()
+          : 'Ocorreu um erro inesperado. Tente novamente.';
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getLotesPorItem(int itemId) async {
+    try {
+      print('Buscando lotes para o item ID: $itemId');
+      final itemResp = await supabase
+          .from(SupabaseTables.item)
+          .select('it_perecivel')
+          .eq('id', itemId)
+          .single();
+      final bool isPerecivel = (itemResp['it_perecivel'] == true);
+
+      final today = DateTime.now().toIso8601String().split('T').first;
+
+      final filter = supabase
+          .from(SupabaseTables.lote)
+          .select(
+            'id, codigo_lote:${LoteFields.codigo}, data_validade:${LoteFields.dataValidade}, qtd_atual:${LoteFields.qtdAtual}, qtd_reservada:${LoteFields.qtdReservada}, data_entrada:${LoteFields.dataEntrada}',
+          )
+          .eq(LoteFields.itemId, itemId)
+          .eq('lot_ativo', true);
+
+      if (isPerecivel) {
+        filter.gte(LoteFields.dataValidade, today);
+      }
+
+      final resp = await filter
+          .order(LoteFields.dataValidade, ascending: true)
+          .order(LoteFields.dataEntrada, ascending: true);
+      final list = (resp as List).cast<Map<String, dynamic>>();
+
+      final mapped = list
+          .map((l) {
+            final int atual = ((l['qtd_atual'] ?? 0) as num).toInt();
+            final int reserv = ((l['qtd_reservada'] ?? 0) as num).toInt();
+            final int disp = (atual - reserv);
+            return {
+              'id': l['id'],
+              'codigo_lote': l['codigo_lote'],
+              'data_validade': l['data_validade'],
+              'qtd_atual': atual,
+              'qtd_reservada': reserv,
+              'disponivel': disp < 0 ? 0 : disp,
+            };
+          })
+          .where((m) => ((m['disponivel'] ?? 0) as int) > 0)
+          .toList();
+      return mapped;
+    } on PostgrestException catch (e) {
+      print('Erro do Supabase ao buscar lotes do item $itemId: ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('Erro ao buscar lotes do item $itemId: $e');
+      rethrow;
     }
   }
 }

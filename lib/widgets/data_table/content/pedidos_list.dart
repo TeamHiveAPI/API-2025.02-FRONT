@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
@@ -7,6 +8,7 @@ import 'package:sistema_almox/widgets/data_table/table_column.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/cancelar_pedido_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_item_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/detalhes_itens_pedidos.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_pedido_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/detalhes_usuario_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/motivo_cancelamento_modal.dart';
@@ -39,14 +41,13 @@ Color _getStatusColor(String statusDescricao) {
 
 class _PedidosTableState extends State<PedidosTable> with TableHandler {
   @override
-
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
-      title: 'Nome do item',
-      dataField: 'item_nome',
-      widthFactor: 0.55,
-      sortType: SortType.alphabetic,
+      title: 'N° de itens',
+      dataField: 'num_itens_display',
+      widthFactor: 0.5,
+      sortType: SortType.numeric,
     ),
     TableColumn(
       title: 'QTD',
@@ -57,7 +58,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     TableColumn(
       title: 'Status',
       dataField: 'status_descricao',
-      widthFactor: 0.25,
+      widthFactor: 0.3,
       sortType: SortType.alphabetic,
       cellBuilder: (value) {
         final status = value.toString();
@@ -150,17 +151,17 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         context: context,
         title: "Detalhes do Pedido",
         child: DetalhesPedidoModal(
-          pedidoId: pedidoData['id_pedido'],
+          pedidoId: pedidoData['id'],
           onFinalizar: _finalizarPedido,
 
           onShowCancelModal: () async {
             Navigator.of(context).pop();
             final motivo = await showCancelarPedidoModal(
               context,
-              idPedido: pedidoData['id_pedido'].toString(),
+              idPedido: pedidoData['id'].toString(),
             );
             if (motivo != null && motivo.isNotEmpty) {
-              await _cancelarPedido(pedidoData['id_pedido'], motivo);
+              await _cancelarPedido(pedidoData['id'], motivo);
             } else {
               showPedidoModal();
             }
@@ -173,25 +174,60 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
               title: "Detalhes do Item",
               child: DetalhesItemModal(itemId: itemId),
             );
-            if (result != true) showPedidoModal();
+
+            if (result == null) showPedidoModal();
+          },
+
+          onViewOrderedItemsDetails: () async {
+            Navigator.of(context).pop();
+
+            final result = await showCustomBottomSheet(
+              context: context,
+              title: "Conteúdo do Pedido",
+              removeRightPadding: true,
+              child: DetalhesItensPedidoModal(
+                itens: pedidoData['item_pedido'],
+                onViewItemDetails: (itemId) async {
+                  Navigator.of(context).pop('navigateToItem');
+
+                  final itemResult = await showCustomBottomSheet(
+                    context: context,
+                    title: "Detalhes do Item",
+                    child: DetalhesItemModal(itemId: itemId),
+                  );
+
+                  if (itemResult == null) {
+                    showPedidoModal();
+                  }
+                },
+              ),
+            );
+
+            if (result == null) {
+              showPedidoModal();
+            }
           },
 
           onViewUserDetails: (userId) async {
             Navigator.of(context).pop();
-            await showCustomBottomSheet(
+
+            final result = await showCustomBottomSheet(
               context: context,
               title: "Detalhes do Usuário",
               child: DetalhesUsuarioModal(idUsuario: userId),
             );
-            showPedidoModal();
+
+            if (result == null) showPedidoModal();
           },
 
           onViewCancelDetails: (Map<String, dynamic> currentPedidoData) async {
             Navigator.of(context).pop();
 
-            await _showMotivoCancelamentoFlow(currentPedidoData);
+            final result = await _showMotivoCancelamentoFlow(currentPedidoData);
 
-            showPedidoModal();
+            if (result == null) {
+              showPedidoModal();
+            }
           },
         ),
       );
@@ -200,7 +236,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     showPedidoModal();
   }
 
-  Future<void> _showMotivoCancelamentoFlow(
+  Future<dynamic> _showMotivoCancelamentoFlow(
     Map<String, dynamic> pedidoData,
   ) async {
     dynamic resultFromModal;
@@ -209,10 +245,9 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         context: context,
         title: "Motivo do Cancelamento",
         child: MotivoCancelamentoModal(
-          motivo: pedidoData['motivo_cancelamento'] ?? 'Não especificado',
-          responsavelNome:
-              pedidoData['responsavel_cancelamento']?['nome'] ?? 'Desconhecido',
-          responsavelId: pedidoData['id_responsavel_cancelamento'],
+          motivo:
+              pedidoData[PedidoFields.motivoCancelamento] ?? 'Não especificado',
+          responsavelId: pedidoData[PedidoFields.responsavelCancelamentoId],
           onViewResponsavelDetails: (userId) {
             Navigator.of(context).pop(userId);
           },
@@ -226,7 +261,10 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
           child: DetalhesUsuarioModal(idUsuario: resultFromModal),
         );
       }
-    } while (resultFromModal is int);
+    } while (resultFromModal
+        is int);
+
+    return resultFromModal;
   }
 
   @override
@@ -236,7 +274,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
     final List<Map<String, dynamic>> displayData = showSkeleton
         ? List.generate(8, (_) => <String, dynamic>{})
         : loadedItems.map((item) {
-            final status = item['status'] ?? 1;
+            final status = item[PedidoFields.status] ?? 1;
             String statusDescricao;
 
             switch (status) {
@@ -253,10 +291,21 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
                 statusDescricao = 'Desconhecido';
             }
 
+            final List<dynamic> itensPedido =
+                (item[SupabaseTables.itemPedido] as List?) ?? const [];
+            final int numItens = itensPedido.length;
+            final String numItensDisplay = numItens.toString().padLeft(2, '0');
+            final int qtdTotalSolicitada = itensPedido.fold<int>(0, (acc, it) {
+              final q = (it[ItemPedidoFields.qtdSolicitada] ?? 0);
+              return acc + (q is num ? q.toInt() : int.tryParse('$q') ?? 0);
+            });
+
             return {
               ...item,
-              'item_nome': item['item']?['nome'] ?? 'N/A',
-              'usuario_nome': item['usuario']?['nome'] ?? 'N/A',
+              'num_itens_display': numItensDisplay,
+              'qtd_solicitada': qtdTotalSolicitada,
+              'usuario_nome':
+                  item[SupabaseTables.usuario]?[UsuarioFields.nome] ?? 'N/A',
               'status_descricao': statusDescricao,
             };
           }).toList();
