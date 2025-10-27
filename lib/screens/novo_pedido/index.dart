@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/config/permissions.dart';
+import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
@@ -183,70 +184,181 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                         onPressed: _isSubmitting ? null : _openItemPicker,
                         widthPercent: 1.0,
                       ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'ITENS SELECIONADOS',
+                        style: TextStyle(color: text60, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
                       if (_selectedItems.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Itens selecionados',
-                                style: TextStyle(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 8),
-                              ..._selectedItems.map((s) {
-                                final total = s.lotes.length > 1
-                                    ? s.lotes.fold<int>(
-                                        0,
-                                        (acc, l) => acc + l.quantidade,
-                                      )
-                                    : s.quantidadeTotal;
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: _isSubmitting
-                                              ? null
-                                              : _openItemPicker,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 4.0,
-                                            ),
-                                            child: Text(
-                                              '${s.nome} (${s.unidade})',
-                                            ),
+                        Column(
+                          children: [
+                            for (int i = 0; i < _selectedItems.length; i++) ...[
+                              Builder(
+                                builder: (context) {
+                                  final s = _selectedItems[i];
+                                  final total = s.lotes.length > 1
+                                      ? s.lotes.fold<int>(
+                                          0,
+                                          (acc, l) => acc + l.quantidade,
+                                        )
+                                      : s.quantidadeTotal;
+
+                                  int lotesSelecionadosCount = 0;
+                                  if (s.lotes.length > 1) {
+                                    lotesSelecionadosCount = s.lotes
+                                        .where((l) => l.quantidade > 0)
+                                        .length;
+                                  } else if (s.lotes.length == 1) {
+                                    lotesSelecionadosCount =
+                                        s.quantidadeTotal > 0 ? 1 : 0;
+                                  }
+                                  final String countFormatado =
+                                      lotesSelecionadosCount.toString().padLeft(
+                                        2,
+                                        '0',
+                                      );
+                                  final String loteText =
+                                      lotesSelecionadosCount == 1
+                                      ? '$countFormatado lote'
+                                      : '$countFormatado lotes';
+
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12.0,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: brandBlueLight,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(s.nome),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              if (s.lotes.isNotEmpty)
+                                                Text(
+                                                  loteText,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: text60,
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         ),
-                                      ),
-                                      Text('Qtd: $total'),
-                                      const SizedBox(width: 8),
-                                      IconButton(
-                                        tooltip: 'Remover',
-                                        icon: const Icon(Icons.close),
-                                        onPressed: _isSubmitting
-                                            ? null
-                                            : () {
-                                                setState(() {
-                                                  _selectedItems.removeWhere(
-                                                    (it) =>
-                                                        it.itemId == s.itemId,
-                                                  );
-                                                });
-                                              },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
+
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: coolGray,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                'QTD: $total',
+                                                style: TextStyle(color: text40),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              s.unidade,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: text60,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(width: 8),
+
+                                        CustomButton(
+                                          squareMode: true,
+                                          danger: true,
+                                          onPressed: _isSubmitting
+                                              ? null
+                                              : () {
+                                                  setState(() {
+                                                    _selectedItems.removeWhere(
+                                                      (it) =>
+                                                          it.itemId == s.itemId,
+                                                    );
+                                                  });
+                                                },
+                                          borderRadius: 8.0,
+                                          customIcon: "assets/icons/trash.svg",
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              if (i < _selectedItems.length - 1)
+                                const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: Color.fromARGB(12, 0, 0, 0),
+                                ),
+                            ],
+                          ],
+                        ),
+                      ] else ...[
+                        // --- 2. NOVO BLOCO 'ELSE' (LISTA VAZIA) ---
+                        Container(
+                          width: double.infinity, // Ocupa toda a largura
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 32.0,
+                            horizontal: 16.0,
+                          ),
+                          decoration: BoxDecoration(
+                            // TODO: Defina a cor 'coolGray' no seu tema.
+                            // Estou usando 'grey.shade100' como substituto.
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/icons/box.svg',
+                                width: 40,
+                                height: 40,
+                                color: Colors.grey.shade600
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Selecione um item da lista para vê-lo aqui',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 15,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -254,9 +366,8 @@ class NewOrderScreenState extends State<NewOrderScreen> {
                       const SizedBox(height: 24),
                       CustomTextFormField(
                         upperLabel: 'DATA DE RETIRADA',
-                        hintText: 'Selecionar (Opcional)',
+                        hintText: 'Opcional',
                         controller: _formHandler.dateController,
-                        readOnly: true,
                         onTap: () async {
                           await _formHandler.selectDate(context);
                           setState(() {});
