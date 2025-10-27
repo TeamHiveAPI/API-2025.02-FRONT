@@ -1,10 +1,6 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:sistema_almox/services/subirEmpenho.dart';
 import 'package:sistema_almox/services/criar_empenho.dart';
-import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'notaEmpenhoFormsScreen.dart';
@@ -57,17 +53,6 @@ class _NotaEmpenhoScreenState extends State<NotaEmpenhoScreen> {
             child: const Text('Excluir', style: TextStyle(color: Colors.red)),
           ),
         ],
-      ),
-    );
-  }
-
-
-  pw.Widget _buildLine(String title, String? value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 6),
-      child: pw.Text(
-        '$title: ${value ?? '-'}',
-        style: const pw.TextStyle(fontSize: 12),
       ),
     );
   }

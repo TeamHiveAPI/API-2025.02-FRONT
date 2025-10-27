@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotaEmpenhoFormScreen extends StatefulWidget {

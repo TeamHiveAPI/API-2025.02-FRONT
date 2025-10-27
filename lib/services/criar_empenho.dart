@@ -1,9 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sistema_almox/services/donwload_NE/download_nota.dart' as download_nota;
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
 
 class NotaEmpenhoService {
   final SupabaseClient _client = Supabase.instance.client;

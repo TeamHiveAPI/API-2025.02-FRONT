@@ -4,7 +4,6 @@ import 'package:sistema_almox/screens/fornecedor.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
 import 'package:sistema_almox/screens/grupo.dart';
-import 'package:sistema_almox/screens/notaEmpenho.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});

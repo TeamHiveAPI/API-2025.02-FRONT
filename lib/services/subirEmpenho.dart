@@ -55,7 +55,7 @@ class UploadPdfPage {
         }
 
         final PdfDocument document = PdfDocument(inputBytes: fileBytes);
-        final String extractedText = PdfTextExtractor(document).extractText() ?? '';
+        final String extractedText = PdfTextExtractor(document).extractText();
         document.dispose();
 
         final extracted = _extractDataFromPdf(extractedText);
