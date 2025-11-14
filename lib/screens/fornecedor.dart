@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/screens/novo_fornecedor/index.dart'; 
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/email_fornecedor_modal.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/data_table/content/supplier_list.dart';
@@ -70,13 +72,38 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 24),
-            CustomButton(
-              text: 'Cadastrar Novo Fornecedor',
-              icon: Icons.add,
-              widthPercent: 1.0,
-              onPressed: () {
-                _navigateToNewSupplierScreen(context); 
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    text: 'Cadastrar Novo Fornecedor',
+                    icon: Icons.add,
+                    widthPercent: 1.0,
+                    onPressed: () {
+                      _navigateToNewSupplierScreen(context); 
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CustomButton(
+                    text: 'Notificar Fornecedor',
+                    icon: Icons.email,
+                    widthPercent: 1.0,
+                    secondary: true,
+                    onPressed: () {
+                      // Modal simples para digitar e-mail do fornecedor alvo
+                      showCustomBottomSheet(
+                        context: context,
+                        title: 'Enviar E-mail a Fornecedor',
+                        child: EmailFornecedorModal(
+                          fornecedorEmail: 'fornecedor@exemplo.com', // TODO: trocar pelo selecionado
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             const Text(

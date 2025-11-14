@@ -9,6 +9,7 @@ import 'package:sistema_almox/core/theme/global_styles.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/debug_login_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/forgot_password_modal.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -224,19 +225,20 @@ class _LoginState extends State<Login> {
                         width: double.infinity,
                         height: 48,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showCustomBottomSheet(
+                              context: context,
+                              title: 'Recuperar Senha',
+                              child: const ForgotPasswordModal(),
+                            );
+                          },
                           style: ButtonStyle(
-                            foregroundColor: WidgetStateProperty.all<Color>(
-                              brandBlue,
+                            foregroundColor: WidgetStateProperty.all<Color>(brandBlue),
+                            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
                             ),
-
-                            shape:
-                                WidgetStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                ),
-
                             elevation: WidgetStateProperty.all(0),
                           ),
                           child: const Text(
