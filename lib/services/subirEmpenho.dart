@@ -58,7 +58,11 @@ class UploadPdfPage {
         final String extractedText = PdfTextExtractor(document).extractText();
         document.dispose();
 
+        debugPrint('📄 Texto bruto extraído do PDF ($fileName):\n$extractedText\n----------------------------------');
+
         final extracted = _extractDataFromPdf(extractedText);
+        print('🧩 Dados extraídos: $extracted');
+
 
         final storagePath = 'uploads/$fileName';
         final storageRef = supabase.storage.from(STORAGE_BUCKET);
@@ -117,6 +121,8 @@ class UploadPdfPage {
               builder: (_) => NotaEmpenhoFormScreen(
                 nota: {
                   'NE': extracted['NE'],
+                  'secao': extracted['secao'],
+                  'cnpj': extracted['cnpj'],
                   'favorecido': extracted['favorecido'],
                   'data': extracted['data'],
                   'item': extracted['item'],
@@ -144,15 +150,28 @@ class UploadPdfPage {
   }
 
   static Map<String, dynamic> _extractDataFromPdf(String text) {
+
     try {
       if (text.isEmpty) {
         throw Exception('O texto do PDF está vazio ou não pôde ser extraído.');
       }
-
       final regexNE = RegExp(
         r'(?<=NE\s)([\s\S]*?)(?=Natureza da Despesa)',
         multiLine: true,
       );
+
+      final regexCNPJ = RegExp(r'(?<!\d)(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})(?!\d)');
+
+      final regexsecao = RegExp(
+        r'(?<=Número\s)([\s\S]*?)(?=REAL)',
+        multiLine: true,
+      );
+
+      final regexTelefoneFornecedor = RegExp(
+        r'SP\s*\(?(\d{2})\)?[\s\-]*([0-9]{4,5})[\s\-]*([0-9]{4})',
+        multiLine: true,
+);
+
 
       final regexFav = RegExp(
         r'\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\s*\n?\s*([A-Z0-9\s\.\-&]*?)(?=\s*ATENDE)',
@@ -170,25 +189,32 @@ class UploadPdfPage {
       );
 
       final ne = regexNE.firstMatch(text)?.group(1)?.trim() ?? '';
+      final secao = regexsecao.firstMatch(text)?.group(1)?.trim() ?? '';
+      final telefoneMatch = regexTelefoneFornecedor.firstMatch(text);
+      final telefone = telefoneMatch != null
+    ? '(${telefoneMatch.group(1)})${telefoneMatch.group(2)}-${telefoneMatch.group(3)}'
+    : '';
+      final cnpj = regexCNPJ.firstMatch(text)?.group(1)?.trim() ?? '';
       final favorecido = regexFav.firstMatch(text)?.group(1)?.trim() ?? '';
       final data = regexData.firstMatch(text)?.group(1)?.trim() ?? '';
       final item = regexItem.firstMatch(text)?.group(1)?.trim() ?? '';
 
-      if ([ne, favorecido, data, item].every((v) => v.isEmpty)) {
-        throw Exception('Nenhum dado válido foi identificado no texto do PDF.');
-      }
-
-      return {'NE': ne, 'favorecido': favorecido, 'data': data, 'item': item};
+      return {'NE': ne, 'favorecido': favorecido, 'data': data, 'item': item , 'secao': secao, 'cnpj': cnpj, 'telefone': telefone};
     } catch (e, s) {
       debugPrint('Erro ao extrair dados do PDF: ${e.runtimeType} -> $e\n$s');
+      
 
       return {
         'NE': '',
         'favorecido': '',
+        'secao': '',
         'data': '',
         'item': '',
+        'cnpj': '',
+        'telefone': '',
         'erro': e.toString(),
       };
+      
     }
   }
 }

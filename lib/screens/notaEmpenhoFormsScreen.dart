@@ -21,6 +21,7 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
   final _saldoController = TextEditingController();
   final _justificativaController = TextEditingController();
   final _dataTextController = TextEditingController();
+  final _secaoController = TextEditingController();
 
   DateTime _dataController = DateTime.now();
 
@@ -47,6 +48,7 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
         _itemController.text = nota['item']?.toString() ?? '';
         _diasController.text = nota['dias']?.toString() ?? '';
         _saldoController.text = nota['saldo']?.toString() ?? '';
+        _secaoController.text = nota['secao']?.toString() ?? '';
         _justificativaController.text =
             nota['justificativa_atraso']?.toString() ?? '';
 
@@ -134,6 +136,7 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
     _saldoController.dispose();
     _justificativaController.dispose();
     _dataTextController.dispose();
+    _secaoController.dispose();
     super.dispose();
   }
 
@@ -243,6 +246,9 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
             ? _neController.text
             : widget.nota?['NE'],
         'data': dataIso,
+        'secao': _secaoController.text.isNotEmpty
+            ? _secaoController.text
+            : widget.nota?['secao'],
         'favorecido': fornecedorNome,
         'dias': _diasController.text.isNotEmpty
             ? int.tryParse(_diasController.text)
@@ -323,6 +329,20 @@ class _NotaEmpenhoFormScreenState extends State<NotaEmpenhoFormScreen> {
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: 'NE',
+                      labelStyle: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                    ),
+                  ),
+                                    TextFormField(
+                    controller: _secaoController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'seção',
                       labelStyle: TextStyle(
                         color: Colors.grey[600],
                         fontWeight: FontWeight.w400,
