@@ -8,6 +8,7 @@ import 'package:sistema_almox/screens/historico_mov.dart';
 import 'package:sistema_almox/screens/novo_grupo/index.dart';
 import 'package:sistema_almox/screens/novo_item/index.dart';
 import 'package:sistema_almox/screens/novo_soldado/index.dart';
+import 'package:sistema_almox/screens/painelAnalitico.dart';
 import 'package:sistema_almox/screens/usuarios/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'screens/login.dart';
@@ -28,6 +29,7 @@ class AppRoutes {
   static const String agendarConsulta = '/agendar-consulta';
   static const String consultasMedico = '/consultas-medico';
   static const String configHorario = '/config-horario';
+  static const String painelAnalitico = '/painel-analitico';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -39,6 +41,9 @@ class AppRoutes {
 
       case allMovements:
         return MaterialPageRoute(builder: (_) => const AllMovementsScreen());
+
+      case painelAnalitico:
+        return MaterialPageRoute(builder: (_) => const PainelAnaliticoScreen());
 
       case itemMovements:
         final args = settings.arguments as Map<String, dynamic>;

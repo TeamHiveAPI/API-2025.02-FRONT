@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/screens/fornecedor.dart';
 import 'package:sistema_almox/screens/notaEmpenho.dart';
+import 'package:sistema_almox/screens/painelAnalitico.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
 import 'package:sistema_almox/screens/grupo.dart';
@@ -72,6 +73,21 @@ class AdminScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => const NotaEmpenhoScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    ManagementCard(
+                      iconPath: "assets/icons/suppliers.svg",
+                      name: 'Painel Analítico',
+                      description:
+                          'Saiba mais sobre o consumo dos estoques com previsão de IA',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PainelAnaliticoScreen(),
                           ),
                         );
                       },

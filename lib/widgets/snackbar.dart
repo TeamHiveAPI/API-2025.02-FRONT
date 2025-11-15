@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
-void showCustomSnackbar(
+VoidCallback showCustomSnackbar(
   BuildContext context,
   String message, {
   bool isError = false,
+  bool isLoading = false,
   Duration duration = const Duration(seconds: 4),
+  VoidCallback? onCancel,
 }) {
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -22,6 +24,7 @@ void showCustomSnackbar(
       return _CustomSnackbarAnimation(
         key: animationKey,
         duration: duration,
+        isLoading: isLoading,
         onDismissed: () {
           overlayEntry?.remove();
           overlayEntry = null;
@@ -48,7 +51,9 @@ void showCustomSnackbar(
                             bottom: 10.0,
                           ),
                           decoration: BoxDecoration(
-                            color: isError ? deleteRed : successGreen,
+                            color: isLoading
+                                ? brandBlue
+                                : (isError ? deleteRed : successGreen),
                             borderRadius: BorderRadius.circular(4),
                             boxShadow: const [
                               BoxShadow(
@@ -60,17 +65,30 @@ void showCustomSnackbar(
                           ),
                           child: Row(
                             children: [
-                              SvgPicture.asset(
-                                isError
-                                    ? 'assets/icons/warning.svg'
-                                    : 'assets/icons/success.svg',
-                                colorFilter: const ColorFilter.mode(
-                                  Colors.white,
-                                  BlendMode.srcIn,
+                              if (isLoading)
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 3.0,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              else
+                                SvgPicture.asset(
+                                  isError
+                                      ? 'assets/icons/warning.svg'
+                                      : 'assets/icons/success.svg',
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  ),
+                                  width: 24,
+                                  height: 24,
                                 ),
-                                width: 24,
-                                height: 24,
-                              ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
@@ -82,36 +100,60 @@ void showCustomSnackbar(
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
+
+                              if (!isLoading)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: closeSnackbar,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
                                 ),
-                                onPressed: closeSnackbar,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
+
+                              if (isLoading)
+                                GestureDetector(
+                                  onTap: () {
+                                    onCancel
+                                        ?.call();
+                                    closeSnackbar();
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Parar',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: AnimatedBuilder(
-                            animation: progressAnimation,
-                            builder: (context, child) {
-                              return LinearProgressIndicator(
-                                value: progressAnimation.value,
-                                backgroundColor: Colors.white.withAlpha(0),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white.withAlpha(200),
-                                ),
-                                minHeight: 3,
-                              );
-                            },
+
+                        if (!isLoading)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: AnimatedBuilder(
+                              animation: progressAnimation,
+                              builder: (context, child) {
+                                return LinearProgressIndicator(
+                                  value: progressAnimation.value,
+                                  backgroundColor: Colors.white.withAlpha(0),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white.withAlpha(200),
+                                  ),
+                                  minHeight: 3,
+                                );
+                              },
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -125,6 +167,8 @@ void showCustomSnackbar(
   );
 
   Overlay.of(context).insert(overlayEntry!);
+
+  return closeSnackbar;
 }
 
 class _CustomSnackbarAnimation extends StatefulWidget {
@@ -132,12 +176,14 @@ class _CustomSnackbarAnimation extends StatefulWidget {
   builder;
   final Duration duration;
   final VoidCallback onDismissed;
+  final bool isLoading;
 
   const _CustomSnackbarAnimation({
     super.key,
     required this.builder,
     required this.duration,
     required this.onDismissed,
+    required this.isLoading,
   });
 
   @override
@@ -153,7 +199,9 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
 
   void close() {
     if (mounted) {
-      _progressController.stop();
+      if (!widget.isLoading) {
+        _progressController.stop();
+      }
       _moveController.reverse();
     }
   }
@@ -167,10 +215,19 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
       vsync: this,
     );
 
-    _progressController = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    if (!widget.isLoading) {
+      _progressController = AnimationController(
+        duration: widget.duration,
+        vsync: this,
+      );
+      _progressController.reverse(from: 1.0);
+
+      _progressController.addStatusListener((status) {
+        if (status == AnimationStatus.dismissed) {
+          close();
+        }
+      });
+    }
 
     final curve = CurvedAnimation(
       parent: _moveController,
@@ -183,13 +240,6 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
     ).animate(curve);
 
     _moveController.forward();
-    _progressController.reverse(from: 1.0);
-
-    _progressController.addStatusListener((status) {
-      if (status == AnimationStatus.dismissed) {
-        close();
-      }
-    });
 
     _moveController.addStatusListener((status) {
       if (status == AnimationStatus.dismissed) {
@@ -201,7 +251,9 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
   @override
   void dispose() {
     _moveController.dispose();
-    _progressController.dispose();
+    if (!widget.isLoading) {
+      _progressController.dispose();
+    }
     super.dispose();
   }
 
@@ -209,7 +261,12 @@ class _CustomSnackbarAnimationState extends State<_CustomSnackbarAnimation>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _offsetAnimation,
-      child: widget.builder(context, _progressController),
+      child: widget.builder(
+        context,
+        widget.isLoading
+            ? const AlwaysStoppedAnimation(0)
+            : _progressController,
+      ),
     );
   }
 }
