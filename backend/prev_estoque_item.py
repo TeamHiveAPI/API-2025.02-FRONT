@@ -3,26 +3,29 @@ from prophet import Prophet
 from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
-import uvicorn
-from fastapi import FastAPI
+import pandas as pd
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 load_dotenv()
-
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
+    print("ERRO: Variáveis de ambiente Supabase não configuradas!")
     exit()
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-app = FastAPI()
+class ConsumoException(Exception):
+    pass
 
-@app.get("/gerar-previsao")
+router = APIRouter()
+
+@router.get("/gerar-previsao")
 def gerar_previsao_endpoint(item_id: int):
     
-    print(f"\n[API] Recebida requisição para o item ID: {item_id}")
+    print(f"\n[API-ITEM] Recebida requisição para o item ID: {item_id}")
 
     try:
         response = supabase.table('mov_estoque') \
@@ -31,17 +34,17 @@ def gerar_previsao_endpoint(item_id: int):
             .eq('mve_tipo', 'SAÍDA') \
             .execute()
         
-        print(f"[API-DEBUG] Dados recebidos do Supabase: {response.data}")
+        print(f"[API-ITEM-DEBUG] Dados recebidos do Supabase: {response.data}")
         
         if not response.data:
-            print(f"[API-AVISO] Sem dados para o item {item_id}.")
-            return JSONResponse(status_code=404, content={"erro": "Sem dados históricos"})
+            print(f"[API-ITEM-AVISO] Sem dados para o item {item_id}.")
+            return JSONResponse(status_code=404, content={"erro": "Este item não possui movimentações o suficiente para poder gerar uma previsão confiável."})
             
     except Exception as e:
-        print(f"[API-ERRO] Falha ao buscar dados: {e}")
+        print(f"[API-ITEM-ERRO] Falha ao buscar dados: {e}")
         return JSONResponse(status_code=500, content={"erro": str(e)})
 
-    print("[API] Preparando dados...")
+    print("[API-ITEM] Preparando dados...")
     df = pd.DataFrame(response.data)
     df['mve_data_mov'] = pd.to_datetime(df['mve_data_mov'], format='ISO8601')
     df_resampled = df.resample('D', on='mve_data_mov')['mve_qtd_movimentada'].sum().reset_index()
@@ -49,9 +52,9 @@ def gerar_previsao_endpoint(item_id: int):
     df_prophet['ds'] = df_prophet['ds'].dt.tz_localize(None)
 
     if len(df_prophet) < 3:
-         return JSONResponse(status_code=400, content={"erro": "Dados insuficientes"})
+           return JSONResponse(status_code=400, content={"erro": "Este item não possui movimentações o suficiente para poder gerar uma previsão confiável."})
 
-    print("[API] Treinando modelo... Isso vai demorar.")
+    print("[API-ITEM] Treinando modelo... Isso vai demorar.")
     model = Prophet()
     model.fit(df_prophet)
 
@@ -65,13 +68,13 @@ def gerar_previsao_endpoint(item_id: int):
     
     dias_para_prever_total = 30 + dias_de_gap
 
-    print(f"[API-DEBUG] Último dado: {last_historical_date.date()}. Dias de gap: {dias_de_gap}. Prevendo {dias_para_prever_total} dias.")
+    print(f"[API-ITEM-DEBUG] Último dado: {last_historical_date.date()}. Dias de gap: {dias_de_gap}. Prevendo {dias_para_prever_total} dias.")
     
     future = model.make_future_dataframe(periods=dias_para_prever_total)
     
     forecast = model.predict(future)
     
-    print("[API] Previsão concluída. Retornando JSON.")
+    print("[API-ITEM] Previsão concluída. Retornando JSON.")
 
     hoje_meia_noite = pd.Timestamp.today().normalize()
     dados_apenas_futuros = forecast[forecast['ds'] > hoje_meia_noite].copy()
@@ -88,12 +91,6 @@ def gerar_previsao_endpoint(item_id: int):
 
     dados_apenas_futuros['ds'] = dados_apenas_futuros['ds'].apply(lambda x: x.isoformat())
     
-    dados_retorno = dados_apenas_futuros.to_dict('records')
+    dados_retorno = dados_apenas_futuros[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_dict('records')
     
     return {"previsao": dados_retorno}
-
-if __name__ == "__main__":
-    print("Servidor Iniciado!")
-    print(f"Ouvindo em http://0.0.0.0:8000")
-    print("Aguardando requisições do Flutter...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)

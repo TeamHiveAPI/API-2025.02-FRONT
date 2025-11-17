@@ -8,7 +8,7 @@ import 'package:sistema_almox/screens/historico_mov.dart';
 import 'package:sistema_almox/screens/novo_grupo/index.dart';
 import 'package:sistema_almox/screens/novo_item/index.dart';
 import 'package:sistema_almox/screens/novo_soldado/index.dart';
-import 'package:sistema_almox/screens/painelAnalitico.dart';
+import 'package:sistema_almox/screens/painel_analitico/index.dart';
 import 'package:sistema_almox/screens/usuarios/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'screens/login.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // 1. IMPORTE O SVG
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 
 class InternalPageHeader extends StatelessWidget {

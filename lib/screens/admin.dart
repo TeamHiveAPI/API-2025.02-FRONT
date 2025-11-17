@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/screens/fornecedor.dart';
 import 'package:sistema_almox/screens/notaEmpenho.dart';
-import 'package:sistema_almox/screens/painelAnalitico.dart';
+import 'package:sistema_almox/screens/painel_analitico/index.dart';
 import 'package:sistema_almox/widgets/cards/admin_header.dart';
 import 'package:sistema_almox/widgets/cards/management.dart';
 import 'package:sistema_almox/screens/grupo.dart';
