@@ -28,6 +28,8 @@ Thumbs.db
 # Arquivos de lock e cache
 pubspec.lock
 node_modules/
+**/__pycache__/
+
 
 # Arquivos de testes locais
 test/

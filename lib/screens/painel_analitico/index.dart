@@ -8,8 +8,9 @@ import 'package:sistema_almox/widgets/modal/content/change_ip.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistema_almox/screens/painel_analitico/previsao_panel.dart';
+import 'package:sistema_almox/screens/painel_analitico/risco_ruptura_panel.dart';
 
-enum AnaliticoPanel { previsao, consumo }
+enum AnaliticoPanel { previsao, consumo, risco }
 
 class PainelAnaliticoScreen extends StatefulWidget {
   const PainelAnaliticoScreen({super.key});
@@ -73,7 +74,7 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
         children: [
           CustomButton(
             text: 'Previsão de Demanda',
-            customIcon: "assets/icons/box.svg",
+            customIcon: "assets/icons/navbar/estoque.svg",
             secondary: _selectedPanel != AnaliticoPanel.previsao,
             onPressed: _selectedPanel == AnaliticoPanel.previsao
                 ? () {}
@@ -83,12 +84,18 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
           const SizedBox(width: 8),
           CustomButton(
             text: 'Consumo por Setor',
-
             secondary: _selectedPanel != AnaliticoPanel.consumo,
-
             onPressed: _selectedPanel == AnaliticoPanel.consumo
                 ? () {}
                 : () => setState(() => _selectedPanel = AnaliticoPanel.consumo),
+          ),
+          const SizedBox(width: 8),
+          CustomButton(
+            text: 'Risco de Ruptura',
+            secondary: _selectedPanel != AnaliticoPanel.risco,
+            onPressed: _selectedPanel == AnaliticoPanel.risco
+                ? () {}
+                : () => setState(() => _selectedPanel = AnaliticoPanel.risco),
           ),
         ],
       ),
@@ -102,37 +109,47 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
 
       case AnaliticoPanel.consumo:
         return ConsumoPanel(previsaoService: _previsaoService);
+
+      case AnaliticoPanel.risco:
+        return RiscoRupturaPanel(previsaoService: _previsaoService);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            InternalPageHeader(
-              title: 'Painel Analítico',
-              customActionIcon: "assets/icons/settings.svg",
-              onActionPressed: _showConfigIpModal,
-            ),
+      body: Column(
+        children: [
+          InternalPageHeader(
+            title: 'Painel Analítico',
+            customActionIcon: "assets/icons/settings.svg",
+            onActionPressed: _showConfigIpModal,
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              bottom: true,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildPanelSelector(),
+                    const SizedBox(height: 20),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildPanelSelector(),
-                  const SizedBox(height: 20),
-                  _buildCurrentPanel(),
+                    Expanded(child: _buildCurrentPanel()),
 
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

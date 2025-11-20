@@ -7,21 +7,19 @@ import 'package:sistema_almox/services/previsao.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/charts/previsao_inventario.dart';
 import 'package:sistema_almox/widgets/inputs/select.dart';
+import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 
 class PrevisaoPanel extends StatefulWidget {
   final PrevisaoService previsaoService;
 
-  const PrevisaoPanel({
-    super.key,
-    required this.previsaoService,
-  });
+  const PrevisaoPanel({super.key, required this.previsaoService});
 
   @override
   State<PrevisaoPanel> createState() => _PrevisaoPanelState();
 }
 
-class _PrevisaoPanelState extends State<PrevisaoPanel> {  
+class _PrevisaoPanelState extends State<PrevisaoPanel> {
   bool _isLoadingChart = false;
   String? _errorMessage;
   int? _selectedItemId;
@@ -39,7 +37,6 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
   }
 
   Future<void> _loadItems() async {
-    
     final itemsList = await ItemService.instance.fetchItemsForDropdown();
 
     setState(() {
@@ -73,8 +70,8 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
     );
 
     try {
-      final (estoque, spots) =
-          await widget.previsaoService.buscarPrevisaoHibrida(itemId);
+      final (estoque, spots) = await widget.previsaoService
+          .buscarPrevisaoHibrida(itemId);
 
       setState(() {
         _estoqueAtual = estoque;
@@ -96,16 +93,13 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
     });
     showCustomSnackbar(
       context,
-      message,
+      "Houve um erro ao gerar o gráfico. Veja mais detalhes acima.",
       isError: true,
     );
   }
 
   Widget _buildChartArea() {
-    final double screenHeight = MediaQuery.of(context).size.height;
-    
     final Widget currentContent;
-    bool showBackgroundIcon = true;
 
     if (_errorMessage != null) {
       currentContent = Column(
@@ -133,69 +127,43 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
           const SizedBox(height: 8),
           Text(
             _errorMessage!,
-            style: TextStyle(fontSize: 16, color: text40),
+            style: const TextStyle(fontSize: 16, color: text40),
             textAlign: TextAlign.center,
           ),
         ],
       );
-      showBackgroundIcon = true;
-
-    } else if (_dadosGraficoInventario != null && _dadosGraficoInventario!.isNotEmpty) {
+    } else if (_dadosGraficoInventario != null &&
+        _dadosGraficoInventario!.isNotEmpty) {
       currentContent = PrevisaoInventarioChart(spots: _dadosGraficoInventario!);
-      showBackgroundIcon = false;
-
     } else {
       currentContent = const Text(
         'Selecione um item e clique em "Gerar Previsão"',
-        style: TextStyle(fontSize: 16, color: Colors.grey),
+        style: TextStyle(fontSize: 14, color: Colors.grey),
         textAlign: TextAlign.center,
       );
-      showBackgroundIcon = true;
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: brightGray,
-        borderRadius: BorderRadius.circular(4.0),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Stack(
-        children: [
-          if (showBackgroundIcon)
-            Positioned(
-              bottom: -50,
-              right: -75,
-              child: SvgPicture.asset(
-                'assets/icons/chart.svg',
-                width: screenHeight * 0.5,
-                height: screenHeight * 0.5,
-                colorFilter: const ColorFilter.mode(
-                  Color(0xFFF5F5F5),
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-            
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: currentContent,
-            ),
-          ),
-        ],
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: brightGray,
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: currentContent,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_isLoadingItems)
-          const Center(child: CircularProgressIndicator())
+          const ShimmerPlaceholder(height: 85)
         else
           CustomDropdownInput<int>(
             upperLabel: 'SELECIONE UM ITEM',
@@ -223,7 +191,7 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
                 },
         ),
         SizedBox(height: 16),
-        
+
         if (_estoqueAtual > 0 &&
             !_isLoadingChart &&
             _dadosGraficoInventario != null)
@@ -240,7 +208,10 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
                 children: [
                   SvgPicture.asset(
                     'assets/icons/box.svg',
-                    colorFilter: const ColorFilter.mode(text40, BlendMode.srcIn),
+                    colorFilter: const ColorFilter.mode(
+                      text40,
+                      BlendMode.srcIn,
+                    ),
                     width: 20,
                     height: 20,
                   ),
@@ -270,12 +241,12 @@ class _PrevisaoPanelState extends State<PrevisaoPanel> {
               ),
             ),
           ),
-        SizedBox(height: 16),
-        
-        SizedBox(
-          height: screenHeight * 0.5,
-          child: _buildChartArea(),
-        ),
+        if (_estoqueAtual > 0 &&
+            !_isLoadingChart &&
+            _dadosGraficoInventario != null)
+          SizedBox(height: 16),
+
+        Expanded(child: _buildChartArea()),
       ],
     );
   }

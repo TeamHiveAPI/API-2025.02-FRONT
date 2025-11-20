@@ -88,7 +88,9 @@ class PrevisaoService {
         );
       }
 
-      throw PrevisaoException("O item selecionado não possui movimentações o suficiente para gerar uma previsão confiável.");
+      throw PrevisaoException(
+        "O item selecionado não possui movimentações o suficiente para gerar uma previsão confiável.",
+      );
     }
   }
 
@@ -147,15 +149,18 @@ class PrevisaoService {
         throw PrevisaoException("Você cancelou a requisição da previsão.");
       }
       throw PrevisaoException(
-          "Não foi possível conectar ao servidor. Verifique o IP ou se o servidor está rodando.");
+        "Não foi possível conectar ao servidor. Verifique o IP ou se o servidor está rodando.",
+      );
     } on SocketException catch (_) {
       throw PrevisaoException(
-          "Não foi possível conectar ao servidor. Verifique se o IP está correto e se o servidor da API está rodando.");
+        "Não foi possível conectar ao servidor. Verifique se o IP está correto e se o servidor da API está rodando.",
+      );
     } on TimeoutException catch (_) {
       throw PrevisaoException(
-          "Tempo esgotado. O servidor no IP fornecido não respondeu a tempo.");
+        "Tempo esgotado. O servidor no IP fornecido não respondeu a tempo.",
+      );
     } on PrevisaoException {
-      rethrow; 
+      rethrow;
     } catch (e) {
       print("Erro não tratado no PrevisaoService: $e");
       throw PrevisaoException("Ocorreu um erro inesperado. Tente novamente.");
@@ -167,28 +172,79 @@ class PrevisaoService {
       await _checkHostConnection();
 
       final uri = Uri.parse('$_apiLocalUrl/gerar-consumo-setor');
-      final response = await _client.get(uri).timeout(const Duration(seconds: 60));
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
         final errorData = json.decode(response.body);
-        String errorMessage = errorData['erro'] ?? "Erro desconhecido da API de consumo";
+        String errorMessage =
+            errorData['erro'] ?? "Erro desconhecido da API de consumo";
         throw PrevisaoException(errorMessage);
       }
     } on http.ClientException catch (e) {
       if (e.message.contains('Connection closed')) {
         throw PrevisaoException("Operação cancelada pelo usuário.");
       }
-      throw PrevisaoException("Não foi possível conectar ao servidor. Verifique o IP ou se o servidor está rodando.");
+      throw PrevisaoException(
+        "Não foi possível conectar ao servidor. Verifique o IP ou se o servidor está rodando.",
+      );
     } on SocketException catch (_) {
-      throw PrevisaoException("Não foi possível conectar ao servidor. Verifique se o IP está correto e se o servidor da API está rodando.");
+      throw PrevisaoException(
+        "Não foi possível conectar ao servidor. Verifique se o IP está correto e se o servidor da API está rodando.",
+      );
     } on TimeoutException catch (_) {
-      throw PrevisaoException("Tempo esgotado. O servidor no IP fornecido não respondeu a tempo.");
+      throw PrevisaoException(
+        "Tempo esgotado. O servidor no IP fornecido não respondeu a tempo.",
+      );
     } on PrevisaoException {
       rethrow;
     } catch (e) {
       print("Erro não tratado no buscarConsumoPorSetor: $e");
+      throw PrevisaoException("Ocorreu um erro inesperado. Tente novamente.");
+    }
+  }
+
+  Future<Map<String, dynamic>> buscarRiscoRuptura(int setorId) async {
+    try {
+      await _checkHostConnection();
+
+      final uri = Uri.parse(
+        '$_apiLocalUrl/gerar-risco-ruptura?setor_id=$setorId',
+      );
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 90));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        final errorData = json.decode(response.body);
+        String errorMessage =
+            errorData['erro'] ?? "Erro desconhecido na API de risco";
+        throw PrevisaoException(errorMessage);
+      }
+    } on http.ClientException catch (e) {
+      if (e.message.contains('Connection closed')) {
+        throw PrevisaoException("Operação cancelada pelo usuário.");
+      }
+      throw PrevisaoException(
+        "Não foi possível conectar ao servidor. Verifique o IP ou se o servidor está rodando.",
+      );
+    } on SocketException catch (_) {
+      throw PrevisaoException(
+        "Não foi possível conectar ao servidor. Verifique se o IP está correto e se o servidor da API está rodando.",
+      );
+    } on TimeoutException catch (_) {
+      throw PrevisaoException(
+        "Tempo esgotado. O servidor de análise de risco demorou muito para responder.",
+      );
+    } on PrevisaoException {
+      rethrow;
+    } catch (e) {
+      print("Erro não tratado no buscarRiscoRuptura: $e");
       throw PrevisaoException("Ocorreu um erro inesperado. Tente novamente.");
     }
   }
