@@ -17,6 +17,8 @@ class UserModel {
   final String authUid;
   final String? fotoUrl;
   final bool primeiroLogin;
+  final String dataCriacao;
+
   final UserRole role;
 
   UserModel({
@@ -29,6 +31,7 @@ class UserModel {
     required this.authUid,
     this.fotoUrl,
     required this.primeiroLogin,
+    required this.dataCriacao,
     required this.role,
   });
 }
@@ -69,7 +72,8 @@ class UserService with ChangeNotifier {
               ${UsuarioFields.setorId},
               ${UsuarioFields.authUid},
               ${UsuarioFields.fotoUrl},
-              ${UsuarioFields.primeiroLogin}
+              ${UsuarioFields.primeiroLogin},
+              ${UsuarioFields.dataCriacao}
             ''')
           .eq(UsuarioFields.authUid, userId)
           .single();
@@ -84,6 +88,7 @@ class UserService with ChangeNotifier {
         authUid: userData[UsuarioFields.authUid],
         fotoUrl: userData[UsuarioFields.fotoUrl],
         primeiroLogin: userData[UsuarioFields.primeiroLogin],
+        dataCriacao: userData[UsuarioFields.dataCriacao],
       );
       return true;
     } catch (e) {
@@ -182,6 +187,7 @@ class UserService with ChangeNotifier {
           authUid: userData['authUid'],
           fotoUrl: userData['fotoUrl'],
           primeiroLogin: userData['usr_primeiro_login'],
+          dataCriacao: userData['usr_data_criacao'],
           role: role,
         );
 
@@ -235,6 +241,7 @@ class UserService with ChangeNotifier {
     required String authUid,
     required String? fotoUrl,
     required bool primeiroLogin,
+    required String dataCriacao,
   }) {
     final role = _mapRoleFromDatabase(nivelAcesso, idSetor);
 
@@ -248,6 +255,7 @@ class UserService with ChangeNotifier {
       authUid: authUid,
       fotoUrl: fotoUrl,
       primeiroLogin: primeiroLogin,
+      dataCriacao: dataCriacao,
       role: role,
     );
 
@@ -270,6 +278,7 @@ class UserService with ChangeNotifier {
         'authUid': _currentUser!.authUid,
         'fotoUrl': _currentUser!.fotoUrl,
         'primeiroLogin': _currentUser!.primeiroLogin,
+        'dataCriacao': _currentUser!.dataCriacao,
         'role': _currentUser!.role.name,
       });
       await _storage.write(key: _userKey, value: userJson);
@@ -405,5 +414,13 @@ class UserService with ChangeNotifier {
     final UserRole role = _mapRoleFromDatabase(nivelAcesso, idSetor);
     final String cargoNome = getCargoNome(role);
     return cargoNome;
+  }
+
+  String getLabelCargoAtual() {
+    final user = currentUser;
+    if (user == null) return 'Usuário';
+
+    final role = _mapRoleFromDatabase(user.nivelAcesso, user.idSetor);
+    return getCargoNome(role);
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/app_routes.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/utils/formatters.dart';
 import 'package:sistema_almox/widgets/data_table/content/last_order_summary.dart';
 import 'package:sistema_almox/widgets/data_table/content/recent_movimentation.dart';
 import 'package:sistema_almox/widgets/view_all_button.dart';
@@ -25,7 +26,7 @@ class HomeScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 40.0),
               child: Text(
-                'Olá, $userName',
+                'Olá, ${formatName(userName)}',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,

@@ -60,7 +60,7 @@ class _FornecedorScreenState extends State<FornecedorScreen> {
       appBar: CustomHeader(
         onProfileTap: (index) {
           
-          print('Perfil tocado, índice: $index');
+          print('Perfil trocado, índice: $index');
         },
       ),
       backgroundColor: Colors.white,
