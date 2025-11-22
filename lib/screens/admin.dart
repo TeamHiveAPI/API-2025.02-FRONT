@@ -12,6 +12,47 @@ class AdminScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> menuItems = [
+      {
+        'icon': "assets/icons/users.svg",
+        'name': 'Usuários',
+        'action': () => Navigator.of(context).pushNamed(AppRoutes.usuarios),
+      },
+      {
+        'icon': "assets/icons/groups.svg",
+        'name': 'Grupos',
+        'action': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => GroupsScreen()),
+            ),
+      },
+      {
+        'icon': "assets/icons/supplier.svg",
+        'name': 'Fornecedores',
+        'action': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FornecedorScreen()),
+            ),
+      },
+      {
+        'icon': "assets/icons/paper.svg",
+        'name': 'Notas de Empenho',
+        'action': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotaEmpenhoScreen()),
+            ),
+      },
+      {
+        'icon': "assets/icons/panel.svg",
+        'name': 'Painel Analítico',
+        'action': () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const PainelAnaliticoScreen()),
+            ),
+      },
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -19,79 +60,22 @@ class AdminScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 40.0),
             const AdminHeaderCard(),
-
             Expanded(
-              child: SingleChildScrollView(
+              child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 20.0),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ManagementCard(
-                      iconPath: "assets/icons/users.svg",
-                      name: 'Usuários',
-                      description:
-                          'Atualize informações dos usuários do sistema',
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(AppRoutes.usuarios);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    ManagementCard(
-                      iconPath: "assets/icons/groups.svg",
-                      name: 'Grupos',
-                      description: 'Gerencie os grupos de itens de cada setor',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GroupsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    ManagementCard(
-                      iconPath: "assets/icons/suppliers.svg",
-                      name: 'Fornecedores',
-                      description: 'Gerencie os fornecedores dos pedidos',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FornecedorScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    ManagementCard(
-                      iconPath: "assets/icons/suppliers.svg",
-                      name: 'Notas de Empenho',
-                      description:
-                          'Gerencie o envio de notas de empenho para os fornecedores',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const NotaEmpenhoScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    ManagementCard(
-                      iconPath: "assets/icons/suppliers.svg",
-                      name: 'Painel Analítico',
-                      description:
-                          'Saiba mais sobre o consumo dos estoques com previsão de IA',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PainelAnaliticoScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                    ...menuItems.map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: ManagementCard(
+                          iconPath: item['icon'] as String,
+                          name: item['name'] as String,
+                          onPressed: item['action'] as VoidCallback,
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),

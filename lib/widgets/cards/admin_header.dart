@@ -12,7 +12,7 @@ class AdminHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16.0, 16.0, 24.0, 16.0),
       decoration: BoxDecoration(
         color: brandBlue,
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(6.0),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -34,7 +34,7 @@ class AdminHeaderCard extends StatelessWidget {
                 FractionallySizedBox(
                   widthFactor: 0.9,
                   child: Text(
-                    'Gerencie o sistema com os cards abaixo.',
+                    'Selecione um módulo de gestão.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withAlpha(190),

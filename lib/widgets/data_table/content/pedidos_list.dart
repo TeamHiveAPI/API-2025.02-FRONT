@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/utils/app_events.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -116,6 +117,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       if (mounted) {
         showCustomSnackbar(context, 'Pedido cancelado com sucesso!');
         onSearchQueryChanged(widget.searchQuery ?? '');
+        AppEvents.notifyStockUpdate();
       }
     } catch (e) {
       if (mounted) {

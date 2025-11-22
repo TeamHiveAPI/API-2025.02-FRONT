@@ -74,7 +74,7 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
         children: [
           CustomButton(
             text: 'Previsão de Demanda',
-            customIcon: "assets/icons/navbar/estoque.svg",
+            customIcon: "assets/icons/truck.svg",
             secondary: _selectedPanel != AnaliticoPanel.previsao,
             onPressed: _selectedPanel == AnaliticoPanel.previsao
                 ? () {}
@@ -84,6 +84,7 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
           const SizedBox(width: 8),
           CustomButton(
             text: 'Consumo por Setor',
+            customIcon: "assets/icons/warehouse.svg",
             secondary: _selectedPanel != AnaliticoPanel.consumo,
             onPressed: _selectedPanel == AnaliticoPanel.consumo
                 ? () {}
@@ -92,6 +93,7 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
           const SizedBox(width: 8),
           CustomButton(
             text: 'Risco de Ruptura',
+            customIcon: "assets/icons/risk.svg",
             secondary: _selectedPanel != AnaliticoPanel.risco,
             onPressed: _selectedPanel == AnaliticoPanel.risco
                 ? () {}
@@ -130,10 +132,7 @@ class _PainelAnaliticoScreenState extends State<PainelAnaliticoScreen> {
               top: false,
               bottom: true,
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                ),
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

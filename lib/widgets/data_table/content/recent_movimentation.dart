@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/movimentation_service.dart';
+import 'package:sistema_almox/utils/app_events.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -15,6 +16,7 @@ class MovimentationLogTable extends StatefulWidget {
   final String? searchQuery;
   final bool isSpecificItem;
   final String? fixedItemNameFilter;
+  final ValueNotifier<int>? refreshNotifier;
 
   const MovimentationLogTable({
     super.key,
@@ -22,6 +24,7 @@ class MovimentationLogTable extends StatefulWidget {
     this.searchQuery,
     this.isSpecificItem = false,
     this.fixedItemNameFilter,
+    this.refreshNotifier,
   });
 
   @override
@@ -110,6 +113,27 @@ class _MovimentationLogTableState extends State<MovimentationLogTable>
   void initState() {
     super.initState();
     initTableHandler(initialSearchQuery: widget.searchQuery ?? '');
+    if (widget.isRecentView) {
+      AppEvents.stockUpdateNotifier.addListener(_forceRefresh);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.isRecentView) {
+      AppEvents.stockUpdateNotifier.removeListener(_forceRefresh);
+    }
+    super.dispose();
+  }
+
+  void _forceRefresh() {
+    if (!mounted) return;
+
+    setState(() {
+      loadedItems.clear();
+      isLoading = false;
+    });
+    loadMoreData();
   }
 
   @override

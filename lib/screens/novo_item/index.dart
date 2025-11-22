@@ -7,6 +7,7 @@ import 'package:sistema_almox/screens/novo_item/lote_section.dart';
 import 'package:sistema_almox/services/group_service.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/utils/app_events.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
@@ -247,6 +248,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
       await ItemService.instance.updateItem(itemId, itemPayload);
 
       showCustomSnackbar(context, 'Item atualizado com sucesso!');
+      AppEvents.notifyStockUpdate();
+      
       if (mounted) Navigator.of(context).pop(true);
     } on PostgrestException catch (e) {
       if (e.message.contains('item_it_num_ficha_key')) {
