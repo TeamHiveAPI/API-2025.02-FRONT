@@ -66,11 +66,14 @@ class _OrderScreenState extends State<OrderScreen> {
 
             CustomButton(
               text: 'Meu Histórico de Pedidos',
-              icon: Icons.history,
+              customIcon: "assets/icons/history.svg",
               widthPercent: 1.0,
               secondary: true,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/meus-pedidos');
+              },
             ),
+
             const SizedBox(height: 24),
 
             Builder(
@@ -103,7 +106,11 @@ class _OrderScreenState extends State<OrderScreen> {
 
             const SizedBox(height: 20),
 
-            PedidosTable(key: ValueKey(userService.viewingSectorId), searchQuery: _searchQuery, userRole: _currentUserRole),
+            PedidosTable(
+              key: ValueKey(userService.viewingSectorId),
+              searchQuery: _searchQuery,
+              userRole: _currentUserRole,
+            ),
           ],
         ),
       ),
