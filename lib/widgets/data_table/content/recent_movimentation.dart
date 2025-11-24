@@ -73,15 +73,28 @@ class _MovimentationLogTableState extends State<MovimentationLogTable>
             dataField: 'data_operacao',
             widthFactor: 0.55,
             cellBuilder: (value) {
-              final DateTime dateTime = value is String
-                  ? DateTime.tryParse(value) ?? DateTime.now()
-                  : (value as DateTime? ?? DateTime.now());
+              String textoExibido = 'Data indisponível';
+              if (value != null) {
+                try {
+                  DateTime? data;
+                  if (value is String && value.isNotEmpty) {
+                    data = DateTime.parse(value);
+                  }
+                  else if (value is DateTime) {
+                    data = value;
+                  }
+                  if (data != null) {
+                    final dataLocal = data.toLocal();
+                    textoExibido = DateFormat(
+                      'dd/MM/yyyy HH:mm'
+                    ).format(dataLocal);
+                  }
+                } catch (e) {
+                  debugPrint("Erro ao formatar data na tabela: $e");
+                }
+              }
 
-              final String formattedDate = DateFormat(
-                'dd/MM/yyyy HH:mm',
-              ).format(dateTime);
-
-              return Text(formattedDate);
+              return Text(textoExibido);
             },
           )
         : TableColumn(

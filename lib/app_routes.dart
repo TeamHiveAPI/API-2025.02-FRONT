@@ -6,7 +6,6 @@ import 'package:sistema_almox/screens/consultas_medico/config_horario.dart';
 import 'package:sistema_almox/screens/historico_item.dart';
 import 'package:sistema_almox/screens/historico_mov.dart';
 import 'package:sistema_almox/screens/historico_pedidos.dart';
-import 'package:sistema_almox/screens/novo_grupo/index.dart';
 import 'package:sistema_almox/screens/novo_item/index.dart';
 import 'package:sistema_almox/screens/novo_soldado/index.dart';
 import 'package:sistema_almox/screens/painel_analitico/index.dart';
@@ -23,7 +22,6 @@ class AppRoutes {
   static const String newItem = '/novo-item';
   static const String usuarios = '/usuarios';
   static const String newSoldier = '/novo-soldado';
-  static const String newGroup = '/novo-grupo';
   static const String allMovements = '/movimentacoes';
   static const String itemMovements = '/movimentacoes-item';
   static const String consultas = '/consultas';
@@ -86,9 +84,6 @@ class AppRoutes {
 
       case usuarios:
         return MaterialPageRoute(builder: (_) => const UsersScreen());
-
-      case newGroup:
-        return MaterialPageRoute(builder: (_) => NewGroupScreen());
 
       case consultas:
         return MaterialPageRoute(builder: (_) => const ConsultasScreen());

@@ -36,7 +36,10 @@ VoidCallback showCustomSnackbar(
               child: Material(
                 color: Colors.transparent,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 0, 10, 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 3,
+                  ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: Stack(
@@ -115,8 +118,7 @@ VoidCallback showCustomSnackbar(
                               if (isLoading)
                                 GestureDetector(
                                   onTap: () {
-                                    onCancel
-                                        ?.call();
+                                    onCancel?.call();
                                     closeSnackbar();
                                   },
                                   child: const Padding(

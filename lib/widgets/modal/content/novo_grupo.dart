@@ -187,9 +187,9 @@ class _NovoGrupoModalState extends State<NovoGrupoModal> {
               child: Text(
                 'SETOR',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black54,
+                  color: text60,
                 ),
               ),
             ),

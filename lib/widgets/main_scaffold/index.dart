@@ -28,6 +28,7 @@ class MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
   List<Widget> _pages = [];
   List<NavBarItemInfo> _navBarItemsInfo = [];
+  static bool _isPasswordModalOpen = false;
 
   @override
   void initState() {
@@ -49,15 +50,19 @@ class MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  void _checkFirstLogin() {
+  void _checkFirstLogin() async {
     final userService = Provider.of<UserService>(context, listen: false);
 
-    if (userService.currentUser?.primeiroLogin == true) {
-      showCustomBottomSheet(
+    if (userService.currentUser?.primeiroLogin == true &&
+        !_isPasswordModalOpen) {
+      _isPasswordModalOpen = true;
+
+      await showCustomBottomSheet(
         context: context,
         title: 'Redefina Sua Senha',
         child: const ChangePasswordForm(),
       );
+      _isPasswordModalOpen = false;
     }
   }
 
@@ -157,7 +162,9 @@ class MainScaffoldState extends State<MainScaffold> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isProfilePage ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: isProfilePage
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: Scaffold(
         appBar: isProfilePage

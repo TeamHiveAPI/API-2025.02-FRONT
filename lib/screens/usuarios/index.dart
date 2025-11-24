@@ -99,27 +99,25 @@ class _UsersScreenState extends State<UsersScreen> with RouteAware {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 32),
-                    if (isCoronel)
-                      CustomButton(
-                        text: 'Cadastrar Novo Soldado',
-                        icon: Icons.add,
-                        widthPercent: 1.0,
-                        onPressed: () async {
-                          final result = await Navigator.of(
-                            context,
-                          ).pushNamed(AppRoutes.newSoldier);
+                    CustomButton(
+                      text: 'Cadastrar Novo Soldado',
+                      icon: Icons.add,
+                      widthPercent: 1.0,
+                      onPressed: () async {
+                        final result = await Navigator.of(
+                          context,
+                        ).pushNamed(AppRoutes.newSoldier);
 
-                          if (result != null &&
-                              result is Map<String, dynamic> &&
-                              context.mounted) {
-                            final String password =
-                                result['password'] as String;
-                            showTemporaryPasswordModal(context, password);
-                          }
-                        },
-                      ),
+                        if (result != null &&
+                            result is Map<String, dynamic> &&
+                            context.mounted) {
+                          final String password = result['password'] as String;
+                          showTemporaryPasswordModal(context, password);
+                        }
+                      },
+                    ),
 
-                    if (isCoronel) const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     if (isCoronel) ...[
                       const LieutenantCards(),
                       const SizedBox(height: 32),
