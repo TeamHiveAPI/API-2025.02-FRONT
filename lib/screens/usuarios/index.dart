@@ -98,7 +98,7 @@ class _UsersScreenState extends State<UsersScreen> with RouteAware {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 32),
                     if (isCoronel)
                       CustomButton(
                         text: 'Cadastrar Novo Soldado',

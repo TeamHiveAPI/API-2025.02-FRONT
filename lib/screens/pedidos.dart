@@ -67,6 +67,7 @@ class _OrderScreenState extends State<OrderScreen> {
             CustomButton(
               text: 'Meu Histórico de Pedidos',
               customIcon: "assets/icons/history.svg",
+              iconStrokeWidth: 2,
               widthPercent: 1.0,
               secondary: true,
               onPressed: () {

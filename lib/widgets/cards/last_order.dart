@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/services/pedido_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
@@ -26,7 +27,6 @@ class LastOrderCard extends StatefulWidget {
 }
 
 class _LastOrderCardState extends State<LastOrderCard> {
-  
   int _refreshKey = 0;
 
   void _refreshData() {
@@ -75,14 +75,17 @@ class _LastOrderCardState extends State<LastOrderCard> {
     }
   }
 
-  Future<dynamic> _showMotivoCancelamentoFlow(Map<String, dynamic> pedidoData) async {
+  Future<dynamic> _showMotivoCancelamentoFlow(
+    Map<String, dynamic> pedidoData,
+  ) async {
     dynamic resultFromModal;
     do {
       resultFromModal = await showCustomBottomSheet(
         context: context,
         title: "Motivo do Cancelamento",
         child: MotivoCancelamentoModal(
-          motivo: pedidoData[PedidoFields.motivoCancelamento] ?? 'Não especificado',
+          motivo:
+              pedidoData[PedidoFields.motivoCancelamento] ?? 'Não especificado',
           responsavelId: pedidoData[PedidoFields.responsavelCancelamentoId],
           onViewResponsavelDetails: (userId) {
             Navigator.of(context).pop(userId);
@@ -175,12 +178,14 @@ class _LastOrderCardState extends State<LastOrderCard> {
         ),
       );
     }
+
     showPedidoModal();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userRole = UserService.instance.currentUser?.role ?? UserRole.soldadoComum;
+    final userRole =
+        UserService.instance.currentUser?.role ?? UserRole.soldadoComum;
 
     return FutureBuilder<PaginatedResponse>(
       key: ValueKey(_refreshKey),
@@ -204,15 +209,22 @@ class _LastOrderCardState extends State<LastOrderCard> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: brightGray,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[200]!),
             ),
             child: Column(
-              children: const [
-                Icon(Icons.shopping_basket_outlined, color: text60, size: 32),
-                SizedBox(height: 8),
-                Text("Você ainda não fez pedidos", style: TextStyle(color: text60)),
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/box.svg',
+                  width: 32,
+                  height: 32,
+                  color: Colors.grey.shade600,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  "Você ainda não fez pedidos.",
+                  style: TextStyle(color: text80),
+                ),
               ],
             ),
           );
@@ -269,7 +281,10 @@ class _LastOrderCardState extends State<LastOrderCard> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: statusColor.withAlpha(16),
                             borderRadius: BorderRadius.circular(4),

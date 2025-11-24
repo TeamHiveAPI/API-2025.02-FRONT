@@ -16,7 +16,7 @@ import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/lot_input_row.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/item_multi_cadastro.dart';
-import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/novo_grupo_rapido.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
