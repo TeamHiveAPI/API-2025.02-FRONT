@@ -7,7 +7,7 @@ class SystemConstants {
   static const int setorFarmacia = 2;
   static const int setorManutencao = 3;
 
-  static const int itemsPorPagina = 10;
+  static const int itemsPorPagina = 8;
   static const int itemsPorPaginaEstoque = 8;
 
   static const int alturaCardModal = 64;

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
 import 'package:sistema_almox/screens/novo_soldado/form_handler.dart';
 import 'package:sistema_almox/services/user_service.dart';
@@ -9,7 +10,7 @@ import 'package:sistema_almox/widgets/internal_page_bottom.dart';
 import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
-import 'package:sistema_almox/widgets/sector_dropdown.dart';
+import 'package:sistema_almox/widgets/toggle_sector_buttons.dart';
 
 class NewSoldierScreen extends StatefulWidget {
   final Map<String, dynamic>? soldierToEdit;
@@ -21,12 +22,14 @@ class NewSoldierScreen extends StatefulWidget {
 
 class _NewSoldierScreenState extends State<NewSoldierScreen> {
   final _formHandler = RegisterSoldierFormHandler();
+
+  final _readOnlySectorController = TextEditingController();
+
   bool get isEditMode => widget.soldierToEdit != null;
 
   @override
   void initState() {
     super.initState();
-
     _formHandler.addListener(_onFormHandlerChange);
     _formHandler.init(widget.soldierToEdit);
   }
@@ -34,7 +37,6 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
   @override
   void didUpdateWidget(covariant NewSoldierScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (widget.soldierToEdit != oldWidget.soldierToEdit) {
       _formHandler.init(widget.soldierToEdit);
     }
@@ -44,11 +46,18 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
   void dispose() {
     _formHandler.removeListener(_onFormHandlerChange);
     _formHandler.dispose();
+    _readOnlySectorController.dispose();
     super.dispose();
   }
 
   void _onFormHandlerChange() {
-    setState(() {});
+    if (mounted) setState(() {});
+  }
+
+  String _getSectorName(int? sectorId) {
+    if (sectorId == 1) return 'Almoxarifado';
+    if (sectorId == 2) return 'Farmácia';
+    return 'Não definido';
   }
 
   void _deactivateUser() async {
@@ -75,28 +84,32 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       _formHandler.deactivateUser(context, widget.soldierToEdit!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = UserService.instance.currentUser;
+    final bool isCoronel = currentUser?.role == UserRole.coronel;
+
     bool isLieutenant =
         isEditMode && widget.soldierToEdit?['usr_nivel_acesso'] == 2;
 
     if (isEditMode) {
       final tenantSectorId = widget.soldierToEdit?['usr_setor_id'];
       _formHandler.setSelectedSector(tenantSectorId ?? 1);
+
+      _readOnlySectorController.text = _getSectorName(tenantSectorId);
     } else {
-      final currentUser = UserService.instance.currentUser;
-      if (currentUser?.nivelAcesso == 3) {
+      if (isCoronel) {
         if (_formHandler.selectedSectorId == null) {
-          _formHandler.setSelectedSector(1);
+          final viewingSectorId = UserService.instance.viewingSectorId ?? 1;
+          _formHandler.setSelectedSector(viewingSectorId);
         }
       } else {
-        final viewingSectorId = UserService.instance.viewingSectorId ?? 1;
-        _formHandler.setSelectedSector(viewingSectorId);
+        _formHandler.setSelectedSector(currentUser?.idSetor ?? 1);
       }
     }
 
@@ -146,7 +159,6 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                                     )
                                   : null,
                             ),
-
                             Positioned.fill(
                               child: Material(
                                 color: Colors.transparent,
@@ -169,7 +181,6 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                                 ),
                               ),
                             ),
-
                             if (_formHandler.selectedImage != null)
                               Positioned(
                                 bottom: 0,
@@ -202,7 +213,9 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 32),
+
                       CustomTextFormField(
                         upperLabel: 'NOME COMPLETO',
                         hintText: 'Digite aqui',
@@ -221,7 +234,7 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                         inputFormatters: [_formHandler.cpfMaskFormatter],
                         validator: (value) =>
                             _formHandler.validateRequired(value, 'CPF'),
-                        readOnly: isEditMode ? true : false,
+                        readOnly: isEditMode,
                       ),
 
                       const SizedBox(height: 24),
@@ -236,15 +249,35 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
 
                       const SizedBox(height: 24),
 
-                      SectorDropdown(
-                        selectedSectorId: _formHandler.selectedSectorId,
-                        onSectorChanged: (sectorId) {
-                          _formHandler.setSelectedSector(sectorId);
-                        },
-                        enabled:
-                            !isEditMode ||
-                            UserService.instance.currentUser?.nivelAcesso == 3,
-                      ),
+                      if (isEditMode) ...[
+                        CustomTextFormField(
+                          upperLabel: 'SETOR',
+                          controller: _readOnlySectorController,
+                          readOnly: true,
+                        ),
+                      ] else ...[
+                        if (isCoronel) ...[
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              'SETOR',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                          SectorToggleButtons(
+                            currentSectorId: _formHandler.selectedSectorId ?? 1,
+                            onSectorSelected: (sectorId) {
+                              setState(() {
+                                _formHandler.setSelectedSector(sectorId);
+                              });
+                            },
+                          ),
+                        ],
+                      ],
 
                       if (isLieutenant)
                         Padding(
@@ -296,6 +329,7 @@ class _NewSoldierScreenState extends State<NewSoldierScreen> {
                 ),
               ),
             ),
+
             InternalPageBottom(
               buttonText: isEditMode
                   ? 'Salvar Alterações'

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/core/constants/database.dart';
 import 'package:sistema_almox/core/theme/colors.dart';
+import 'package:sistema_almox/utils/app_events.dart';
 import 'package:sistema_almox/utils/table_handler_mixin.dart';
 import 'package:sistema_almox/widgets/data_table/json_table.dart';
 import 'package:sistema_almox/widgets/data_table/table_column.dart';
@@ -19,8 +20,14 @@ import 'package:sistema_almox/core/constants/pedido_constants.dart';
 class PedidosTable extends StatefulWidget {
   final String? searchQuery;
   final UserRole userRole;
+  final bool onlyMyOrders;
 
-  const PedidosTable({super.key, this.searchQuery, required this.userRole});
+  const PedidosTable({
+    super.key,
+    this.searchQuery,
+    required this.userRole,
+    this.onlyMyOrders = false,
+  });
 
   @override
   State<PedidosTable> createState() => _PedidosTableState();
@@ -44,8 +51,8 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
   @override
   List<TableColumn> get tableColumns => [
     TableColumn(
-      title: 'N° de itens',
-      dataField: 'num_itens_display',
+      title: 'ID',
+      dataField: 'id',
       widthFactor: 0.5,
       sortType: SortType.numeric,
     ),
@@ -85,6 +92,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
         sortParams: sortParams,
         searchQuery: searchQuery,
         userRole: widget.userRole,
+        onlyMyOrders: widget.onlyMyOrders,
       );
     } catch (e) {
       print('Erro ao carregar pedidos: $e');
@@ -116,6 +124,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
       if (mounted) {
         showCustomSnackbar(context, 'Pedido cancelado com sucesso!');
         onSearchQueryChanged(widget.searchQuery ?? '');
+        AppEvents.notifyStockUpdate();
       }
     } catch (e) {
       if (mounted) {
@@ -261,8 +270,7 @@ class _PedidosTableState extends State<PedidosTable> with TableHandler {
           child: DetalhesUsuarioModal(idUsuario: resultFromModal),
         );
       }
-    } while (resultFromModal
-        is int);
+    } while (resultFromModal is int);
 
     return resultFromModal;
   }

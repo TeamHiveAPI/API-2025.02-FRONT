@@ -118,7 +118,7 @@ class _DetalhesItemModalState extends State<DetalhesItemModal> {
     final unidMedida = _itemData?['unidade'] ?? '';
     final qtdDisponivel = _itemData?['qtd_total'] ?? 0;
     final qtdReservada = _itemData?['qtd_reservada'] ?? 0;
-    final grupo = _itemData?['grupo']?['nome'] ?? '';
+    final grupo = _itemData?['grupo']?['nome'] ?? 'Sem grupo';
     final controlado = _itemData?['controlado'];
     final itemSectorId = _itemData?['grupo']?['id_setor'] ?? 0;
     final isPerecivel = _itemData?['perecivel'] ?? false;

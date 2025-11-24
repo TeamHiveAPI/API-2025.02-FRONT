@@ -32,12 +32,10 @@ String formatDate(dynamic date) {
   return formatter.format(dateObject);
 }
 
-
 String formatCPF(String cpf) {
   final digits = cpf.toString().padLeft(11, '0');
   return '${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9, 11)}';
 }
-
 
 String formatName(dynamic fullName) {
   if (fullName is! String || fullName.trim().isEmpty) {
@@ -66,4 +64,14 @@ String formatName(dynamic fullName) {
       .toList();
 
   return [firstName, ...abbreviatedMiddleNames, lastName].join(' ');
+}
+
+String formatCreationDate(DateTime? date) {
+  if (date == null) return '';
+
+  final String day = date.day.toString().padLeft(2, '0');
+  final String month = date.month.toString().padLeft(2, '0');
+  final String year = date.year.toString();
+
+  return '$day/$month/$year';
 }

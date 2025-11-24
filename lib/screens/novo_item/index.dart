@@ -7,6 +7,7 @@ import 'package:sistema_almox/screens/novo_item/lote_section.dart';
 import 'package:sistema_almox/services/group_service.dart';
 import 'package:sistema_almox/services/item_service.dart';
 import 'package:sistema_almox/services/user_service.dart';
+import 'package:sistema_almox/utils/app_events.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/select.dart';
 import 'package:sistema_almox/widgets/inputs/text_field.dart';
@@ -15,7 +16,7 @@ import 'package:sistema_almox/widgets/internal_page_header.dart';
 import 'package:sistema_almox/widgets/lot_input_row.dart';
 import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
 import 'package:sistema_almox/widgets/modal/content/item_multi_cadastro.dart';
-import 'package:sistema_almox/widgets/modal/content/novo_grupo_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/novo_grupo_rapido.dart';
 import 'package:sistema_almox/widgets/modal/base_center_modal.dart';
 import 'package:sistema_almox/widgets/radio_button.dart';
 import 'package:sistema_almox/widgets/shimmer_placeholder.dart';
@@ -41,13 +42,22 @@ class _NewItemScreenState extends State<NewItemScreen> {
   bool _isSaving = false;
   String? _loadingError;
 
+  int? _nonPerishableLotId;
+
   @override
   void initState() {
     super.initState();
-    _loadGroups();
+    _initializePageData();
+  }
+
+  Future<void> _initializePageData() async {
+    await _loadGroups();
 
     if (isEditMode) {
       _populateFormForEdit();
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -91,7 +101,10 @@ class _NewItemScreenState extends State<NewItemScreen> {
   }
 
   void _populateFormForEdit() {
+    if (widget.itemToEdit == null) return;
+
     final item = widget.itemToEdit!;
+
     _formHandler.nameController.text = item['nome']?.toString() ?? '';
     _formHandler.recordNumberController.text =
         item['num_ficha']?.toString() ?? '';
@@ -99,16 +112,28 @@ class _NewItemScreenState extends State<NewItemScreen> {
         item['unidade']?.toString() ?? '';
     _formHandler.minStockController.text =
         item['min_estoque']?.toString() ?? '0';
-    _formHandler.selectedGroupId = item['id_grupo'];
+
+    dynamic rawGroupId;
+
+    if (item['grupo'] != null && item['grupo'] is Map) {
+      rawGroupId = item['grupo']['id'];
+    } else if (item['id_grupo'] != null) {
+      rawGroupId = item['id_grupo'];
+    }
+
+    if (rawGroupId != null) {
+      _formHandler.selectedGroupId = (rawGroupId as num).toInt();
+    }
+
     _formHandler.isPerishable = item['perecivel'] ?? false;
     _formHandler.isControlled = item['controlado'] ?? false;
 
     final lotesData = item['lotes'];
+
     if (_formHandler.isPerishable &&
         lotesData is List &&
         lotesData.isNotEmpty) {
       _formHandler.lotControllers.clear();
-
       for (final lote in lotesData) {
         final lotController = LotController(
           id: lote['id'],
@@ -122,6 +147,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
     } else if (!(_formHandler.isPerishable) &&
         lotesData is List &&
         lotesData.isNotEmpty) {
+      _nonPerishableLotId = lotesData[0]['id'];
+
       _formHandler.initialQuantityController.text =
           lotesData[0]?['qtd_atual']?.toString() ?? '0';
     }
@@ -156,6 +183,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     } else {
       payload['lotes'] = [
         {
+          'id': _nonPerishableLotId,
           'qtd_atual':
               int.tryParse(_formHandler.initialQuantityController.text) ?? 0,
           'data_validade': null,
@@ -247,6 +275,8 @@ class _NewItemScreenState extends State<NewItemScreen> {
       await ItemService.instance.updateItem(itemId, itemPayload);
 
       showCustomSnackbar(context, 'Item atualizado com sucesso!');
+      AppEvents.notifyStockUpdate();
+
       if (mounted) Navigator.of(context).pop(true);
     } on PostgrestException catch (e) {
       if (e.message.contains('item_it_num_ficha_key')) {
@@ -421,7 +451,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: 'UNIDADE DE MEDIDA',
+                              upperLabel: 'UNID. MEDIDA',
                               hintText: 'Digite aqui',
                               controller: _formHandler.unitOfMeasureController,
                               validator: (value) => _formHandler
@@ -437,8 +467,12 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           Expanded(
                             child: CustomTextFormField(
                               upperLabel: _formHandler.isPerishable
-                                  ? 'QTD. INICIAL TOTAL'
-                                  : 'QTD. INICIAL',
+                                  ? (isEditMode
+                                        ? 'QTD. TOTAL'
+                                        : 'QTD. INICIAL TOTAL')
+                                  : (isEditMode
+                                        ? 'QUANTIDADE'
+                                        : 'QTD. INICIAL'),
                               hintText: 'Número',
                               controller:
                                   _formHandler.initialQuantityController,
@@ -451,7 +485,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                                 if (!_formHandler.isPerishable) {
                                   return _formHandler.validateRequired(
                                     value,
-                                    'Qtd. Inicial',
+                                    isEditMode ? 'Quantidade' : 'Qtd. Inicial',
                                   );
                                 }
                                 return null;
@@ -461,7 +495,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: CustomTextFormField(
-                              upperLabel: 'ESTOQUE MÍNIMO',
+                              upperLabel: 'ESTOQUE MIN.',
                               hintText: 'Número',
                               controller: _formHandler.minStockController,
                               keyboardType: TextInputType.number,

@@ -5,9 +5,10 @@ import 'package:sistema_almox/screens/consultas_medico/index.dart';
 import 'package:sistema_almox/screens/consultas_medico/config_horario.dart';
 import 'package:sistema_almox/screens/historico_item.dart';
 import 'package:sistema_almox/screens/historico_mov.dart';
-import 'package:sistema_almox/screens/novo_grupo/index.dart';
+import 'package:sistema_almox/screens/historico_pedidos.dart';
 import 'package:sistema_almox/screens/novo_item/index.dart';
 import 'package:sistema_almox/screens/novo_soldado/index.dart';
+import 'package:sistema_almox/screens/painel_analitico/index.dart';
 import 'package:sistema_almox/screens/usuarios/index.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'screens/login.dart';
@@ -21,13 +22,15 @@ class AppRoutes {
   static const String newItem = '/novo-item';
   static const String usuarios = '/usuarios';
   static const String newSoldier = '/novo-soldado';
-  static const String newGroup = '/novo-grupo';
   static const String allMovements = '/movimentacoes';
   static const String itemMovements = '/movimentacoes-item';
   static const String consultas = '/consultas';
   static const String agendarConsulta = '/agendar-consulta';
   static const String consultasMedico = '/consultas-medico';
   static const String configHorario = '/config-horario';
+  static const String painelAnalitico = '/painel-analitico';
+  static const String meusPedidos = '/meus-pedidos';
+
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -39,6 +42,9 @@ class AppRoutes {
 
       case allMovements:
         return MaterialPageRoute(builder: (_) => const AllMovementsScreen());
+
+      case painelAnalitico:
+        return MaterialPageRoute(builder: (_) => const PainelAnaliticoScreen());
 
       case itemMovements:
         final args = settings.arguments as Map<String, dynamic>;
@@ -79,9 +85,6 @@ class AppRoutes {
       case usuarios:
         return MaterialPageRoute(builder: (_) => const UsersScreen());
 
-      case newGroup:
-        return MaterialPageRoute(builder: (_) => NewGroupScreen());
-
       case consultas:
         return MaterialPageRoute(builder: (_) => const ConsultasScreen());
 
@@ -93,6 +96,9 @@ class AppRoutes {
 
       case configHorario:
         return MaterialPageRoute(builder: (_) => const ConfigHorarioScreen());
+
+      case meusPedidos:
+        return MaterialPageRoute(builder: (_) => const OrderHistoryScreen());
 
       default:
         return MaterialPageRoute(

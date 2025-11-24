@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_almox/services/group_service.dart';
+import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/services/user_service.dart';
 import 'package:sistema_almox/widgets/button.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
-import 'package:sistema_almox/widgets/snackbar.dart'; 
-import 'EditGroupScreen.dart';
-import 'package:sistema_almox/services/sector_service.dart';
+import 'package:sistema_almox/widgets/internal_page_header.dart';
+import 'package:sistema_almox/widgets/data_table/content/group_list.dart';
+import 'package:sistema_almox/widgets/modal/base_bottom_sheet_modal.dart';
+import 'package:sistema_almox/widgets/modal/content/novo_grupo.dart';
+import 'package:sistema_almox/widgets/toggle_sector_buttons.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
@@ -16,27 +18,26 @@ class GroupsScreen extends StatefulWidget {
 
 class _GroupsScreenState extends State<GroupsScreen> {
   String _searchQuery = '';
+  int _listKey = 0;
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _groups = [];
-  final _groupService = GroupService();
-  final _userService = UserService.instance;
-
-  int? get _currentSectorId => _userService.viewingSectorId;
+  final UserService _userService = UserService.instance;
 
   @override
   void initState() {
     super.initState();
-    _fetchGroups();
+    _userService.addListener(_onUserChanged);
   }
 
-  Future<void> _fetchGroups() async {
-    if (_currentSectorId == null) return;
+  @override
+  void dispose() {
+    _userService.removeListener(_onUserChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
 
-    final groups = await _groupService.fetchGroupsBySector(_currentSectorId!);
+  void _onUserChanged() {
     if (mounted) {
-      setState(() {
-        _groups = groups;
-      });
+      setState(() {});
     }
   }
 
@@ -46,184 +47,88 @@ class _GroupsScreenState extends State<GroupsScreen> {
     });
   }
 
-  Future<void> _showDeleteDialog(BuildContext context, int groupId, String groupName) async {
-  return showDialog<void>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Excluir Grupo'),
-        content: Text('Tem certeza que deseja excluir o grupo "$groupName"?'),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
-            onPressed: () async {
-              Navigator.of(context).pop(); 
+  void _openNewGroupModal(BuildContext context) async {
+    final result = await showCustomBottomSheet(
+      context: context,
+      title: "Registrar Novo Grupo",
+      child: const NovoGrupoModal(),
+    );
 
-              try {
-                if (groupId == 1 || groupId == 2 || groupId == 3) {
-                  showCustomSnackbar(
-                    context,
-                    'Este grupo não pode ser deletado.',
-                    isError: true,
-                  );
-                  return;
-                }
-
-                await _groupService.deleteGroup(groupId);
-                await _fetchGroups();
-
-                if (mounted) {
-                  showCustomSnackbar(
-                    context,
-                    'Grupo excluído e itens realocados com sucesso!',
-                    isError: false,
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  showCustomSnackbar(
-                    context,
-                    'Erro ao excluir grupo: $e',
-                    isError: true,
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
+    if (result == true) {
+      if (mounted) {
+        setState(() {
+          _listKey++;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filteredGroups = _groups.where((g) {
-      final name = g['grp_nome']?.toString().toLowerCase() ?? '';
-      return name.contains(_searchQuery.toLowerCase());
-    }).toList();
+    final currentUser = _userService.currentUser;
+    final bool isCoronel = currentUser?.role == UserRole.coronel;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center( 
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800), 
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 16),
+      body: Column(
+        children: [
+          const InternalPageHeader(title: "Listagem de Grupos"),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                vertical: 0.0,
+                horizontal: 16.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 32),
 
-              _currentSectorId == null
-                ? const Text(
-                    'Setor atual: Não definido',
-                    style: TextStyle(fontSize: 16, color: Colors.red),
-                  )
-                : FutureBuilder<String?>(
-                    future: SectorService().getSectorNameById(_currentSectorId!),
-                    builder: (context, snapshot) {
-                      String displayName;
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        displayName = 'Carregando...';
-                      } else if (snapshot.hasError) {
-                        displayName = 'Erro';
-                      } else {
-                        displayName = snapshot.data ?? 'Não definido';
-                      }
-
-                      return Text(
-                        'Setor atual: $displayName',
-                        style: const TextStyle(fontSize: 16, color: Colors.red),
-                      );
+                  CustomButton(
+                    text: 'Cadastrar Novo Grupo',
+                    icon: Icons.add,
+                    widthPercent: 1.0,
+                    onPressed: () {
+                      _openNewGroupModal(context);
                     },
                   ),
 
+                  const SizedBox(height: 20),
 
-                const Text(
-                  'Listagem de Grupos',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
+                  if (isCoronel) ...[
+                    SectorToggleButtons(
+                      currentSectorId: _userService.viewingSectorId ?? 1,
+                      onSectorSelected: (newSectorId) {
+                        _userService.setViewingSector(newSectorId);
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
-                const SizedBox(height: 16),
-
-                GenericSearchInput(
-                  controller: _searchController,
-                  onSearchChanged: _handleSearch,
-                ),
-
-                const SizedBox(height: 20),
-
-                Center(
-                  child: DataTable(
-                    headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
-                    columns: const [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text('Nome')),
-                      DataColumn(label: Text('Ações')),
-                    ],
-                    rows: filteredGroups.map((group) {
-                      return DataRow(cells: [
-                        DataCell(Text(group['id'].toString())),
-                        DataCell(Text(group['grp_nome'] ?? '')),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blueAccent),
-                                tooltip: 'Editar grupo',
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditGroupScreen(
-                                        groupId: group['id'],
-                                        initialName: group['grp_nome'] ?? '',
-                                        initialSectorId: group['grp_setor_id'] ?? _userService.viewingSectorId ?? 0,
-                                      ),
-                                    ),
-                                  ).then((value) => _fetchGroups());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                tooltip: 'Excluir grupo',
-                                onPressed: () {
-                                  _showDeleteDialog(context, group['id'], group['grp_nome'] ?? '');
-                                },
-                              ),
-                            ],
-                          ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: GenericSearchInput(
+                          controller: _searchController,
+                          onSearchChanged: _handleSearch,
                         ),
-
-                      ]);
-                    }).toList(),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 30),
-              CustomButton(
-                  text: 'Cadastrar Novo Grupo',
-                  icon: Icons.add,
-                  widthPercent: 0.8,
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/novo-grupo').then((value) {
-                      _fetchGroups();
-                    });
-                  },
-                ),
-              ],
+
+                  const SizedBox(height: 20),
+
+                  GroupList(
+                    key: ValueKey("$_listKey-${_userService.viewingSectorId}"),
+                    searchQuery: _searchQuery,
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
