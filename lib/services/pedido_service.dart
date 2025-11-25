@@ -17,6 +17,7 @@ class PedidoService {
     String? searchQuery,
     int? statusFilter,
     required UserRole userRole,
+    bool onlyMyOrders = false,
   }) async {
     try {
       final viewingSectorId = UserService.instance.viewingSectorId;
@@ -46,6 +47,10 @@ class PedidoService {
             )
           ''')
           .eq(PedidoFields.setorId, viewingSectorId);
+
+      if (onlyMyOrders) {
+        baseQuery = baseQuery.eq(PedidoFields.usuarioId, currentUserId);
+      }
 
       if (statusFilter != null) {
         baseQuery = baseQuery.eq(PedidoFields.status, statusFilter);

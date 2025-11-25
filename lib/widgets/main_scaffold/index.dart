@@ -8,7 +8,6 @@ import 'package:sistema_almox/widgets/main_scaffold/header.dart';
 import 'package:sistema_almox/widgets/main_scaffold/navbar.dart';
 import 'package:sistema_almox/config/permissions.dart';
 import 'package:sistema_almox/screens/admin.dart';
-import 'package:sistema_almox/screens/consultas/index.dart';
 import 'package:sistema_almox/screens/consultas_medico/index.dart';
 import 'package:sistema_almox/screens/estoque.dart';
 import 'package:sistema_almox/screens/home.dart';
@@ -29,6 +28,7 @@ class MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
   List<Widget> _pages = [];
   List<NavBarItemInfo> _navBarItemsInfo = [];
+  static bool _isPasswordModalOpen = false;
 
   @override
   void initState() {
@@ -50,15 +50,19 @@ class MainScaffoldState extends State<MainScaffold> {
     }
   }
 
-  void _checkFirstLogin() {
+  void _checkFirstLogin() async {
     final userService = Provider.of<UserService>(context, listen: false);
 
-    if (userService.currentUser?.primeiroLogin == true) {
-      showCustomBottomSheet(
+    if (userService.currentUser?.primeiroLogin == true &&
+        !_isPasswordModalOpen) {
+      _isPasswordModalOpen = true;
+
+      await showCustomBottomSheet(
         context: context,
         title: 'Redefina Sua Senha',
         child: const ChangePasswordForm(),
       );
+      _isPasswordModalOpen = false;
     }
   }
 
@@ -112,17 +116,6 @@ class MainScaffoldState extends State<MainScaffold> {
       );
     }
 
-    if (!isMedico) {
-      pages.add(const ConsultasScreen());
-      navBarItemsInfo.add(
-        NavBarItemInfo(
-          'assets/icons/calendar.svg',
-          'Consultas',
-          navBarItemsInfo.length,
-        ),
-      );
-    }
-
     if (isMedico) {
       pages.add(const ConsultasMedicoScreen());
       navBarItemsInfo.add(
@@ -163,27 +156,35 @@ class MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     final userService = UserService.instance;
+    final int profilePageIndex = findPageIndexByName('Perfil');
+    final bool isProfilePage = _selectedIndex == profilePageIndex;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: isProfilePage
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(90),
-          child: AnimatedBuilder(
-            animation: UserService.instance,
-            builder: (context, child) {
-              return CustomHeader(onProfileTap: onItemTapped);
-            },
-          ),
-        ),
+        appBar: isProfilePage
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(90),
+                child: AnimatedBuilder(
+                  animation: UserService.instance,
+                  builder: (context, child) {
+                    return CustomHeader(onProfileTap: onItemTapped);
+                  },
+                ),
+              ),
 
         body: Stack(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: isProfilePage
+                  ? EdgeInsets.zero
+                  : const EdgeInsets.symmetric(horizontal: 20.0),
               child: IndexedStack(
                 index: _pages.isEmpty || _selectedIndex >= _pages.length
                     ? 0

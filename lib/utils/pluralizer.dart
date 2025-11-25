@@ -7,26 +7,25 @@ String pluralize(String singular, int count) {
     return singular;
   }
 
-  final String lastChar = singular.substring(singular.length - 1);
+  final bool isUpperCase = singular == singular.toUpperCase();
+
+  final String lastChar = singular.substring(singular.length - 1).toLowerCase();
+  
+  String result;
+
   if (['a', 'e', 'o', 'u'].contains(lastChar)) {
-    return '${singular}s';
+    result = '${singular}s';
+  } else if (lastChar == 'l') {
+    result = '${singular.substring(0, singular.length - 1)}is';
+  } else if (lastChar == 'm') {
+    result = '${singular.substring(0, singular.length - 1)}ns';
+  } else if (lastChar == 'r' || lastChar == 'z') {
+     result = '${singular}es';
+  } else if (lastChar == 's') {
+    result = singular;
+  } else {
+    result = '${singular}s';
   }
 
-  if (lastChar == 'l') {
-    return '${singular.substring(0, singular.length - 1)}is';
-  }
-
-  if (lastChar == 'm') {
-    return '${singular.substring(0, singular.length - 1)}ns';
-  }
-  
-  if (lastChar == 'r' || lastChar == 'z') {
-     return '${singular}es';
-  }
-  
-  if (lastChar == 's') {
-    return singular;
-  }
-  
-  return '${singular}s';
+  return isUpperCase ? result.toUpperCase() : result;
 }

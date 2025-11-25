@@ -157,7 +157,6 @@ class _DetalhesSupplierModalState extends State<DetalhesSupplierModal> {
                     context,
                   ).pop({'action': 'edit', 'data': supplierDataForButtons});
                 },
-          secondary: true,
           isFullWidth: true,
           customIcon: 'assets/icons/edit.svg',
           iconPosition: IconPosition.right,

@@ -212,4 +212,29 @@ Future<List<String>> fetchItensNomes() async {
       throw 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchItemsForDropdown() async {
+    try {
+      final viewingSectorId = UserService.instance.viewingSectorId;
+      if (viewingSectorId == null) {
+        return [];
+      }
+
+      final response = await supabase
+          .rpc(
+            'buscar_itens_por_setor',
+            params: {
+              'id_setor_param': viewingSectorId,
+              'search_query_param': '',
+            },
+          )
+          .select('id, it_nome')
+          .order('it_nome', ascending: true);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Erro ao buscar itens para o dropdown: $e');
+      return [];
+    }
+  }
 }

@@ -22,7 +22,7 @@ class LotManagementSection extends StatefulWidget {
 }
 
 class _LotManagementSectionState extends State<LotManagementSection> {
-  bool _isPerishable = false;
+  late bool _isPerishable;
   final List<LotController> _lotControllers = [];
 
   @override
@@ -31,6 +31,27 @@ class _LotManagementSectionState extends State<LotManagementSection> {
     _isPerishable = widget.initialIsPerishable;
     if (widget.initialLotes != null) {
       _lotControllers.addAll(widget.initialLotes!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant LotManagementSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.initialIsPerishable != oldWidget.initialIsPerishable) {
+      setState(() {
+        _isPerishable = widget.initialIsPerishable;
+      });
+    }
+
+    if (widget.initialLotes != oldWidget.initialLotes) {
+      setState(() {
+        _lotControllers.clear();
+
+        if (widget.initialLotes != null) {
+          _lotControllers.addAll(widget.initialLotes!);
+        }
+      });
     }
   }
 
@@ -50,9 +71,6 @@ class _LotManagementSectionState extends State<LotManagementSection> {
       if (_isPerishable && _lotControllers.isEmpty) {
         _addLot();
       } else if (!_isPerishable) {
-        for (var c in _lotControllers) {
-          c.dispose();
-        }
         _lotControllers.clear();
       }
     });
@@ -68,7 +86,6 @@ class _LotManagementSectionState extends State<LotManagementSection> {
 
   void _removeLot(int index) {
     setState(() {
-      _lotControllers[index].dispose();
       _lotControllers.removeAt(index);
     });
     widget.onChanged(_isPerishable, _lotControllers);
@@ -82,7 +99,7 @@ class _LotManagementSectionState extends State<LotManagementSection> {
       lastDate: DateTime(2101),
     );
     if (pickedDate != null) {
-      controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+      controller.text = DateFormat('yyyy-MM-dd').format(pickedDate);
     }
   }
 

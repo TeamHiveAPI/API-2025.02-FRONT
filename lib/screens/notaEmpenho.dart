@@ -4,7 +4,7 @@ import 'package:sistema_almox/services/criar_empenho.dart';
 import 'package:sistema_almox/widgets/inputs/search.dart';
 import 'package:sistema_almox/widgets/snackbar.dart';
 import 'notaEmpenhoFormsScreen.dart';
-import 'package:sistema_almox/services/donwload_NE/download_nota.dart';
+import 'package:sistema_almox/services/download_NE/download_nota.dart';
 class NotaEmpenhoScreen extends StatefulWidget {
   const NotaEmpenhoScreen({super.key});
 
