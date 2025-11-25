@@ -587,7 +587,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                       LotManagementSection(
                         initialIsPerishable: _formHandler.isPerishable,
                         initialLotes: isEditMode
-                            ? _formHandler.lotControllers
+                            ? _formHandler.lotControllers.toList()
                             : null,
                         onChanged: (isPerishable, lotControllers) {
                           setState(() {

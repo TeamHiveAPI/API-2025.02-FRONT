@@ -77,6 +77,7 @@ class LotInputRow extends StatelessWidget {
                     upperLabel: '',
                     hintText: 'Validade',
                     controller: lot.dateController,
+                    keyboardType: TextInputType.none,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Obrigatório';
